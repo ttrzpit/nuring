@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "ostream": "cpp",
+        "functional": "cpp",
+        "__functional_03": "cpp"
+    }
+}

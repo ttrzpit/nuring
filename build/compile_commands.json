@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/main.cpp.o -c /home/tom/Code/nuring/main.cpp",
+  "file": "/home/tom/Code/nuring/main.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/main.cpp.o"
+}
+]
