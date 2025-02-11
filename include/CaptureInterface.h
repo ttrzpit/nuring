@@ -14,6 +14,16 @@
 // #include <opencv2/objdetect/aruco_detector.hpp> // For AruCo tags
 // #include <opencv2/videoio.hpp> // For video capture
 
+
+struct Marker {
+	bool		present = false;
+	cv::Point3i error3D = cv::Point3i( 0, 0, 0 );
+	cv::Point2i error2D = cv::Point2i( 0, 0 );
+	float		theta	= 0.0f;
+};
+
+
+// Class for the capture interface
 class CaptureInterface {
 
 public:
@@ -22,15 +32,17 @@ public:
 	void FindTags();
 
 	// Variables
-	bool	frameCaptured = false;
-	bool	markerFound	  = false;
-	cv::Mat matFrame	  = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
-	cv::Mat matMarkers	  = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
-	cv::Mat matGray		  = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC1 );
-
+	bool				frameCaptured = false;
+	bool				markerFound	  = false;
+	cv::Mat				matFrame	  = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
+	cv::Mat				matMarkers	  = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
+	cv::Mat				matGray		  = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC1 );
+	std::vector<Marker> Markers;
 
 	// Constructor
-	CaptureInterface() {
+	CaptureInterface()
+		: Markers( 5 ) {
+
 		BeginCapture();
 		BeginAruco();
 	}
@@ -49,12 +61,12 @@ private:
 
 	// Camera properties
 	cv::VideoCapture Capture;
-	cv::Mat			 matRawFrame = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
+	cv::Mat			 matRawFrame = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
 	cv::Mat			 matRemap1;
 	cv::Mat			 matRemap2;
-	cv::cuda::GpuMat gpuRawFrame		 = cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
-	cv::cuda::GpuMat gpuGrayFrame		 = cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC1 );
-	cv::cuda::GpuMat gpuUndistortedFrame = cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC1 );
+	cv::cuda::GpuMat gpuRawFrame		 = cv::cuda::GpuMat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
+	cv::cuda::GpuMat gpuGrayFrame		 = cv::cuda::GpuMat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC1 );
+	cv::cuda::GpuMat gpuUndistortedFrame = cv::cuda::GpuMat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC1 );
 	cv::cuda::GpuMat gpuRemap1;
 	cv::cuda::GpuMat gpuRemap2;
 
@@ -65,7 +77,6 @@ private:
 	std::vector<int>					  markerIDs;
 	std::vector<std::vector<cv::Point2f>> markerCorners, markerRejects;
 	std::vector<cv::Vec3d>				  rotationVector, translationVector;
-	std::vector<int>					  markersPresent = { 0, 0, 0, 0, 0, 0 };
 	cv::Mat								  objPoints{ 4, 1, CV_32FC3 };
 };
 
@@ -87,15 +98,28 @@ void CaptureInterface::BeginCapture() {
 
 		// Capture settings
 		Capture.set( cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc( 'M', 'J', 'P', 'G' ) );
-		Capture.set( cv::CAP_PROP_FRAME_WIDTH, CONFIG_CAM_WIDTH );
-		Capture.set( cv::CAP_PROP_FRAME_HEIGHT, CONFIG_CAM_HEIGHT );
-		Capture.set( cv::CAP_PROP_FPS, CONFIG_CAM_FRAMERATE );
-		Capture.set( cv::CAP_PROP_AUTO_EXPOSURE, CONFIG_CAM_AUTO_EXPOSURE );
-		Capture.set( cv::CAP_PROP_AUTO_WB, CONFIG_CAM_AUTO_WHITEBALANCE );
-		Capture.set( cv::CAP_PROP_FOCUS, CONFIG_CAM_AUTO_FOCUS );
-		Capture.set( cv::CAP_PROP_GAIN, CONFIG_CAM_GAIN_LEVEL );
-		Capture.set( cv::CAP_PROP_EXPOSURE, CONFIG_CAM_EXPOSURE_LEVEL );
+		Capture.set( cv::CAP_PROP_FRAME_WIDTH, CONFIG_CAP_WIDTH );
+		Capture.set( cv::CAP_PROP_FRAME_HEIGHT, CONFIG_CAP_HEIGHT );
+		Capture.set( cv::CAP_PROP_FPS, CONFIG_CAP_FRAMERATE );
 		Capture.set( cv::CAP_PROP_HW_ACCELERATION, cv::VIDEO_ACCELERATION_ANY );
+
+		// Camera settings
+		Capture.set( cv::CAP_PROP_BRIGHTNESS, CONFIG_CAM_BRIGHTNESS );
+		Capture.set( cv::CAP_PROP_CONTRAST, CONFIG_CAM_CONTRAST );
+		Capture.set( cv::CAP_PROP_SATURATION, CONFIG_CAM_SATURATION );
+		Capture.set( cv::CAP_PROP_HUE, CONFIG_CAM_HUE );
+		Capture.set( cv::CAP_PROP_AUTO_WB, CONFIG_CAM_AUTO_WHITEBALANCE );
+		Capture.set( cv::CAP_PROP_GAMMA, CONFIG_CAM_GAMMA );
+		Capture.set( cv::CAP_PROP_GAIN, CONFIG_CAM_GAIN );
+		Capture.set( cv::CAP_PROP_SHARPNESS, CONFIG_CAM_SHARPNESS );
+		Capture.set( cv::CAP_PROP_BACKLIGHT, CONFIG_CAM_BACKLIGHT );
+		Capture.set( cv::CAP_PROP_AUTO_EXPOSURE, CONFIG_CAM_AUTO_EXPOSURE );
+		Capture.set( cv::CAP_PROP_EXPOSURE, CONFIG_CAM_EXPOSURE_LEVEL );
+		Capture.set( cv::CAP_PROP_PAN, CONFIG_CAM_PAN );
+		Capture.set( cv::CAP_PROP_TILT, CONFIG_CAM_TILT );
+		Capture.set( cv::CAP_PROP_FOCUS, CONFIG_CAM_FOCUS_LEVEL );
+		Capture.set( cv::CAP_PROP_AUTOFOCUS, CONFIG_CAM_AUTO_FOCUS );
+		Capture.set( cv::CAP_PROP_ZOOM, CONFIG_CAM_ZOOM );
 
 		// Ensure capture devices open and running
 		if( !Capture.isOpened() ) {
@@ -106,7 +130,7 @@ void CaptureInterface::BeginCapture() {
 	}
 
 	std::cout << "\nInitializeCamera: Camera initialized at ( " << Capture.get( cv::CAP_PROP_FRAME_HEIGHT ) << " x " << Capture.get( cv::CAP_PROP_FRAME_WIDTH ) << " ) @ " << Capture.get( cv::CAP_PROP_FPS ) << " fps, mode = " << Capture.get( cv::CAP_PROP_BACKEND )
-			  << " , Accel = " << Capture.get( cv::CAP_PROP_HW_ACCELERATION ) << "\n\n";
+			  << " , Accel = " << Capture.get( cv::CAP_PROP_HW_ACCELERATION ) << "\n";
 	;
 }
 
@@ -138,7 +162,7 @@ void CaptureInterface::GetFrame() {
 		gpuRemap2.upload( matRemap2 );
 
 		// Remap using GPU
-		cv::cuda::remap( gpuRawFrame, gpuUndistortedFrame, gpuRemap1, gpuRemap2, cv::INTER_LINEAR );
+		cv::cuda::remap( gpuRawFrame, gpuUndistortedFrame, gpuRemap1, gpuRemap2, cv::INTER_NEAREST );
 
 		// Extract frame for visualization
 		gpuUndistortedFrame.download( matFrame );
@@ -163,25 +187,27 @@ void CaptureInterface::BeginAruco() {
 	dictionary = cv::aruco::getPredefinedDictionary( cv::aruco::DICT_4X4_50 );
 
 	// Assign ArUco detector parameters
-	detectorParams.adaptiveThreshWinSizeMin		 = 3;		// 3
-	detectorParams.adaptiveThreshWinSizeMax		 = 23;		// 23
-	detectorParams.adaptiveThreshWinSizeStep	 = 10;		// 10
-	detectorParams.minMarkerPerimeterRate		 = 0.01;	// 0.03
-	detectorParams.maxMarkerPerimeterRate		 = 4.0;		// 4.0
-	detectorParams.minCornerDistanceRate		 = 0.05;	// 0.05
-	detectorParams.minDistanceToBorder			 = 3;		// 3
-	detectorParams.cornerRefinementMethod		 = cv::aruco::CORNER_REFINE_SUBPIX;
-	detectorParams.cornerRefinementMaxIterations = 30;	   // 30
-	detectorParams.cornerRefinementMinAccuracy	 = 0.1;	   // 0.1
+	detectorParams.adaptiveThreshConstant		 = 7;
+	detectorParams.adaptiveThreshWinSizeMin		 = 3;									// 3
+	detectorParams.adaptiveThreshWinSizeMax		 = 33;									// 23
+	detectorParams.adaptiveThreshWinSizeStep	 = 10;									// 10
+	detectorParams.minMarkerPerimeterRate		 = 0.03;								// 0.03
+	detectorParams.maxMarkerPerimeterRate		 = 4.0;									// 4.0
+	detectorParams.minCornerDistanceRate		 = 0.05;								// 0.05
+	detectorParams.minDistanceToBorder			 = 3;									// 3
+	detectorParams.cornerRefinementMethod		 = cv::aruco::CORNER_REFINE_CONTOUR;	// cv::aruco::CORNER_REFINE_SUBPIX;
+	detectorParams.cornerRefinementMaxIterations = 30;									// 30
+	detectorParams.cornerRefinementMinAccuracy	 = 0.1;									// 0.1
+	// detectorParams.useAruco3Detection			 = true;
 
 	// Create new aruco detector object
 	arucoDetector = cv::aruco::ArucoDetector( dictionary, detectorParams );
 
 	// Configure real-world conversion system
-	objPoints.ptr<cv::Vec3f>( 0 )[ 0 ] = cv::Vec3f( -CONFIG_MARKER_WIDTH / 2.f, CONFIG_MARKER_WIDTH / 2.f, 0 );
-	objPoints.ptr<cv::Vec3f>( 0 )[ 1 ] = cv::Vec3f( CONFIG_MARKER_WIDTH / 2.f, CONFIG_MARKER_WIDTH / 2.f, 0 );
-	objPoints.ptr<cv::Vec3f>( 0 )[ 2 ] = cv::Vec3f( CONFIG_MARKER_WIDTH / 2.f, -CONFIG_MARKER_WIDTH / 2.f, 0 );
-	objPoints.ptr<cv::Vec3f>( 0 )[ 3 ] = cv::Vec3f( -CONFIG_MARKER_WIDTH / 2.f, -CONFIG_MARKER_WIDTH / 2.f, 0 );
+	objPoints.ptr<cv::Vec3f>( 0 )[0] = cv::Vec3f( -CONFIG_MARKER_WIDTH / 2.f, CONFIG_MARKER_WIDTH / 2.f, 0 );
+	objPoints.ptr<cv::Vec3f>( 0 )[1] = cv::Vec3f( CONFIG_MARKER_WIDTH / 2.f, CONFIG_MARKER_WIDTH / 2.f, 0 );
+	objPoints.ptr<cv::Vec3f>( 0 )[2] = cv::Vec3f( CONFIG_MARKER_WIDTH / 2.f, -CONFIG_MARKER_WIDTH / 2.f, 0 );
+	objPoints.ptr<cv::Vec3f>( 0 )[3] = cv::Vec3f( -CONFIG_MARKER_WIDTH / 2.f, -CONFIG_MARKER_WIDTH / 2.f, 0 );
 }
 
 
@@ -192,6 +218,9 @@ void CaptureInterface::FindTags() {
 
 	// Check if markers found
 	if( !markerIDs.empty() ) {
+
+		// Update marker flag
+		markerFound = true;
 
 		// Clear previous marker matrix
 		matMarkers = 0;
@@ -207,13 +236,25 @@ void CaptureInterface::FindTags() {
 		for( size_t i = 0; i < markerIDs.size(); i++ ) {
 
 			// Only process markers in valid set
-			if( markerIDs[ i ] > 0 && markerIDs[ i ] < 6 ) {
+			if( markerIDs[i] > 0 && markerIDs[i] < 6 ) {
+
+				int avgX = int( ( markerCorners[i][0].x + markerCorners[i][1].x + markerCorners[i][2].x + markerCorners[i][3].x ) / 4.0f );
+				int avgY = int( ( markerCorners[i][0].y + markerCorners[i][1].y + markerCorners[i][2].y + markerCorners[i][3].y ) / 4.0f );
+
 
 				// Update list of present markers
+				Markers[i].present = true;
 
-				markersPresent[ i ] = 1;
-				cv::drawFrameAxes( matFrame, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, rotationVector[ i ], translationVector[ i ], CONFIG_MARKER_WIDTH, 1 );
+				// Update marker positions
+				Markers[i].error3D = cv::Point3i( int( translationVector[i][0] ), int( translationVector[i][1] ), int( translationVector[i][2] ) );
+				Markers[i].error2D = cv::Point2d( int( ( markerCorners[i][0].x + markerCorners[i][1].x + markerCorners[i][2].x + markerCorners[i][3].x ) / 4.0f ), int( ( markerCorners[i][0].y + markerCorners[i][1].y + markerCorners[i][2].y + markerCorners[i][3].y ) / 4.0f ) );
+				Markers[i].theta   = rotationVector[i][1];
+
+				// Draw frame axis
+				cv::drawFrameAxes( matFrame, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, rotationVector[i], translationVector[i], CONFIG_MARKER_WIDTH, 1 );
 			}
 		}
+	} else {
+		markerFound = false;
 	}
 }

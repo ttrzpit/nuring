@@ -114,7 +114,7 @@ SpacesInAngles:  false
 SpacesInContainerLiterals: true
 SpacesInCStyleCastParentheses: true
 SpacesInParentheses: true
-SpacesInSquareBrackets: true
+SpacesInSquareBrackets: false
 SpaceAfterTemplateKeyword: true
 SpaceBeforeInheritanceColon: true
 

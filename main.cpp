@@ -13,6 +13,7 @@
 
 // Custom libraries
 #include "include/CaptureInterface.h"
+#include "include/DisplayInterface.h"
 #include "include/SerialInterface.h"
 #include "include/TimingInterface.h"
 
@@ -20,6 +21,7 @@
 CaptureInterface Capture;
 SerialInterface	 Serial;
 TimingInterface	 Timing;
+DisplayInterface Display;
 
 // Global flags
 bool RUNNING = true;
@@ -40,6 +42,8 @@ int main() {
 	// Ensure all OpenCV objects closed
 	cv::destroyAllWindows();
 
+	// cv::Mat displayFrame = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_WIDTH, CV_8UC3 );
+
 	// For debugging
 	// std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
 	// cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_VERBOSE);
@@ -48,23 +52,34 @@ int main() {
 	std::ios_base::sync_with_stdio( false );
 	std::cout.setf( std::ios::unitbuf );
 
+	// Temporary counter for testing serial output
 	int counter = 0;
 
+	// Start timer for measuring loop frequency
 	Timing.StartTimer();
+
+
 
 	while( RUNNING ) {
 
 		// Parse input ( pollKey is needed for openCv to loop properly )
 		ParseInput( cv::pollKey() );
 
+		// Get current frame and find aruco tags
 		Capture.GetFrame();
 		Capture.FindTags();
 
-		cv::imshow( "Raw", Capture.matFrame );
+		// Update output display
+		// displayFrame = Display.Update( Capture.matFrame, Capture );
 
+		// Show updated image
+		cv::imshow( "Raw", Display.Update( Capture.matFrame, Capture ) );
+
+		// Send serial packet
 		Serial.Send( std::to_string( counter ) );
 		counter++;
 
+		// Check program frequency
 		Timing.CheckFrequency();
 	}
 

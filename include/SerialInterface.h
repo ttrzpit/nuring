@@ -40,7 +40,7 @@ void SerialInterface::Begin() {
 	if( tcgetattr( serialPort, &tty ) != 0 ) {
 		printf( "Error %i from tctgetattr: %s\n", errno, strerror( errno ) );
 	} else {
-		std::cout << "Serial opened.\n";
+		std::cout << "SerialInterface:  Serial interface initialized.\n";
 	}
 
 	// Configure port
