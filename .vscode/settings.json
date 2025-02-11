@@ -1,7 +1,7 @@
 {
+    "editor.formatOnSave": true,
+    "C_Cpp.clang_format_fallbackStyle": "LLVM",
     "files.associations": {
-        "ostream": "cpp",
-        "functional": "cpp",
-        "__functional_03": "cpp"
+        "1tp4qpjltf4xg-_1q7maeftazepjs8tm5": "cpp"
     }
 }

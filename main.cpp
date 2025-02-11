@@ -1,76 +1,89 @@
+
+
 // Necessary libraries
-#include <iostream>                      // For input/output handling
-#include <opencv2/core/utils/logger.hpp> // For verbose debugging
+#include <iostream>							// For input/output handling
+#include <opencv2/core/utils/logger.hpp>	// For verbose debugging
+#include <unistd.h>							// For sleep
 
 // OpenCV libraries
-#include <opencv2/highgui.hpp> // For pollKey()
+#include <opencv2/highgui.hpp>	  // For pollKey()
 
 // Configuration file
 #include "include/config.h"
 
 // Custom libraries
-// #include "include/SerialInterface.h"
-#include "include/CameraInterface.h"
-#include "include/ArucoInterface.h"
+#include "include/CaptureInterface.h"
+#include "include/SerialInterface.h"
 
 // Class objects
-CameraInterface Camera;
-ArucoInterface Aruco;
+CaptureInterface Capture;
+SerialInterface	 Serial;
 
+// Global flags
 bool RUNNING = true;
 
+
+
 // Function prototypes
-void ParseInput(int key);
+void ParseInput( int key );
+
+
 
 /**
  * @brief Main program function
  * @return 0 on successful close
  */
-int main()
-{
+int main() {
 
-    // For debugging
-    std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
-    cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_VERBOSE);
+	// Ensure all OpenCV objects closed
+	cv::destroyAllWindows();
 
-    // Optimization for C/C++ data types
-    std::ios_base::sync_with_stdio(false);
-    std::cout.setf(std::ios::unitbuf);
+	// For debugging
+	// std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
+	// cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_VERBOSE);
 
-    while (RUNNING)
-    {
+	// Optimization for C/C++ data types
+	std::ios_base::sync_with_stdio( false );
+	std::cout.setf( std::ios::unitbuf );
 
-        // Parse input ( pollKey is needed for openCv to loop properly )
-        ParseInput(cv::pollKey());
-        cv::imshow("Raw", Camera.GetRawFrame());
-    }
+	while( RUNNING ) {
 
-    // Closing message
-    std::cout << "Program shutting down... \n";
+		// Parse input ( pollKey is needed for openCv to loop properly )
+		ParseInput( cv::pollKey() );
 
-    // Shut down openCV
+		Capture.GetFrame();
+		Capture.FindTags();
 
-    cv::destroyAllWindows();
+		cv::imshow( "Raw", Capture.matFrame );
+	}
 
-    // Return
-    return 0;
+	// Closing message
+	std::cout << "Program shutting down... \n";
+
+	// Close serial port
+	Serial.Close();
+
+	// Shut down openCV
+	cv::destroyAllWindows();
+
+	// Exit & return
+	exit( 0 );
+	return 0;
 }
 
-void ParseInput(int key)
-{
+void ParseInput( int key ) {
 
-    // Ignore mouse clicks or arrows
-    if (key != -1)
+	// Ignore mouse clicks or arrows
+	if( key != -1 )
 
-    {
-        // std::cout << "Key: " << key << "\n" ;
+	{
+		// std::cout << "Key: " << key << "\n" ;
 
-        switch (key)
-        {
-        case 1048603: // ESC key
-            std::cout << "Stop key pressed, exiting.\n";
-            RUNNING = false;
-            break;
-        }
-    }
+		switch( key ) {
+		case 1048603:	 // ESC key
+			std::cout << "Stop key pressed, exiting.\n";
+			RUNNING = false;
+			break;
+		}
+	}
 }
