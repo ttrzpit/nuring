@@ -14,10 +14,12 @@
 // Custom libraries
 #include "include/CaptureInterface.h"
 #include "include/SerialInterface.h"
+#include "include/TimingInterface.h"
 
 // Class objects
 CaptureInterface Capture;
 SerialInterface	 Serial;
+TimingInterface	 Timing;
 
 // Global flags
 bool RUNNING = true;
@@ -46,6 +48,10 @@ int main() {
 	std::ios_base::sync_with_stdio( false );
 	std::cout.setf( std::ios::unitbuf );
 
+	int counter = 0;
+
+	Timing.StartTimer();
+
 	while( RUNNING ) {
 
 		// Parse input ( pollKey is needed for openCv to loop properly )
@@ -55,6 +61,11 @@ int main() {
 		Capture.FindTags();
 
 		cv::imshow( "Raw", Capture.matFrame );
+
+		Serial.Send( std::to_string( counter ) );
+		counter++;
+
+		Timing.CheckFrequency();
 	}
 
 	// Closing message
