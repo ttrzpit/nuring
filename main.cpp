@@ -24,8 +24,9 @@ TimingInterface	 Timing;
 DisplayInterface Display;
 
 // Global flags
-bool RUNNING = true;
-
+bool FLAG_PROGRAM_RUNNING = true;
+bool FLAG_MOTORS_ENABLED  = false;
+bool FLAG_SERIAL_ENABLED  = false;
 
 
 // Function prototypes
@@ -42,9 +43,8 @@ int main() {
 	// Ensure all OpenCV objects closed
 	cv::destroyAllWindows();
 
+	// Outgoing packet string
 	std::string outgoingPacket = "";
-
-	// cv::Mat displayFrame = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_WIDTH, CV_8UC3 );
 
 	// For debugging
 	// std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
@@ -60,9 +60,12 @@ int main() {
 	// Start timer for measuring loop frequency
 	Timing.StartTimer();
 
+	// Check serial status
 
+	FLAG_SERIAL_ENABLED = Serial.GetStatus();
+	Display.FLAG_SERIAL = FLAG_SERIAL_ENABLED;
 
-	while( RUNNING ) {
+	while( FLAG_PROGRAM_RUNNING ) {
 
 		// Parse input ( pollKey is needed for openCv to loop properly )
 		ParseInput( cv::pollKey() );
@@ -71,21 +74,26 @@ int main() {
 		Capture.GetFrame();
 		Capture.FindTags();
 
-		// Update output display
-		// displayFrame = Display.Update( Capture.matFrame, Capture );
-
 		// Show updated image
 		cv::imshow( "Raw", Display.Update( Capture.matFrame, Capture ) );
 
 		// Send serial packet
 		if( Capture.markerFound ) {
 
-			outgoingPacket = "x" + std::to_string( Capture.Markers[0].error3D.x ) + "y" + std::to_string( Capture.Markers[0].error3D.y ) + "z" + std::to_string( Capture.Markers[0].error3D.z ) + "\n";
-			Serial.Send( outgoingPacket );
+			// If motors have been enabled, start sending serial packet
+			if( FLAG_MOTORS_ENABLED && FLAG_SERIAL_ENABLED ) {
+				outgoingPacket = "x" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.x ) + "y" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.y ) + "z" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.z ) + "\n";
+				Serial.Send( outgoingPacket );
+				Display.setSerialString( outgoingPacket.substr( 0, outgoingPacket.length() - 1 ) );
+			} else if( !FLAG_MOTORS_ENABLED && FLAG_SERIAL_ENABLED ) {
+				outgoingPacket = "Standby\n";
+				Serial.Send( outgoingPacket );
+				Display.setSerialString( outgoingPacket.substr( 0, outgoingPacket.length() - 1 ) );
+			}
 		}
 
 		// Check program frequency
-		Timing.CheckFrequency();
+		Display.setFrequency( Timing.CheckFrequency() );
 	}
 
 	// Closing message
@@ -108,12 +116,89 @@ void ParseInput( int key ) {
 	if( key != -1 )
 
 	{
-		// std::cout << "Key: " << key << "\n" ;
+		std::cout << "Detected key press = " << key << "\n";
 
 		switch( key ) {
+		case 1179675:	 // ESC key
+			Display.setStatusString( "CAPS LOCK IS ON!" );
+			// std::cout << "Stop key pressed, exiting.\n";
+			// RUNNING = false;
+			break;
 		case 1048603:	 // ESC key
+			Display.setStatusString( "Stop key pressed, exiting." );
 			std::cout << "Stop key pressed, exiting.\n";
-			RUNNING = false;
+			FLAG_PROGRAM_RUNNING = false;
+			break;
+		case 1048625:	 // 1
+			Display.setStatusString( "Updated active marker to #" + std::string( Capture.activeMarker == 1 ? "0." : "1." ) );
+			( Capture.activeMarker == 1 ? Capture.activeMarker = 0 : Capture.activeMarker = 1 );
+			break;
+		case 1048626:	 // 2
+			Display.setStatusString( "Updated active marker to #" + std::string( Capture.activeMarker == 2 ? "0." : "2." ) );
+			( Capture.activeMarker == 2 ? Capture.activeMarker = 0 : Capture.activeMarker = 2 );
+			break;
+		case 1048627:	 // 3
+			Display.setStatusString( "Updated active marker to #" + std::string( Capture.activeMarker == 3 ? "0." : "3." ) );
+			( Capture.activeMarker == 3 ? Capture.activeMarker = 0 : Capture.activeMarker = 3 );
+			break;
+		case 1048628:	 // 4
+			Display.setStatusString( "Updated active marker to #" + std::string( Capture.activeMarker == 4 ? "0." : "4." ) );
+			( Capture.activeMarker == 4 ? Capture.activeMarker = 0 : Capture.activeMarker = 4 );
+			break;
+		case 1048629:	 // 5
+			Display.setStatusString( "Updated active marker to #" + std::string( Capture.activeMarker == 5 ? "0." : "5." ) );
+			( Capture.activeMarker == 5 ? Capture.activeMarker = 0 : Capture.activeMarker = 5 );
+			break;
+		case 1048630:	 // 6
+			Display.setStatusString( "Updated active marker to #" + std::string( Capture.activeMarker == 6 ? "0." : "6." ) );
+			( Capture.activeMarker == 6 ? Capture.activeMarker = 0 : Capture.activeMarker = 6 );
+			break;
+		case 1048631:	 // 7
+			Display.setStatusString( "Updated active marker to #" + std::string( Capture.activeMarker == 7 ? "0." : "7." ) );
+			( Capture.activeMarker == 7 ? Capture.activeMarker = 0 : Capture.activeMarker = 7 );
+			break;
+		case 1048632:	 // 8
+			Display.setStatusString( "Updated active marker to #" + std::string( Capture.activeMarker == 8 ? "0." : "8." ) );
+			( Capture.activeMarker == 8 ? Capture.activeMarker = 0 : Capture.activeMarker = 8 );
+			break;
+		case 1048633:	 // 9
+			Display.setStatusString( "Updated active marker to #" + std::string( Capture.activeMarker == 9 ? "0." : "9." ) );
+			( Capture.activeMarker == 9 ? Capture.activeMarker = 0 : Capture.activeMarker = 9 );
+			break;
+		case 1048634:	 // 10
+			Display.setStatusString( "Updated active marker to #" + std::string( Capture.activeMarker == 10 ? "0." : "10." ) );
+			( Capture.activeMarker == 10 ? Capture.activeMarker = 0 : Capture.activeMarker = 10 );
+			break;
+		case 1048672:	 // ~
+			Display.setStatusString( "Disabling all active markers." );
+			Capture.activeMarker = 0;
+			break;
+		case 1048677:	 // E
+			FLAG_MOTORS_ENABLED = !FLAG_MOTORS_ENABLED;
+			if( FLAG_MOTORS_ENABLED ) {
+				Display.FLAG_AMPLIFIERS = true;
+				Display.setStatusString( "Amplifiers enabled." );
+			} else {
+				Display.FLAG_AMPLIFIERS = false;
+				Display.setStatusString( "Amplifiers disabled." );
+			}
+			break;
+		case 1048691:	 // S
+			FLAG_SERIAL_ENABLED = !FLAG_SERIAL_ENABLED;
+			if( FLAG_SERIAL_ENABLED ) {
+				Display.FLAG_SERIAL = true;
+				Display.setStatusString( "Enabling Serial output." );
+			} else {
+				Display.FLAG_SERIAL = false;
+				Display.setStatusString( "Disabling Serial output." );
+			}
+			break;
+		case 1048696:	 // X
+			Display.setStatusString( "Software E-Stop Triggered. Amplifiers and serial output disabled." );
+			FLAG_SERIAL_ENABLED		= false;
+			FLAG_MOTORS_ENABLED		= false;
+			Display.FLAG_SERIAL		= FLAG_SERIAL_ENABLED;
+			Display.FLAG_AMPLIFIERS = FLAG_MOTORS_ENABLED;
 			break;
 		}
 	}

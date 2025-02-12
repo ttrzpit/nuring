@@ -18,10 +18,13 @@ public:
 		Begin();
 	}
 
+	// Variables
+	bool IS_SERIAL_ENABLED = false;
 	// Functions
 	void Begin();
 	void Close();
 	void Send( const std::string& msg );
+	bool GetStatus();
 
 private:
 	int			   serialPort;
@@ -39,8 +42,10 @@ void SerialInterface::Begin() {
 	// Get existing settings
 	if( tcgetattr( serialPort, &tty ) != 0 ) {
 		printf( "Error %i from tctgetattr: %s\n", errno, strerror( errno ) );
+		IS_SERIAL_ENABLED = false;
 	} else {
 		std::cout << "SerialInterface:  Serial interface initialized.\n";
+		IS_SERIAL_ENABLED = true;
 	}
 
 	// Configure port
@@ -62,8 +67,8 @@ void SerialInterface::Begin() {
 	tty.c_oflag &= ~OPOST;	  // Prevent special interpretation of output bytes (e.g. newline chars)
 	tty.c_oflag &= ~ONLCR;	  // Prevent conversion of newline to carriage return/line feed
 
-	tty.c_cc[ VTIME ] = 2;	  // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
-	tty.c_cc[ VMIN ]  = 0;
+	tty.c_cc[VTIME] = 2;	// Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
+	tty.c_cc[VMIN]	= 0;
 
 	// Set in/out baud rate to be 9600
 	cfsetispeed( &tty, B1000000 );
@@ -91,4 +96,9 @@ void SerialInterface::Send( const std::string& msg ) {
 
 void SerialInterface::Close() {
 	close( serialPort );
+}
+
+
+bool SerialInterface::GetStatus() {
+	return IS_SERIAL_ENABLED;
 }

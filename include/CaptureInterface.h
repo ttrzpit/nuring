@@ -16,10 +16,12 @@
 
 
 struct Marker {
-	bool		present = false;
-	cv::Point3i error3D = cv::Point3i( 0, 0, 0 );
-	cv::Point2i error2D = cv::Point2i( 0, 0 );
-	float		theta	= 0.0f;
+	short		ID			   = 0;
+	bool		present		   = false;
+	cv::Point3i error3D		   = cv::Point3i( 0, 0, 0 );
+	cv::Point2i error2D		   = cv::Point2i( 0, 0 );
+	float		theta		   = 0.0f;
+	short		errorMagnitude = 0;
 };
 
 
@@ -38,10 +40,11 @@ public:
 	cv::Mat				matMarkers	  = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
 	cv::Mat				matGray		  = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC1 );
 	std::vector<Marker> Markers;
+	short				activeMarker = 0;
 
 	// Constructor
 	CaptureInterface()
-		: Markers( 5 ) {
+		: Markers( 10 ) {
 
 		BeginCapture();
 		BeginAruco();
@@ -188,16 +191,16 @@ void CaptureInterface::BeginAruco() {
 
 	// Assign ArUco detector parameters
 	detectorParams.adaptiveThreshConstant		 = 7;
-	detectorParams.adaptiveThreshWinSizeMin		 = 3;									// 3
-	detectorParams.adaptiveThreshWinSizeMax		 = 33;									// 23
-	detectorParams.adaptiveThreshWinSizeStep	 = 10;									// 10
-	detectorParams.minMarkerPerimeterRate		 = 0.03;								// 0.03
-	detectorParams.maxMarkerPerimeterRate		 = 4.0;									// 4.0
-	detectorParams.minCornerDistanceRate		 = 0.05;								// 0.05
-	detectorParams.minDistanceToBorder			 = 3;									// 3
-	detectorParams.cornerRefinementMethod		 = cv::aruco::CORNER_REFINE_CONTOUR;	// cv::aruco::CORNER_REFINE_SUBPIX;
-	detectorParams.cornerRefinementMaxIterations = 30;									// 30
-	detectorParams.cornerRefinementMinAccuracy	 = 0.1;									// 0.1
+	detectorParams.adaptiveThreshWinSizeMin		 = 3;								   // 3
+	detectorParams.adaptiveThreshWinSizeMax		 = 33;								   // 23
+	detectorParams.adaptiveThreshWinSizeStep	 = 10;								   // 10
+	detectorParams.minMarkerPerimeterRate		 = 0.03;							   // 0.03
+	detectorParams.maxMarkerPerimeterRate		 = 4.0;								   // 4.0
+	detectorParams.minCornerDistanceRate		 = 0.05;							   // 0.05
+	detectorParams.minDistanceToBorder			 = 3;								   // 3
+	detectorParams.cornerRefinementMethod		 = cv::aruco::CORNER_REFINE_SUBPIX;	   // cv::aruco::CORNER_REFINE_SUBPIX;
+	detectorParams.cornerRefinementMaxIterations = 30;								   // 30
+	detectorParams.cornerRefinementMinAccuracy	 = 0.1;								   // 0.1
 	// detectorParams.useAruco3Detection			 = true;
 
 	// Create new aruco detector object
@@ -211,7 +214,16 @@ void CaptureInterface::BeginAruco() {
 }
 
 
+
 void CaptureInterface::FindTags() {
+
+	// Reset marker state
+	for( size_t c = 0; c < Markers.size(); c++ ) {
+		Markers[c].present = false;
+	}
+
+	// Clear active marker
+	// activeMarker = 0;
 
 	// Run detector
 	arucoDetector.detectMarkers( matGray, markerCorners, markerIDs, markerRejects );
@@ -225,7 +237,7 @@ void CaptureInterface::FindTags() {
 		// Clear previous marker matrix
 		matMarkers = 0;
 
-		// Draw markers
+		// // Draw markers
 		cv::aruco::drawDetectedMarkers( matFrame, markerCorners, markerIDs );
 
 		// Estimate pose
@@ -236,19 +248,28 @@ void CaptureInterface::FindTags() {
 		for( size_t i = 0; i < markerIDs.size(); i++ ) {
 
 			// Only process markers in valid set
-			if( markerIDs[i] > 0 && markerIDs[i] < 6 ) {
+			if( markerIDs[i] > 0 && markerIDs[i] < 11 ) {
 
+				// Shortcut for index
+				short index = markerIDs[i];
+
+				// // If no active marker set, set first one detected
+				// if( activeMarker == 0 ) {
+				// 	activeMarker = index;
+				// }
+
+				// Calculate 2D pixel space
 				int avgX = int( ( markerCorners[i][0].x + markerCorners[i][1].x + markerCorners[i][2].x + markerCorners[i][3].x ) / 4.0f );
 				int avgY = int( ( markerCorners[i][0].y + markerCorners[i][1].y + markerCorners[i][2].y + markerCorners[i][3].y ) / 4.0f );
 
-
 				// Update list of present markers
-				Markers[i].present = true;
+				Markers[index].present = true;
 
 				// Update marker positions
-				Markers[i].error3D = cv::Point3i( int( translationVector[i][0] ), int( translationVector[i][1] ), int( translationVector[i][2] ) );
-				Markers[i].error2D = cv::Point2d( int( ( markerCorners[i][0].x + markerCorners[i][1].x + markerCorners[i][2].x + markerCorners[i][3].x ) / 4.0f ), int( ( markerCorners[i][0].y + markerCorners[i][1].y + markerCorners[i][2].y + markerCorners[i][3].y ) / 4.0f ) );
-				Markers[i].theta   = rotationVector[i][1];
+				Markers[index].error3D		  = cv::Point3i( int( translationVector[i][0] ), int( translationVector[i][1] ), int( translationVector[i][2] ) );
+				Markers[index].error2D		  = cv::Point2d( int( ( markerCorners[i][0].x + markerCorners[i][1].x + markerCorners[i][2].x + markerCorners[i][3].x ) / 4.0f ), int( ( markerCorners[i][0].y + markerCorners[i][1].y + markerCorners[i][2].y + markerCorners[i][3].y ) / 4.0f ) );
+				Markers[index].theta		  = rotationVector[i][1];
+				Markers[index].errorMagnitude = sqrt( ( Markers[index].error3D.x * Markers[index].error3D.x ) + ( Markers[index].error3D.y * Markers[index].error3D.y ) + ( Markers[index].error3D.z * Markers[index].error3D.z ) );
 
 				// Draw frame axis
 				cv::drawFrameAxes( matFrame, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, rotationVector[i], translationVector[i], CONFIG_MARKER_WIDTH, 1 );

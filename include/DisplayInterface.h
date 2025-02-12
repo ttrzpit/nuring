@@ -25,24 +25,36 @@ public:
 
 	// Functions
 	cv::Mat Update( cv::Mat& frame, CaptureInterface& Capture );
-	// void CheckFrequency();
+	void	setFrequency( char freq );
+	void	setStatusString( std::string status );
+	void	setSerialString( std::string packet );
+
+	// Variables
+	bool FLAG_SERIAL	 = false;
+	bool FLAG_AMPLIFIERS = false;
+
 
 private:
 	// Variables
-	cv::cuda::GpuMat		 gpuFrame	  = cv::cuda::GpuMat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
-	std::vector<std::string> stringVector = { "", "", "", "", "" };
-	cv::Mat					 matDisplay	  = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_WIDTH, CV_8UC3 );
+	cv::cuda::GpuMat		 gpuFrame		   = cv::cuda::GpuMat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
+	std::vector<std::string> stringVector	   = { "", "", "", "", "" };
+	cv::Mat					 matDisplay		   = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_WIDTH, CV_8UC3 );
+	char					 measuredFrequency = 0.0f;
+	std::string				 statusString	   = "";
+	std::string				 serialString	   = "";
 
 	// Text properties
 	float	   cellFontSize	 = 1.0f;
 	cv::Scalar cellOutline	 = CONFIG_colWhite;
 	cv::Scalar cellFill		 = CONFIG_colGraDk;
 	cv::Scalar cellTextColor = CONFIG_colYelLt;
-	bool	   cellCentered	 = false;
 	short	   cellPx		 = 40;
-	short	   WIDTH		 = 64;
+	short	   WIDTH		 = 32;
 	short	   HEIGHT		 = 30;
 	cv::Size   textSize;
+	float	   fontHeader = 0.6f;
+	float	   fontBody	  = 0.5f;
+
 
 	// Cell properties
 	short c0	= 0;
@@ -55,8 +67,9 @@ private:
 	short textY = 0;	// Text Y position
 
 	// Functions
-	void DrawCell( std::string str, std::string cell0, std::string cell1, float sz );
+	void DrawCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
 	void FormatCell( cv::Scalar outline, cv::Scalar fill, cv::Scalar textColor, bool center );
+	void AddText( CaptureInterface& Capture );
 };
 
 
@@ -83,22 +96,7 @@ cv::Mat DisplayInterface::Update( cv::Mat& frame, CaptureInterface& Capture ) {
 		cv::line( matDisplay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( frame.cols, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_colRedDk, 1 );
 	}
 
-
-
-	// Set cell format
-	FormatCell( CONFIG_colGraLt, CONFIG_colGraBk, CONFIG_colWhite, true );
-
-	// Draw interface
-	DrawCell( "Active Marker", "A1", "C1", 0.7f );
-	DrawCell( "1", "A2", "C2", 0.7f );
-	DrawCell( " ", "A3", "B3", 0.7f );
-	DrawCell( "Position", "B3", "C3", 0.7f );
-	DrawCell( "x", "A4", "A4", 0.6f );
-	DrawCell( "y", "A5", "A5", 0.6f );
-	DrawCell( "z", "A6", "A6", 0.6f );
-	DrawCell( std::to_string( Capture.Markers[0].error3D.x ), "B4", "C4", 0.6f );
-	DrawCell( std::to_string( Capture.Markers[0].error3D.y ), "B5", "C5", 0.6f );
-	DrawCell( std::to_string( Capture.Markers[0].error3D.z ), "B6", "C6", 0.6f );
+	AddText( Capture );
 
 	return matDisplay;
 
@@ -110,44 +108,101 @@ cv::Mat DisplayInterface::Update( cv::Mat& frame, CaptureInterface& Capture ) {
 	// }
 }
 
-void DisplayInterface::DrawCell( std::string str, std::string cell0, std::string cell1, float sz ) {
+
+void DisplayInterface::AddText( CaptureInterface& Capture ) {
+
+	// Set cell format
+	FormatCell( CONFIG_colGraLt, CONFIG_colGraBk, CONFIG_colWhite, true );
+
+	// Active Marker Block
+	DrawCell( "Active Marker", "A1", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "1", "A2", 1, 1, fontBody, ( Capture.Markers[1].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 1 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( "2", "B2", 1, 1, fontBody, ( Capture.Markers[2].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 2 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( "3", "C2", 1, 1, fontBody, ( Capture.Markers[3].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 3 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( "4", "D2", 1, 1, fontBody, ( Capture.Markers[4].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 4 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( "5", "E2", 1, 1, fontBody, ( Capture.Markers[5].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 5 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( "6", "A3", 1, 1, fontBody, ( Capture.Markers[6].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 6 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( "7", "B3", 1, 1, fontBody, ( Capture.Markers[7].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 7 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( "8", "C3", 1, 1, fontBody, ( Capture.Markers[8].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 8 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( "9", "D3", 1, 1, fontBody, ( Capture.Markers[9].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 9 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( "10", "E3", 1, 1, fontBody, ( Capture.Markers[10].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 10 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+
+	// Position Block
+	DrawCell( "", "A4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Position", "B4", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "x", "A5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "y", "A6", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "z", "A7", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "R", "A8", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].error3D.x ), "B5", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].error3D.y ), "B6", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].error3D.z ), "B7", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].errorMagnitude ), "B8", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Frequency Block
+	DrawCell( "Frequency", "AJ1", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( measuredFrequency ), "AJ2", 5, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Motor Output Block
+	DrawCell( "Amplifiers", "AJ3", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( ( FLAG_AMPLIFIERS ? "Enabled" : "Off" ), "AJ4", 5, 1, fontBody, CONFIG_colWhite, ( FLAG_AMPLIFIERS ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+
+	// Serial Block
+	DrawCell( "Serial Status", "AJ5", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( ( FLAG_SERIAL ? "Online" : "Offline" ), "AJ6", 5, 1, fontBody, CONFIG_colWhite, ( FLAG_SERIAL ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( serialString, "AJ7", 5, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Status Block
+	// DrawCell( "Messages:", "A8", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( statusString, "F8", 30, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// measuredFrequency/
+}
 
 
-	// Extract cell address
-	c0 = ( cell0[0] - 'A' ) * WIDTH;
-	r0 = ( CONFIG_CAP_HEIGHT + 1 ) + ( ( std::stoi( cell0.substr( 1 ) ) - 1 ) * HEIGHT - 1 );
 
-	// Calculate cell dimensions
-	rH = ( ( std::stoi( cell1.substr( 1 ) ) ) - ( std::stoi( cell0.substr( 1 ) ) ) + 1 ) * HEIGHT;
-	cW = ( ( cell1[0] - 'A' + 1 ) - ( cell0[0] - 'A' ) ) * WIDTH;
+void DisplayInterface::DrawCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered ) {
+
+	// Check if using double letters (e.g., AA, AB)
+	if( std::isalpha( cell0[0] ) && !std::isalpha( cell0[1] ) ) {	 // Only one letter
+		c0 = ( cell0[0] - 'A' ) * WIDTH;
+		r0 = ( CONFIG_CAP_HEIGHT + 1 ) + ( ( std::stoi( cell0.substr( 1 ) ) - 1 ) * HEIGHT - 1 );
+		rH = height * HEIGHT;
+		cW = width * WIDTH;
+	} else if( std::isalpha( cell0[0] ) && std::isalpha( cell0[1] ) ) {	   // Two letters)
+		c0 = ( 26 + ( cell0[1] - 'A' ) ) * WIDTH;
+		r0 = ( CONFIG_CAP_HEIGHT + 1 ) + ( ( std::stoi( cell0.substr( 2 ) ) - 1 ) * HEIGHT - 1 );
+		rH = height * HEIGHT;
+		cW = width * WIDTH;
+	}
 
 	// Draw cell frame
-	cv::rectangle( matDisplay, cv::Rect( c0, r0, cW, rH ), cellFill, -1 );
-	cv::rectangle( matDisplay, cv::Rect( c0, r0, cW + 1, rH + 1 ), cellOutline, 1 );
+	cv::rectangle( matDisplay, cv::Rect( c0, r0, cW, rH ), fillColor, -1 );
+	cv::rectangle( matDisplay, cv::Rect( c0, r0 - 1, cW + 1, rH + 1 ), cellOutline, 1 );
 
 	// Calculate text dimensions
-	if( sz >= 0.8f ) {
+	if( sz >= fontHeader ) {
 		textSize = cv::getTextSize( str, cv::FONT_HERSHEY_DUPLEX, sz, 1, 0 );
 	} else {
 		textSize = cv::getTextSize( str, cv::FONT_HERSHEY_SIMPLEX, sz, 1, 0 );
 	}
 
 	// Calculate position for center
-	if( cellCentered ) {
+	if( centered ) {
 		textX = c0 + ( cW - textSize.width ) / 2;
-		textY = r0 + ( rH + textSize.height ) / 2;	  //+ ( cH - textSize.height ) / 2;
+		textY = r0 + ( rH + textSize.height ) / 2 - 1;	  //+ ( cH - textSize.height ) / 2;
 	} else {
-		// textX = c0 + 10;
-		// textY = r0 + r1 - ( textSize.height / 2 ) + 1;	  //+ ( cH - textSize.height ) / 2;
+		textX = c0 + 10;
+		textY = r0 + ( rH + textSize.height ) / 2 - 1;	  //+ ( cH - textSize.height ) / 2;
 	}
 
 	// Place text
-	if( sz >= 0.8f ) {
-		cv::putText( matDisplay, str, cv::Point( textX, textY ), cv::FONT_HERSHEY_DUPLEX, sz, cellTextColor, 1 );
+	if( sz >= fontHeader ) {
+		cv::putText( matDisplay, str, cv::Point( textX, textY ), cv::FONT_HERSHEY_DUPLEX, sz, textColor, 1 );
 	} else {
-		cv::putText( matDisplay, str, cv::Point( textX, textY ), cv::FONT_HERSHEY_SIMPLEX, sz, cellTextColor, 1 );
+		cv::putText( matDisplay, str, cv::Point( textX, textY ), cv::FONT_HERSHEY_SIMPLEX, sz, textColor, 1 );
 	}
 }
+
 
 
 /**
@@ -163,5 +218,19 @@ void DisplayInterface::FormatCell( cv::Scalar outline, cv::Scalar fill, cv::Scal
 	cellOutline	  = outline;
 	cellFill	  = fill;
 	cellTextColor = textColor;
-	cellCentered  = center;
+}
+
+
+void DisplayInterface::setFrequency( char freq ) {
+	measuredFrequency = freq;
+}
+
+void DisplayInterface::setStatusString( std::string status ) {
+
+	statusString = status;
+}
+
+void DisplayInterface::setSerialString( std::string packet ) {
+
+	serialString = packet;
 }

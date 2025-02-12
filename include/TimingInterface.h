@@ -17,11 +17,11 @@ public:
 
 	// Functions
 	void StartTimer();
-	void CheckFrequency();
+	char CheckFrequency();
 
 
 private:
-	double									   loopFrequency = 0.0;
+	float									   loopFrequency = 0.0;
 	unsigned long long						   loopCounter	 = 0;
 	std::chrono::_V2::system_clock::time_point currentTime;
 	std::chrono::_V2::system_clock::time_point previousTime;
@@ -43,7 +43,7 @@ void TimingInterface::StartTimer() {
 /**
  * @brief Checks the frequency
  */
-void TimingInterface::CheckFrequency() {
+char TimingInterface::CheckFrequency() {
 
 	// Increment loop counter
 	loopCounter++;
@@ -57,8 +57,9 @@ void TimingInterface::CheckFrequency() {
 	// Check if 1 second has passed
 	if( elapsedTime.count() >= 1.0 ) {
 		loopFrequency = loopCounter / elapsedTime.count();
-		std::cout << "Loop Frequency: " << loopFrequency << " Hz.\n";
-		loopCounter	 = 0;
-		previousTime = currentTime;
+		loopCounter	  = 0;
+		previousTime  = currentTime;
 	}
+
+	return char( loopFrequency );
 }
