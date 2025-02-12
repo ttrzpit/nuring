@@ -150,7 +150,7 @@ void DisplayInterface::AddText( CaptureInterface& Capture ) {
 	// Serial Block
 	DrawCell( "Serial Status", "AJ5", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( ( FLAG_SERIAL ? "Online" : "Offline" ), "AJ6", 5, 1, fontBody, CONFIG_colWhite, ( FLAG_SERIAL ? CONFIG_colGreDk : CONFIG_colBlack ), true );
-	DrawCell( serialString, "AJ7", 5, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( ( FLAG_SERIAL ? serialString : "---" ), "AJ7", 5, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Status Block
 	// DrawCell( "Messages:", "A8", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );

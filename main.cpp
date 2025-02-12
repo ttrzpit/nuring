@@ -32,6 +32,8 @@ bool FLAG_SERIAL_ENABLED  = false;
 // Function prototypes
 void ParseInput( int key );
 
+// Outgoing packet string
+std::string outgoingPacket = "";
 
 
 /**
@@ -42,9 +44,6 @@ int main() {
 
 	// Ensure all OpenCV objects closed
 	cv::destroyAllWindows();
-
-	// Outgoing packet string
-	std::string outgoingPacket = "";
 
 	// For debugging
 	// std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
@@ -86,7 +85,7 @@ int main() {
 				Serial.Send( outgoingPacket );
 				Display.setSerialString( outgoingPacket.substr( 0, outgoingPacket.length() - 1 ) );
 			} else if( !FLAG_MOTORS_ENABLED && FLAG_SERIAL_ENABLED ) {
-				outgoingPacket = "Standby\n";
+				outgoingPacket = "w\n";
 				Serial.Send( outgoingPacket );
 				Display.setSerialString( outgoingPacket.substr( 0, outgoingPacket.length() - 1 ) );
 			}
@@ -125,8 +124,14 @@ void ParseInput( int key ) {
 			// RUNNING = false;
 			break;
 		case 1048603:	 // ESC key
+			if( FLAG_SERIAL_ENABLED ) {
+				outgoingPacket = "C\n";
+				Serial.Send( outgoingPacket );
+				Display.setSerialString( outgoingPacket.substr( 0, outgoingPacket.length() - 1 ) );
+			}
+			FLAG_SERIAL_ENABLED = false;
 			Display.setStatusString( "Stop key pressed, exiting." );
-			std::cout << "Stop key pressed, exiting.\n";
+			sleep( 2 );
 			FLAG_PROGRAM_RUNNING = false;
 			break;
 		case 1048625:	 // 1
@@ -176,9 +181,19 @@ void ParseInput( int key ) {
 		case 1048677:	 // E
 			FLAG_MOTORS_ENABLED = !FLAG_MOTORS_ENABLED;
 			if( FLAG_MOTORS_ENABLED ) {
+				if( FLAG_SERIAL_ENABLED ) {
+					outgoingPacket = "e\n";
+					Serial.Send( outgoingPacket );
+					Display.setSerialString( outgoingPacket.substr( 0, outgoingPacket.length() - 1 ) );
+				}
 				Display.FLAG_AMPLIFIERS = true;
 				Display.setStatusString( "Amplifiers enabled." );
 			} else {
+				if( FLAG_SERIAL_ENABLED ) {
+					outgoingPacket = "d\n";
+					Serial.Send( outgoingPacket );
+					Display.setSerialString( outgoingPacket.substr( 0, outgoingPacket.length() - 1 ) );
+				}
 				Display.FLAG_AMPLIFIERS = false;
 				Display.setStatusString( "Amplifiers disabled." );
 			}
@@ -195,6 +210,11 @@ void ParseInput( int key ) {
 			break;
 		case 1048696:	 // X
 			Display.setStatusString( "Software E-Stop Triggered. Amplifiers and serial output disabled." );
+			if( FLAG_SERIAL_ENABLED ) {
+				outgoingPacket = "X\n";
+				Serial.Send( outgoingPacket );
+				Display.setSerialString( outgoingPacket.substr( 0, outgoingPacket.length() - 1 ) );
+			}
 			FLAG_SERIAL_ENABLED		= false;
 			FLAG_MOTORS_ENABLED		= false;
 			Display.FLAG_SERIAL		= FLAG_SERIAL_ENABLED;
