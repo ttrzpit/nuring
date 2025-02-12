@@ -42,6 +42,8 @@ int main() {
 	// Ensure all OpenCV objects closed
 	cv::destroyAllWindows();
 
+	std::string outgoingPacket = "";
+
 	// cv::Mat displayFrame = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_WIDTH, CV_8UC3 );
 
 	// For debugging
@@ -76,8 +78,11 @@ int main() {
 		cv::imshow( "Raw", Display.Update( Capture.matFrame, Capture ) );
 
 		// Send serial packet
-		Serial.Send( std::to_string( counter ) );
-		counter++;
+		if( Capture.markerFound ) {
+
+			outgoingPacket = "x" + std::to_string( Capture.Markers[0].error3D.x ) + "y" + std::to_string( Capture.Markers[0].error3D.y ) + "z" + std::to_string( Capture.Markers[0].error3D.z ) + "\n";
+			Serial.Send( outgoingPacket );
+		}
 
 		// Check program frequency
 		Timing.CheckFrequency();

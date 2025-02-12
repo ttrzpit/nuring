@@ -40,6 +40,8 @@ private:
 	cv::Scalar cellTextColor = CONFIG_colYelLt;
 	bool	   cellCentered	 = false;
 	short	   cellPx		 = 40;
+	short	   WIDTH		 = 64;
+	short	   HEIGHT		 = 30;
 	cv::Size   textSize;
 
 	// Cell properties
@@ -70,36 +72,33 @@ cv::Mat DisplayInterface::Update( cv::Mat& frame, CaptureInterface& Capture ) {
 	frame.copyTo( matDisplay( cv::Rect( 0, 0, frame.cols, frame.rows ) ) );
 
 
-	// Draw green outline if marker found
+	// Draw green outline and crosshairs if marker found
 	if( Capture.markerFound ) {
-		cv::rectangle( matDisplay, cv::Point2i( 1, 1 ), cv::Point2i( frame.cols - 2, frame.rows - 2 ), CONFIG_colGreMd, 3 );
+		cv::rectangle( matDisplay, cv::Point2i( 1, 1 ), cv::Point2i( frame.cols - 2, frame.rows - 3 ), CONFIG_colGreMd, 3 );
 		cv::line( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, frame.rows ), CONFIG_colGreMd, 1 );
 		cv::line( matDisplay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( frame.cols, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_colGreMd, 1 );
 	} else {
+		// cv::rectangle( matDisplay, cv::Point2i( 1, 1 ), cv::Point2i( frame.cols - 2, frame.rows - 3 ), CONFIG_colRedDk, 3 );
 		cv::line( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, frame.rows ), CONFIG_colRedDk, 1 );
 		cv::line( matDisplay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( frame.cols, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_colRedDk, 1 );
 	}
 
-
-	// Draw crosshairs
 
 
 	// Set cell format
 	FormatCell( CONFIG_colGraLt, CONFIG_colGraBk, CONFIG_colWhite, true );
 
 	// Draw interface
-	DrawCell( "Active Marker", "A1", "C1", 0.75f );
-	DrawCell( "1", "A2", "C2", 1.2f );
-	DrawCell( " ", "A3", "B3", 0.75f );
-	DrawCell( "Position", "B3", "C3", 0.75f );
-	DrawCell( "x", "A4", "A4", 0.75f );
-	DrawCell( "y", "A5", "A5", 0.75f );
-	DrawCell( "z", "A6", "A6", 0.75f );
-	DrawCell( std::to_string( Capture.Markers[0].error3D.x ), "B4", "C4", 0.75f );
-	DrawCell( std::to_string( Capture.Markers[0].error3D.y ), "B5", "C5", 0.75f );
-	DrawCell( std::to_string( Capture.Markers[0].error3D.z ), "B6", "C6", 0.75f );
-
-
+	DrawCell( "Active Marker", "A1", "C1", 0.7f );
+	DrawCell( "1", "A2", "C2", 0.7f );
+	DrawCell( " ", "A3", "B3", 0.7f );
+	DrawCell( "Position", "B3", "C3", 0.7f );
+	DrawCell( "x", "A4", "A4", 0.6f );
+	DrawCell( "y", "A5", "A5", 0.6f );
+	DrawCell( "z", "A6", "A6", 0.6f );
+	DrawCell( std::to_string( Capture.Markers[0].error3D.x ), "B4", "C4", 0.6f );
+	DrawCell( std::to_string( Capture.Markers[0].error3D.y ), "B5", "C5", 0.6f );
+	DrawCell( std::to_string( Capture.Markers[0].error3D.z ), "B6", "C6", 0.6f );
 
 	return matDisplay;
 
@@ -115,12 +114,12 @@ void DisplayInterface::DrawCell( std::string str, std::string cell0, std::string
 
 
 	// Extract cell address
-	c0 = ( cell0[0] - 'A' ) * 64;
-	r0 = CONFIG_CAP_HEIGHT + ( ( std::stoi( cell0.substr( 1 ) ) - 1 ) * 40 - 1 );
+	c0 = ( cell0[0] - 'A' ) * WIDTH;
+	r0 = ( CONFIG_CAP_HEIGHT + 1 ) + ( ( std::stoi( cell0.substr( 1 ) ) - 1 ) * HEIGHT - 1 );
 
 	// Calculate cell dimensions
-	rH = ( ( std::stoi( cell1.substr( 1 ) ) ) - ( std::stoi( cell0.substr( 1 ) ) ) + 1 ) * 40;
-	cW = ( ( cell1[0] - 'A' + 1 ) - ( cell0[0] - 'A' ) ) * 64;
+	rH = ( ( std::stoi( cell1.substr( 1 ) ) ) - ( std::stoi( cell0.substr( 1 ) ) ) + 1 ) * HEIGHT;
+	cW = ( ( cell1[0] - 'A' + 1 ) - ( cell0[0] - 'A' ) ) * WIDTH;
 
 	// Draw cell frame
 	cv::rectangle( matDisplay, cv::Rect( c0, r0, cW, rH ), cellFill, -1 );
