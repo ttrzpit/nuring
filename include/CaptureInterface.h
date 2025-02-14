@@ -16,12 +16,15 @@
 
 
 struct Marker {
-	short		ID			   = 0;
-	bool		present		   = false;
-	cv::Point3i error3D		   = cv::Point3i( 0, 0, 0 );
-	cv::Point2i error2D		   = cv::Point2i( 0, 0 );
-	float		theta		   = 0.0f;
-	short		errorMagnitude = 0;
+	short		ID				   = 0;
+	bool		present			   = false;
+	cv::Point3i error3D			   = cv::Point3i( 0, 0, 0 );
+	cv::Point2i error2D			   = cv::Point2i( 0, 0 );
+	float		theta			   = 0.0f;
+	short		errorMagnitude3D   = 0;
+	short		errorMagnitude2D   = 0;
+	short		errorMagnitudeNorm = 0;
+	float		errorHeading	   = 0.0f;
 };
 
 
@@ -34,13 +37,14 @@ public:
 	void FindTags();
 
 	// Variables
-	bool				frameCaptured = false;
-	bool				markerFound	  = false;
-	cv::Mat				matFrame	  = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
-	cv::Mat				matMarkers	  = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
-	cv::Mat				matGray		  = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC1 );
-	std::vector<Marker> Markers;
-	short				activeMarker = 0;
+	bool					 frameCaptured = false;
+	bool					 markerFound   = false;
+	cv::Mat					 matFrame	   = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
+	cv::Mat					 matMarkers	   = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
+	cv::Mat					 matGray	   = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC1 );
+	std::vector<Marker>		 Markers;
+	short					 activeMarker  = 0;
+	std::vector<cv::Point2i> activeCorners = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };
 
 	// Constructor
 	CaptureInterface()
@@ -231,8 +235,7 @@ void CaptureInterface::FindTags() {
 	// Check if markers found
 	if( !markerIDs.empty() ) {
 
-		// Update marker flag
-		markerFound = true;
+
 
 		// Clear previous marker matrix
 		matMarkers = 0;
@@ -250,6 +253,9 @@ void CaptureInterface::FindTags() {
 			// Only process markers in valid set
 			if( markerIDs[i] > 0 && markerIDs[i] < 11 ) {
 
+				// Update marker flag
+				markerFound = true;
+
 				// Shortcut for index
 				short index = markerIDs[i];
 
@@ -266,10 +272,26 @@ void CaptureInterface::FindTags() {
 				Markers[index].present = true;
 
 				// Update marker positions
-				Markers[index].error3D		  = cv::Point3i( int( translationVector[i][0] ), int( translationVector[i][1] ), int( translationVector[i][2] ) );
-				Markers[index].error2D		  = cv::Point2d( int( ( markerCorners[i][0].x + markerCorners[i][1].x + markerCorners[i][2].x + markerCorners[i][3].x ) / 4.0f ), int( ( markerCorners[i][0].y + markerCorners[i][1].y + markerCorners[i][2].y + markerCorners[i][3].y ) / 4.0f ) );
-				Markers[index].theta		  = rotationVector[i][1];
-				Markers[index].errorMagnitude = sqrt( ( Markers[index].error3D.x * Markers[index].error3D.x ) + ( Markers[index].error3D.y * Markers[index].error3D.y ) + ( Markers[index].error3D.z * Markers[index].error3D.z ) );
+				Markers[index].error3D			  = cv::Point3i( int( translationVector[i][0] ), int( translationVector[i][1] ), int( translationVector[i][2] ) );
+				Markers[index].error2D			  = cv::Point2d( CONFIG_CAM_PRINCIPAL_X - avgX, CONFIG_CAM_PRINCIPAL_Y - avgY );
+				Markers[index].theta			  = rotationVector[i][1];
+				Markers[index].errorMagnitude3D	  = sqrt( ( Markers[index].error3D.x * Markers[index].error3D.x ) + ( Markers[index].error3D.y * Markers[index].error3D.y ) + ( Markers[index].error3D.z * Markers[index].error3D.z ) );
+				Markers[index].errorMagnitude2D	  = sqrt( ( Markers[index].error2D.x * Markers[index].error2D.x ) + ( Markers[index].error2D.y * Markers[index].error2D.y ) );
+				Markers[index].errorMagnitudeNorm = std::min( Markers[index].errorMagnitude2D / 4, 100 );
+				Markers[index].errorHeading		  = atan2( Markers[index].error2D.y, -Markers[index].error2D.x );
+
+				// Constrain angle to positive values
+				if( Markers[index].errorHeading < 0.0f ) {
+					Markers[index].errorHeading = Markers[index].errorHeading + ( 2.0f * 3.14159f );
+				}
+
+				// Update corners vector for active marker
+				if( index == activeMarker ) {
+					activeCorners[0] = cv::Point2i( markerCorners[i][0].x, markerCorners[i][0].y );
+					activeCorners[1] = cv::Point2i( markerCorners[i][1].x, markerCorners[i][1].y );
+					activeCorners[2] = cv::Point2i( markerCorners[i][2].x, markerCorners[i][2].y );
+					activeCorners[3] = cv::Point2i( markerCorners[i][3].x, markerCorners[i][3].y );
+				}
 
 				// Draw frame axis
 				cv::drawFrameAxes( matFrame, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, rotationVector[i], translationVector[i], CONFIG_MARKER_WIDTH, 1 );

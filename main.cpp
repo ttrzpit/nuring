@@ -1,5 +1,3 @@
-
-
 // Necessary libraries
 #include <iostream>							// For input/output handling
 #include <opencv2/core/utils/logger.hpp>	// For verbose debugging
@@ -28,12 +26,12 @@ bool FLAG_PROGRAM_RUNNING = true;
 bool FLAG_MOTORS_ENABLED  = false;
 bool FLAG_SERIAL_ENABLED  = false;
 
-
 // Function prototypes
 void ParseInput( int key );
 
 // Outgoing packet string
 std::string outgoingPacket = "";
+
 
 
 /**
@@ -81,7 +79,7 @@ int main() {
 
 			// If motors have been enabled, start sending serial packet
 			if( FLAG_MOTORS_ENABLED && FLAG_SERIAL_ENABLED ) {
-				outgoingPacket = "x" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.x ) + "y" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.y ) + "z" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.z ) + "\n";
+				outgoingPacket = "x" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.x ) + "y" + std::to_string( -Capture.Markers[Capture.activeMarker].error3D.y ) + "z" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.z ) + "\n";
 				Serial.Send( outgoingPacket );
 				Display.setSerialString( outgoingPacket.substr( 0, outgoingPacket.length() - 1 ) );
 			} else if( !FLAG_MOTORS_ENABLED && FLAG_SERIAL_ENABLED ) {
@@ -109,6 +107,8 @@ int main() {
 	return 0;
 }
 
+
+
 void ParseInput( int key ) {
 
 	// Ignore mouse clicks or arrows
@@ -131,7 +131,6 @@ void ParseInput( int key ) {
 			}
 			FLAG_SERIAL_ENABLED = false;
 			Display.setStatusString( "Stop key pressed, exiting." );
-			sleep( 2 );
 			FLAG_PROGRAM_RUNNING = false;
 			break;
 		case 1048625:	 // 1

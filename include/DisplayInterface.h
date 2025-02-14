@@ -2,6 +2,7 @@
 
 // Necessary libraries
 #include <iostream>
+#include <math.h>
 
 // References to colors and frame properties
 #include "CaptureInterface.h"
@@ -14,6 +15,9 @@
 #include <opencv2/highgui.hpp>	  // For pollKey()
 #include <opencv2/imgproc.hpp>	  // For remapping
 #include <opencv2/opencv.hpp>
+
+// Constants
+#define RAD2DEG 57.2958
 
 class DisplayInterface {
 
@@ -70,6 +74,7 @@ private:
 	void DrawCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
 	void FormatCell( cv::Scalar outline, cv::Scalar fill, cv::Scalar textColor, bool center );
 	void AddText( CaptureInterface& Capture );
+	void DrawActiveMarkerBorder( bool markerFound, short activeMarker, std::vector<cv::Point2i> corners );
 };
 
 
@@ -87,15 +92,40 @@ cv::Mat DisplayInterface::Update( cv::Mat& frame, CaptureInterface& Capture ) {
 
 	// Draw green outline and crosshairs if marker found
 	if( Capture.markerFound ) {
-		cv::rectangle( matDisplay, cv::Point2i( 1, 1 ), cv::Point2i( frame.cols - 2, frame.rows - 3 ), CONFIG_colGreMd, 3 );
+		cv::circle( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), 400, CONFIG_colGreMd, 2 );
+		// cv::rectangle( matDisplay, cv::Point2i( 1, 1 ), cv::Point2i( frame.cols - 2, frame.rows - 3 ), CONFIG_colGreMd, 3 );
 		cv::line( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, frame.rows ), CONFIG_colGreMd, 1 );
 		cv::line( matDisplay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( frame.cols, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_colGreMd, 1 );
+
+		// Draw vector to center of marker
+		if( Capture.Markers[Capture.activeMarker].errorMagnitude2D > 400 ) {
+			cv::line( matDisplay,
+					  cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ),
+					  cv::Point2i( CONFIG_CAM_PRINCIPAL_X + Capture.Markers[Capture.activeMarker].errorMagnitude2D * cos( Capture.Markers[Capture.activeMarker].errorHeading ),
+								   CONFIG_CAM_PRINCIPAL_Y - Capture.Markers[Capture.activeMarker].errorMagnitude2D * sin( Capture.Markers[Capture.activeMarker].errorHeading ) ),
+					  CONFIG_colCyaDk,
+					  1 );
+		}
+		cv::line( matDisplay,
+				  cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ),
+				  cv::Point2i( CONFIG_CAM_PRINCIPAL_X + Capture.Markers[Capture.activeMarker].errorMagnitudeNorm * 4 * cos( Capture.Markers[Capture.activeMarker].errorHeading ),
+							   CONFIG_CAM_PRINCIPAL_Y - Capture.Markers[Capture.activeMarker].errorMagnitudeNorm * 4 * sin( Capture.Markers[Capture.activeMarker].errorHeading ) ),
+				  CONFIG_colCyaMd,
+				  2 );
+
+
+		// Draw border on active marker
+		DrawActiveMarkerBorder( Capture.markerFound, Capture.activeMarker, Capture.activeCorners );
 	} else {
 		// cv::rectangle( matDisplay, cv::Point2i( 1, 1 ), cv::Point2i( frame.cols - 2, frame.rows - 3 ), CONFIG_colRedDk, 3 );
+		cv::circle( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), 400, CONFIG_colRedDk, 1 );
 		cv::line( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, frame.rows ), CONFIG_colRedDk, 1 );
 		cv::line( matDisplay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( frame.cols, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_colRedDk, 1 );
 	}
 
+
+
+	// Add gui text
 	AddText( Capture );
 
 	return matDisplay;
@@ -127,9 +157,9 @@ void DisplayInterface::AddText( CaptureInterface& Capture ) {
 	DrawCell( "9", "D3", 1, 1, fontBody, ( Capture.Markers[9].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 9 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
 	DrawCell( "10", "E3", 1, 1, fontBody, ( Capture.Markers[10].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( Capture.activeMarker == 10 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
 
-	// Position Block
-	DrawCell( "", "A4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "Position", "B4", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// Position [mm] Block
+	// DrawCell( "", "A4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Position [mm]", "A4", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "x", "A5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "y", "A6", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "z", "A7", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -137,7 +167,21 @@ void DisplayInterface::AddText( CaptureInterface& Capture ) {
 	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].error3D.x ), "B5", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].error3D.y ), "B6", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].error3D.z ), "B7", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].errorMagnitude ), "B8", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].errorMagnitude3D ), "B8", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Position [px] Block
+	DrawCell( "Position [px]", "F4", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "x", "F5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "y", "F6", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "P", "F7", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "|P|", "F8", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].error2D.x ), "G5", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].error2D.y ), "G6", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].errorMagnitude2D ), "G7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].errorMagnitudeNorm ), "G8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( Capture.Markers[Capture.activeMarker].errorHeading * RAD2DEG ) ), "I7", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+
 
 	// Frequency Block
 	DrawCell( "Frequency", "AJ1", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -154,7 +198,7 @@ void DisplayInterface::AddText( CaptureInterface& Capture ) {
 
 	// Status Block
 	// DrawCell( "Messages:", "A8", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( statusString, "F8", 30, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawCell( statusString, "K8", 25, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
 	// measuredFrequency/
 }
 
@@ -233,4 +277,10 @@ void DisplayInterface::setStatusString( std::string status ) {
 void DisplayInterface::setSerialString( std::string packet ) {
 
 	serialString = packet;
+}
+
+
+void DisplayInterface::DrawActiveMarkerBorder( bool markerFound, short active, std::vector<cv::Point2i> corners ) {
+	if( markerFound && active != 0 )
+		cv::polylines( matDisplay, corners, true, CONFIG_colGreMd, 2 );
 }

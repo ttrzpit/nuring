@@ -55,7 +55,7 @@ inline constexpr short CONFIG_MARKER_WIDTH = 20;	// [mm] Marker dimension
 const cv::Mat CONFIG_CAMERA_MATRIX	   = ( cv::Mat_<double>( 3, 3 ) << 478.775f, 0.0f, 631.579f, 0.0f, 478.625f, 424.489f, 0.0f, 0.0f, 1.0f );
 const cv::Mat CONFIG_DISTORTION_COEFFS = ( cv::Mat_<double>( 1, 5 ) << 0.009663f, -0.015094f, -0.001703f, -0.002634f, -0.002227f );
 
-// Colors
+// Colors                                B G R
 cv::Scalar CONFIG_colRedMd = cv::Scalar( 0, 0, 255 );
 cv::Scalar CONFIG_colRedLt = cv::Scalar( 127, 127, 255 );
 cv::Scalar CONFIG_colRedDk = cv::Scalar( 0, 0, 127 );
@@ -81,3 +81,9 @@ cv::Scalar CONFIG_colGraDk = cv::Scalar( 64, 64, 64 );
 cv::Scalar CONFIG_colGraBk = cv::Scalar( 32, 32, 32 );
 cv::Scalar CONFIG_colBlack = cv::Scalar( 0, 0, 0 );
 cv::Scalar CONFIG_colWhite = cv::Scalar( 255, 255, 255 );
+cv::Scalar CONFIG_colCyaMd = cv::Scalar( 255, 255, 0 );
+cv::Scalar CONFIG_colCyaLt = cv::Scalar( 255, 255, 127 );
+cv::Scalar CONFIG_colCyaDk = cv::Scalar( 127, 127, 0 );
+cv::Scalar CONFIG_colMagMd = cv::Scalar( 255, 0, 255 );
+cv::Scalar CONFIG_colMagLt = cv::Scalar( 255, 127, 255 );
+cv::Scalar CONFIG_colMagDk = cv::Scalar( 127, 0, 127 );
