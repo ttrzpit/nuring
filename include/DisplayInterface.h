@@ -40,7 +40,7 @@ public:
 
 private:
 	// Variables
-	cv::cuda::GpuMat		 gpuFrame		   = cv::cuda::GpuMat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
+	cv::cuda::GpuMat		 gpuFrame		   = cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
 	std::vector<std::string> stringVector	   = { "", "", "", "", "" };
 	cv::Mat					 matDisplay		   = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_WIDTH, CV_8UC3 );
 	char					 measuredFrequency = 0.0f;
@@ -53,8 +53,8 @@ private:
 	cv::Scalar cellFill		 = CONFIG_colGraDk;
 	cv::Scalar cellTextColor = CONFIG_colYelLt;
 	short	   cellPx		 = 40;
-	short	   WIDTH		 = 32;
-	short	   HEIGHT		 = 30;
+	short	   WIDTH		 = CONFIG_DIS_CELL_WIDTH;
+	short	   HEIGHT		 = CONFIG_DIS_CELL_HEIGHT;
 	cv::Size   textSize;
 	float	   fontHeader = 0.6f;
 	float	   fontBody	  = 0.5f;
@@ -74,7 +74,7 @@ private:
 	void DrawCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
 	void FormatCell( cv::Scalar outline, cv::Scalar fill, cv::Scalar textColor, bool center );
 	void AddText( CaptureInterface& Capture );
-	void DrawActiveMarkerBorder( bool markerFound, short activeMarker, std::vector<cv::Point2i> corners );
+	void DrawActiveMarkerBorder( bool markerFound, bool activeMarker, std::vector<cv::Point2i> corners );
 };
 
 
@@ -92,13 +92,13 @@ cv::Mat DisplayInterface::Update( cv::Mat& frame, CaptureInterface& Capture ) {
 
 	// Draw green outline and crosshairs if marker found
 	if( Capture.markerFound ) {
-		cv::circle( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), 400, CONFIG_colGreMd, 2 );
+		cv::circle( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_DET_RADIUS, CONFIG_colGreMd, 2 );
 		// cv::rectangle( matDisplay, cv::Point2i( 1, 1 ), cv::Point2i( frame.cols - 2, frame.rows - 3 ), CONFIG_colGreMd, 3 );
 		cv::line( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, frame.rows ), CONFIG_colGreMd, 1 );
 		cv::line( matDisplay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( frame.cols, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_colGreMd, 1 );
 
 		// Draw vector to center of marker
-		if( Capture.Markers[Capture.activeMarker].errorMagnitude2D > 400 ) {
+		if( Capture.Markers[Capture.activeMarker].errorMagnitude2D > CONFIG_DET_RADIUS ) {
 			cv::line( matDisplay,
 					  cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ),
 					  cv::Point2i( CONFIG_CAM_PRINCIPAL_X + Capture.Markers[Capture.activeMarker].errorMagnitude2D * cos( Capture.Markers[Capture.activeMarker].errorHeading ),
@@ -108,17 +108,17 @@ cv::Mat DisplayInterface::Update( cv::Mat& frame, CaptureInterface& Capture ) {
 		}
 		cv::line( matDisplay,
 				  cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ),
-				  cv::Point2i( CONFIG_CAM_PRINCIPAL_X + Capture.Markers[Capture.activeMarker].errorMagnitudeNorm * 4 * cos( Capture.Markers[Capture.activeMarker].errorHeading ),
-							   CONFIG_CAM_PRINCIPAL_Y - Capture.Markers[Capture.activeMarker].errorMagnitudeNorm * 4 * sin( Capture.Markers[Capture.activeMarker].errorHeading ) ),
+				  cv::Point2i( CONFIG_CAM_PRINCIPAL_X + Capture.Markers[Capture.activeMarker].errorMagnitudeNorm * ( CONFIG_DET_RADIUS / 100 ) * cos( Capture.Markers[Capture.activeMarker].errorHeading ),
+							   CONFIG_CAM_PRINCIPAL_Y - Capture.Markers[Capture.activeMarker].errorMagnitudeNorm * ( CONFIG_DET_RADIUS / 100 ) * sin( Capture.Markers[Capture.activeMarker].errorHeading ) ),
 				  CONFIG_colCyaMd,
 				  2 );
 
 
 		// Draw border on active marker
-		DrawActiveMarkerBorder( Capture.markerFound, Capture.activeMarker, Capture.activeCorners );
+		DrawActiveMarkerBorder( Capture.markerFound, Capture.Markers[Capture.activeMarker].present, Capture.activeCorners );
 	} else {
 		// cv::rectangle( matDisplay, cv::Point2i( 1, 1 ), cv::Point2i( frame.cols - 2, frame.rows - 3 ), CONFIG_colRedDk, 3 );
-		cv::circle( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), 400, CONFIG_colRedDk, 1 );
+		cv::circle( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_DET_RADIUS, CONFIG_colRedDk, 1 );
 		cv::line( matDisplay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, frame.rows ), CONFIG_colRedDk, 1 );
 		cv::line( matDisplay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( frame.cols, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_colRedDk, 1 );
 	}
@@ -173,13 +173,14 @@ void DisplayInterface::AddText( CaptureInterface& Capture ) {
 	DrawCell( "Position [px]", "F4", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "x", "F5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "y", "F6", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "P", "F7", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "|P|", "F8", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "P", "F7", 1, 2, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "|R|", "G7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Theta", "I7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].error2D.x ), "G5", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].error2D.y ), "G6", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].errorMagnitude2D ), "G7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].errorMagnitude2D ), "G8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( Capture.Markers[Capture.activeMarker].errorMagnitudeNorm ), "G8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( Capture.Markers[Capture.activeMarker].errorHeading * RAD2DEG ) ), "I7", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( Capture.Markers[Capture.activeMarker].errorHeading * RAD2DEG ) ), "I8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 
 
@@ -209,12 +210,12 @@ void DisplayInterface::DrawCell( std::string str, std::string cell0, short width
 	// Check if using double letters (e.g., AA, AB)
 	if( std::isalpha( cell0[0] ) && !std::isalpha( cell0[1] ) ) {	 // Only one letter
 		c0 = ( cell0[0] - 'A' ) * WIDTH;
-		r0 = ( CONFIG_CAP_HEIGHT + 1 ) + ( ( std::stoi( cell0.substr( 1 ) ) - 1 ) * HEIGHT - 1 );
+		r0 = ( CONFIG_CAM_HEIGHT + 1 ) + ( ( std::stoi( cell0.substr( 1 ) ) - 1 ) * HEIGHT - 1 );
 		rH = height * HEIGHT;
 		cW = width * WIDTH;
 	} else if( std::isalpha( cell0[0] ) && std::isalpha( cell0[1] ) ) {	   // Two letters)
 		c0 = ( 26 + ( cell0[1] - 'A' ) ) * WIDTH;
-		r0 = ( CONFIG_CAP_HEIGHT + 1 ) + ( ( std::stoi( cell0.substr( 2 ) ) - 1 ) * HEIGHT - 1 );
+		r0 = ( CONFIG_CAM_HEIGHT + 1 ) + ( ( std::stoi( cell0.substr( 2 ) ) - 1 ) * HEIGHT - 1 );
 		rH = height * HEIGHT;
 		cW = width * WIDTH;
 	}
@@ -280,7 +281,10 @@ void DisplayInterface::setSerialString( std::string packet ) {
 }
 
 
-void DisplayInterface::DrawActiveMarkerBorder( bool markerFound, short active, std::vector<cv::Point2i> corners ) {
-	if( markerFound && active != 0 )
-		cv::polylines( matDisplay, corners, true, CONFIG_colGreMd, 2 );
+void DisplayInterface::DrawActiveMarkerBorder( bool markerFound, bool active, std::vector<cv::Point2i> corners ) {
+	if( markerFound && active ) {
+		cv::polylines( matDisplay, corners, true, CONFIG_colCyaMd, 2 );
+	} else {
+		cv::polylines( matDisplay, corners, true, CONFIG_colCyaDk, 2 );
+	}
 }

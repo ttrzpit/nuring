@@ -39,9 +39,9 @@ public:
 	// Variables
 	bool					 frameCaptured = false;
 	bool					 markerFound   = false;
-	cv::Mat					 matFrame	   = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
-	cv::Mat					 matMarkers	   = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
-	cv::Mat					 matGray	   = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC1 );
+	cv::Mat					 matFrame	   = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
+	cv::Mat					 matMarkers	   = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
+	cv::Mat					 matGray	   = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC1 );
 	std::vector<Marker>		 Markers;
 	short					 activeMarker  = 0;
 	std::vector<cv::Point2i> activeCorners = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };
@@ -68,12 +68,12 @@ private:
 
 	// Camera properties
 	cv::VideoCapture Capture;
-	cv::Mat			 matRawFrame = cv::Mat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
+	cv::Mat			 matRawFrame = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
 	cv::Mat			 matRemap1;
 	cv::Mat			 matRemap2;
-	cv::cuda::GpuMat gpuRawFrame		 = cv::cuda::GpuMat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC3 );
-	cv::cuda::GpuMat gpuGrayFrame		 = cv::cuda::GpuMat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC1 );
-	cv::cuda::GpuMat gpuUndistortedFrame = cv::cuda::GpuMat( CONFIG_CAP_HEIGHT, CONFIG_CAP_WIDTH, CV_8UC1 );
+	cv::cuda::GpuMat gpuRawFrame		 = cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
+	cv::cuda::GpuMat gpuGrayFrame		 = cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC1 );
+	cv::cuda::GpuMat gpuUndistortedFrame = cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC1 );
 	cv::cuda::GpuMat gpuRemap1;
 	cv::cuda::GpuMat gpuRemap2;
 
@@ -105,9 +105,9 @@ void CaptureInterface::BeginCapture() {
 
 		// Capture settings
 		Capture.set( cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc( 'M', 'J', 'P', 'G' ) );
-		Capture.set( cv::CAP_PROP_FRAME_WIDTH, CONFIG_CAP_WIDTH );
-		Capture.set( cv::CAP_PROP_FRAME_HEIGHT, CONFIG_CAP_HEIGHT );
-		Capture.set( cv::CAP_PROP_FPS, CONFIG_CAP_FRAMERATE );
+		Capture.set( cv::CAP_PROP_FRAME_WIDTH, CONFIG_CAM_WIDTH );
+		Capture.set( cv::CAP_PROP_FRAME_HEIGHT, CONFIG_CAM_HEIGHT );
+		Capture.set( cv::CAP_PROP_FPS, CONFIG_CAM_FRAMERATE );
 		Capture.set( cv::CAP_PROP_HW_ACCELERATION, cv::VIDEO_ACCELERATION_ANY );
 
 		// Camera settings
@@ -247,8 +247,15 @@ void CaptureInterface::FindTags() {
 		cv::aruco::estimatePoseSingleMarkers( markerCorners, CONFIG_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, rotationVector, translationVector );
 
 
+		// Update marker flag
+		markerFound = false;
+
 		// Process each detected marker
 		for( size_t i = 0; i < markerIDs.size(); i++ ) {
+
+			// Shortcut for index
+			short index			   = markerIDs[i];
+			Markers[index].present = false;
 
 			// Only process markers in valid set
 			if( markerIDs[i] > 0 && markerIDs[i] < 11 ) {
@@ -256,20 +263,16 @@ void CaptureInterface::FindTags() {
 				// Update marker flag
 				markerFound = true;
 
-				// Shortcut for index
-				short index = markerIDs[i];
 
-				// // If no active marker set, set first one detected
-				// if( activeMarker == 0 ) {
-				// 	activeMarker = index;
-				// }
+				// Update list of present markers
+				Markers[index].present = true;
+
+				// if ( activeMarker == index )
 
 				// Calculate 2D pixel space
 				int avgX = int( ( markerCorners[i][0].x + markerCorners[i][1].x + markerCorners[i][2].x + markerCorners[i][3].x ) / 4.0f );
 				int avgY = int( ( markerCorners[i][0].y + markerCorners[i][1].y + markerCorners[i][2].y + markerCorners[i][3].y ) / 4.0f );
 
-				// Update list of present markers
-				Markers[index].present = true;
 
 				// Update marker positions
 				Markers[index].error3D			  = cv::Point3i( int( translationVector[i][0] ), int( translationVector[i][1] ), int( translationVector[i][2] ) );
@@ -277,7 +280,7 @@ void CaptureInterface::FindTags() {
 				Markers[index].theta			  = rotationVector[i][1];
 				Markers[index].errorMagnitude3D	  = sqrt( ( Markers[index].error3D.x * Markers[index].error3D.x ) + ( Markers[index].error3D.y * Markers[index].error3D.y ) + ( Markers[index].error3D.z * Markers[index].error3D.z ) );
 				Markers[index].errorMagnitude2D	  = sqrt( ( Markers[index].error2D.x * Markers[index].error2D.x ) + ( Markers[index].error2D.y * Markers[index].error2D.y ) );
-				Markers[index].errorMagnitudeNorm = std::min( Markers[index].errorMagnitude2D / 4, 100 );
+				Markers[index].errorMagnitudeNorm = std::min( Markers[index].errorMagnitude2D / ( CONFIG_DET_RADIUS / 100 ), 100 );
 				Markers[index].errorHeading		  = atan2( Markers[index].error2D.y, -Markers[index].error2D.x );
 
 				// Constrain angle to positive values
@@ -298,6 +301,6 @@ void CaptureInterface::FindTags() {
 			}
 		}
 	} else {
-		markerFound = false;
+		// markerFound = false;
 	}
 }

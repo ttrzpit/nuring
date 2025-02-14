@@ -15,11 +15,14 @@
 #include "include/SerialInterface.h"
 #include "include/TimingInterface.h"
 
+
 // Class objects
 CaptureInterface Capture;
 SerialInterface	 Serial;
 TimingInterface	 Timing;
 DisplayInterface Display;
+
+
 
 // Global flags
 bool FLAG_PROGRAM_RUNNING = true;
@@ -77,9 +80,12 @@ int main() {
 		// Send serial packet
 		if( Capture.markerFound ) {
 
+			std::cout << "Active: " << Capture.activeMarker << "\n";
+
 			// If motors have been enabled, start sending serial packet
 			if( FLAG_MOTORS_ENABLED && FLAG_SERIAL_ENABLED ) {
-				outgoingPacket = "x" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.x ) + "y" + std::to_string( -Capture.Markers[Capture.activeMarker].error3D.y ) + "z" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.z ) + "\n";
+				// outgoingPacket = "x" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.x ) + "y" + std::to_string( -Capture.Markers[Capture.activeMarker].error3D.y ) + "z" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.z ) + "\n";
+				outgoingPacket = "r" + std::to_string( Capture.Markers[Capture.activeMarker].errorMagnitudeNorm ) + "t" + std::to_string( int( Capture.Markers[Capture.activeMarker].errorHeading * 100 ) ) + "z" + std::to_string( Capture.Markers[Capture.activeMarker].error3D.z ) + "\n";
 				Serial.Send( outgoingPacket );
 				Display.setSerialString( outgoingPacket.substr( 0, outgoingPacket.length() - 1 ) );
 			} else if( !FLAG_MOTORS_ENABLED && FLAG_SERIAL_ENABLED ) {
