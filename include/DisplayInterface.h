@@ -25,17 +25,27 @@ public:
 	// Constructor
 	DisplayInterface() {
 		std::cout << "DisplayInterface: Display interface initialized.\n";
+		if( CONFIG_TYPE == "LowResolution" ) {
+			fontHeader = 0.6f;
+			fontBody   = 0.5f;
+		} else if( CONFIG_TYPE == "HighResolution" ) {
+			fontHeader = 0.5f;
+			fontBody   = 0.4f;
+		}
 	}
 
 	// Functions
-	cv::Mat Update( cv::Mat& frame, CaptureInterface& Capture );
-	void	setFrequency( char freq );
-	void	setStatusString( std::string status );
-	void	setSerialString( std::string packet );
+	cv::Mat		Update( cv::Mat& frame, CaptureInterface& Capture );
+	void		setFrequency( char freq );
+	void		setStatusString( std::string status );
+	void		setSerialString( std::string packet );
+	void		SetMouseXY( cv::Point3i mouseData );
+	cv::Point3i GetMouseXY();
 
 	// Variables
 	bool FLAG_SERIAL	 = false;
 	bool FLAG_AMPLIFIERS = false;
+
 
 
 private:
@@ -69,6 +79,9 @@ private:
 	short rH	= 0;
 	short textX = 0;	// Text X position
 	short textY = 0;	// Text Y position
+
+	// Mouse position
+	cv::Point3i mouseXY = cv::Point3i( 0, 0, 0 );
 
 	// Functions
 	void DrawCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
@@ -112,7 +125,6 @@ cv::Mat DisplayInterface::Update( cv::Mat& frame, CaptureInterface& Capture ) {
 							   CONFIG_CAM_PRINCIPAL_Y - Capture.Markers[Capture.activeMarker].errorMagnitudeNorm * ( CONFIG_DET_RADIUS / 100 ) * sin( Capture.Markers[Capture.activeMarker].errorHeading ) ),
 				  CONFIG_colCyaMd,
 				  2 );
-
 
 		// Draw border on active marker
 		DrawActiveMarkerBorder( Capture.markerFound, Capture.Markers[Capture.activeMarker].present, Capture.activeCorners );
@@ -183,6 +195,12 @@ void DisplayInterface::AddText( CaptureInterface& Capture ) {
 	DrawCell( std::to_string( int( Capture.Markers[Capture.activeMarker].errorHeading * RAD2DEG ) ), "I8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 
+	// Mouse output block
+	DrawCell( "Mouse", "AF5", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( mouseXY.x ), "AF6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( mouseXY.y ), "AH6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( ( mouseXY.z == 1 ? "Button1" : "" ), "AF7", 4, 1, fontBody, CONFIG_colWhite, ( FLAG_AMPLIFIERS ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	// std::cout << mouseXY.z << "\n";
 
 	// Frequency Block
 	DrawCell( "Frequency", "AJ1", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -287,4 +305,15 @@ void DisplayInterface::DrawActiveMarkerBorder( bool markerFound, bool active, st
 	} else {
 		cv::polylines( matDisplay, corners, true, CONFIG_colCyaDk, 2 );
 	}
+}
+
+
+void DisplayInterface::SetMouseXY( cv::Point3i mouseData ) {
+	mouseXY.x = mouseData.x;
+	mouseXY.y = mouseData.y;
+	mouseXY.z = mouseData.z;
+}
+
+cv::Point3i DisplayInterface::GetMouseXY() {
+	return cv::Point3i( mouseXY.x, mouseXY.y, mouseXY.z );
 }

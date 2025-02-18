@@ -535,3 +535,157 @@ events:
         
       exitCode: 0
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/CheckLibraryExists.cmake:69 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/FindX11.cmake:682 (check_library_exists)"
+      - "CMakeLists.txt:10 (find_package)"
+    checks:
+      - "Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so"
+    directories:
+      source: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-8zbvUp"
+      binary: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-8zbvUp"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "X11_LIB_X11_SOLO"
+      cached: true
+      stdout: |
+        Change Dir: '/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-8zbvUp'
+        
+        Run Build Command(s): /usr/bin/ninja -v cmTC_0587b
+        [1/2] /usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=XOpenDisplay -o CMakeFiles/cmTC_0587b.dir/CheckFunctionExists.c.o -c /home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-8zbvUp/CheckFunctionExists.c
+        [2/2] : && /usr/bin/gcc -DCHECK_FUNCTION_EXISTS=XOpenDisplay  CMakeFiles/cmTC_0587b.dir/CheckFunctionExists.c.o -o cmTC_0587b  /usr/lib/x86_64-linux-gnu/libX11.so  /usr/lib/x86_64-linux-gnu/libXext.so && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/FindX11.cmake:697 (check_function_exists)"
+      - "CMakeLists.txt:10 (find_package)"
+    checks:
+      - "Looking for gethostbyname"
+    directories:
+      source: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-9rFObA"
+      binary: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-9rFObA"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_GETHOSTBYNAME"
+      cached: true
+      stdout: |
+        Change Dir: '/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-9rFObA'
+        
+        Run Build Command(s): /usr/bin/ninja -v cmTC_cb23c
+        [1/2] /usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=gethostbyname -o CMakeFiles/cmTC_cb23c.dir/CheckFunctionExists.c.o -c /home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-9rFObA/CheckFunctionExists.c
+        [2/2] : && /usr/bin/gcc -DCHECK_FUNCTION_EXISTS=gethostbyname  CMakeFiles/cmTC_cb23c.dir/CheckFunctionExists.c.o -o cmTC_cb23c   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/FindX11.cmake:711 (check_function_exists)"
+      - "CMakeLists.txt:10 (find_package)"
+    checks:
+      - "Looking for connect"
+    directories:
+      source: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-vUwa5i"
+      binary: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-vUwa5i"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_CONNECT"
+      cached: true
+      stdout: |
+        Change Dir: '/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-vUwa5i'
+        
+        Run Build Command(s): /usr/bin/ninja -v cmTC_dbf33
+        [1/2] /usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=connect -o CMakeFiles/cmTC_dbf33.dir/CheckFunctionExists.c.o -c /home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-vUwa5i/CheckFunctionExists.c
+        [2/2] : && /usr/bin/gcc -DCHECK_FUNCTION_EXISTS=connect  CMakeFiles/cmTC_dbf33.dir/CheckFunctionExists.c.o -o cmTC_dbf33   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/FindX11.cmake:720 (check_function_exists)"
+      - "CMakeLists.txt:10 (find_package)"
+    checks:
+      - "Looking for remove"
+    directories:
+      source: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-OUf4xM"
+      binary: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-OUf4xM"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_REMOVE"
+      cached: true
+      stdout: |
+        Change Dir: '/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-OUf4xM'
+        
+        Run Build Command(s): /usr/bin/ninja -v cmTC_4dab1
+        [1/2] /usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=remove -o CMakeFiles/cmTC_4dab1.dir/CheckFunctionExists.c.o -c /home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-OUf4xM/CheckFunctionExists.c
+        [2/2] : && /usr/bin/gcc -DCHECK_FUNCTION_EXISTS=remove  CMakeFiles/cmTC_4dab1.dir/CheckFunctionExists.c.o -o cmTC_4dab1   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/FindX11.cmake:729 (check_function_exists)"
+      - "CMakeLists.txt:10 (find_package)"
+    checks:
+      - "Looking for shmat"
+    directories:
+      source: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-a4q7RI"
+      binary: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-a4q7RI"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_SHMAT"
+      cached: true
+      stdout: |
+        Change Dir: '/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-a4q7RI'
+        
+        Run Build Command(s): /usr/bin/ninja -v cmTC_681a2
+        [1/2] /usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=shmat -o CMakeFiles/cmTC_681a2.dir/CheckFunctionExists.c.o -c /home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-a4q7RI/CheckFunctionExists.c
+        [2/2] : && /usr/bin/gcc -DCHECK_FUNCTION_EXISTS=shmat  CMakeFiles/cmTC_681a2.dir/CheckFunctionExists.c.o -o cmTC_681a2   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/CheckLibraryExists.cmake:69 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/FindX11.cmake:739 (check_library_exists)"
+      - "CMakeLists.txt:10 (find_package)"
+    checks:
+      - "Looking for IceConnectionNumber in ICE"
+    directories:
+      source: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-v5eWag"
+      binary: "/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-v5eWag"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_LIB_ICE_HAS_ICECONNECTIONNUMBER"
+      cached: true
+      stdout: |
+        Change Dir: '/home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-v5eWag'
+        
+        Run Build Command(s): /usr/bin/ninja -v cmTC_f8021
+        [1/2] /usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=IceConnectionNumber -o CMakeFiles/cmTC_f8021.dir/CheckFunctionExists.c.o -c /home/tom/Code/nuring/build/CMakeFiles/CMakeScratch/TryCompile-v5eWag/CheckFunctionExists.c
+        [2/2] : && /usr/bin/gcc -DCHECK_FUNCTION_EXISTS=IceConnectionNumber  CMakeFiles/cmTC_f8021.dir/CheckFunctionExists.c.o -o cmTC_f8021  -lICE && :
+        
+      exitCode: 0
+...

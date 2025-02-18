@@ -59,6 +59,14 @@
         "clocale": "cpp",
         "concepts": "cpp",
         "numbers": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "__node_handle": "cpp",
+        "__split_buffer": "cpp",
+        "deque": "cpp",
+        "filesystem": "cpp",
+        "queue": "cpp",
+        "stack": "cpp"
     }
 }

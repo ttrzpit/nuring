@@ -5,7 +5,7 @@
 
 #include <opencv2/core.hpp>
 
-#define HIGH_RESOLUTION 0
+#define HIGH_RESOLUTION 1
 
 #if HIGH_RESOLUTION
 

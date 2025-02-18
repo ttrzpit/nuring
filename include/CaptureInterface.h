@@ -171,11 +171,11 @@ void CaptureInterface::GetFrame() {
 		// Remap using GPU
 		cv::cuda::remap( gpuRawFrame, gpuUndistortedFrame, gpuRemap1, gpuRemap2, cv::INTER_NEAREST );
 
-		// Extract frame for visualization
-		gpuUndistortedFrame.download( matFrame );
-
 		// Convert to grayscale
 		cv::cuda::cvtColor( gpuUndistortedFrame, gpuGrayFrame, cv::COLOR_BGR2GRAY );
+
+		// Extract frame for visualization
+		gpuUndistortedFrame.download( matFrame );
 
 		// Extract from GPU
 		gpuGrayFrame.download( matGray );
