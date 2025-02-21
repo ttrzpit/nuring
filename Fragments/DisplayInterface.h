@@ -41,6 +41,7 @@ public:
 	void		setSerialString( std::string packet );
 	void		SetMouseXY( cv::Point3i mouseData );
 	cv::Point3i GetMouseXY();
+	void		DrawFitts( cv::Mat frame, cv::Point2i ptsTouch, cv::Point2i ptsTarget );
 
 	// Variables
 	bool FLAG_SERIAL	 = false;
@@ -317,3 +318,5 @@ void DisplayInterface::SetMouseXY( cv::Point3i mouseData ) {
 cv::Point3i DisplayInterface::GetMouseXY() {
 	return cv::Point3i( mouseXY.x, mouseXY.y, mouseXY.z );
 }
+
+void DisplayInterface::DrawFitts( cv::Mat frame, cv::Point2i ptsTouch, cv::Point2i ptsTarget ) { }

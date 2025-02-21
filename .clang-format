@@ -32,7 +32,7 @@ AccessModifierOffset: -4
 AlignAfterOpenBracket: true
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
-AlignEscapedNewlinesLeft: false
+AlignEscapedNewlinesLeft: true 
 AlignOperands:   true
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: true
@@ -81,7 +81,7 @@ ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
-SpaceBeforeCpp11BracedList: false
+SpaceBeforeCpp11BracedList: true
 DerivePointerAlignment: false
 ExperimentalAutoDetectBinPacking: false
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
@@ -107,7 +107,7 @@ PenaltyReturnTypeOnItsOwnLine: 60
 PointerAlignment: Left
 SpaceAfterCStyleCast: false
 SpaceBeforeAssignmentOperators: true
-SpaceBeforeParens: Never
+SpaceBeforeParens: true
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 4
 SpacesInAngles:  false

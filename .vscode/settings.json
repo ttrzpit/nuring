@@ -67,6 +67,7 @@
         "deque": "cpp",
         "filesystem": "cpp",
         "queue": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "locale": "cpp"
     }
 }

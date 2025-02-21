@@ -48,7 +48,7 @@ public:
 
 	// Constructor
 	CaptureInterface()
-		: Markers( 10 ) {
+		: Markers( 11 ) {
 
 		BeginCapture();
 		BeginAruco();
@@ -258,7 +258,7 @@ void CaptureInterface::FindTags() {
 			Markers[index].present = false;
 
 			// Only process markers in valid set
-			if( markerIDs[i] > 0 && markerIDs[i] < 11 ) {
+			if( markerIDs[i] > 0 && markerIDs[i] <= 11 ) {
 
 				// Update marker flag
 				markerFound = true;
