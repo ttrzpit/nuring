@@ -9,65 +9,103 @@ TouchscreenClass::TouchscreenClass( SystemDataManager& ctx )
 	: dataHandle( ctx )
 	, shared( ctx.getData() ) {
 
-	std::cout << "Touch: Thread " << cv::getThreadNum() << " of " << cv::getNumThreads() << "\n";
 	std::cout << "TouchClass:   Touchscreen initialized.\n";
-	// Initialize();
+
+	if ( displayHandle ) {
+		// Select input events for button press, release, and pointer motion on the root window
+		XSelectInput( displayHandle, DefaultRootWindow( displayHandle ), ButtonPressMask | ButtonReleaseMask | PointerMotionMask );
+
+		// [NEW CODE] Grab the pointer to ensure our application receives all pointer events.
+		int grabStatus = XGrabPointer( displayHandle, DefaultRootWindow( displayHandle ), True, ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime );
+		if ( grabStatus != GrabSuccess ) {
+			std::cerr << "TouchClass: XGrabPointer failed with status " << grabStatus << "\n";
+		}
+	}
 }
-
-
 
 /**
  * @brief Deconstructor
  */
 TouchscreenClass::~TouchscreenClass() {
+	XUngrabPointer( displayHandle, CurrentTime );	 // [NEW CODE] Release the pointer grab.
 	XCloseDisplay( displayHandle );
 	std::cout << "TouchClass:   X11 shutdown complete.\n";
 }
-
-
 
 /**
  * @brief Get cursor position and click
  */
 void TouchscreenClass::GetCursorPosition() {
-
-	// Make sure display handle is opened
-	if ( !displayHandle ) {
-		std::cerr << "TouchClass:  Cannot open X11 display handle\n";
-	}
-
-	// Get the root window
-	Window root = DefaultRootWindow( displayHandle );
-
-	// Variables for pointer position
-	int			 rootX, rootY, winX, winY;
-	unsigned int buttonMask;
-	Window		 childReturn, rootReturn;
-
-	// Query the pointer position and button state
-	if ( !XQueryPointer( displayHandle, root, &rootReturn, &childReturn, &rootX, &rootY, &winX, &winY, &buttonMask ) ) {
-		std::cerr << "TouchClass:  XQueryPointer returned empty\n";
-		XCloseDisplay( displayHandle );
-		shared->touchPosition = cv::Point3i( 0, 0, 0 );
-	}
-
-	// Check if mouse button pressed
-	bool leftButtonPressed = ( buttonMask & Button1Mask ) != 0;
-
-	// Update values
-	shared->touchPosition = cv::Point3i( rootX - 3440, rootY - 32, ( leftButtonPressed && !buttonPressed ? 1 : 0 ) );
-
-	// Uncomment this line to debounce button state / only accept first touch
-	// buttonPressed = leftButtonPressed;
+	// Call event-processing loop
+	ProcessEvents();
 }
-
 
 /**
  * @brief Close the touchscreen class (to end X11 polling)
  */
-
 void TouchscreenClass::Close() {
-
 	// Close X11 handle
 	XCloseDisplay( displayHandle );
+}
+
+void TouchscreenClass::ParseClick() {
+	if ( buttonPressedNew == true ) {
+		// Switch-case for active task
+		switch ( shared->ACTIVE_TASK ) {
+		case 0:
+			// Nothing
+			break;
+		case 1:
+			// Discrimination
+			break;
+		case 2:	   // Fitts
+			if ( shared->touchPosition.z == 1 ) {
+				shared->TASK_COMMAND = 'c';
+			} else {
+				shared->TASK_COMMAND = 0;
+			}
+			break;
+		case 3:
+			//
+			break;
+		case 4:
+			//
+			break;
+		default:
+			//
+			break;
+		}
+		buttonPressedNew = false;
+	}
+}
+
+void TouchscreenClass::ProcessEvents() {
+	// Process all pending events
+	while ( XPending( displayHandle ) ) {
+		XEvent event;
+		XNextEvent( displayHandle, &event );
+		switch ( event.type ) {
+		case ButtonPress:
+			// [NEW CODE] Update state for a button press.
+			buttonMask				= event.xbutton.state;
+			buttonPressedNew		= true;
+			shared->touchPosition.z = buttonPressedNew;
+			break;
+		case ButtonRelease:
+			// [NEW CODE] Update state for a button release.
+			buttonMask				= event.xbutton.state;
+			buttonPressedNew		= false;
+			shared->touchPosition.z = buttonPressedNew;
+			break;
+		case MotionNotify:
+			// [NEW CODE] Update pointer position on motion.
+			shared->touchPosition.x = event.xmotion.x - 3440;
+			shared->touchPosition.y = event.xmotion.y - 32;
+			break;
+		default:
+			break;
+		}
+	}
+
+	ParseClick();
 }

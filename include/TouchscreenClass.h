@@ -31,10 +31,17 @@ public:
 
 private:
 	// Private functions
-	// void Initialize();
+	void ParseClick();
+	void ProcessEvents();
 
 	// Private variables
-	bool buttonPressed = false;
+	bool buttonPressedNew = false;
+	bool buttonPressedOld = false;
+
+	// Variables for pointer position
+	int			 rootX, rootY, winX, winY;
+	unsigned int buttonMask;
+	Window		 childReturn, rootReturn, root;
 
 	// Display handle for X11
 	Display* displayHandle = XOpenDisplay( nullptr );

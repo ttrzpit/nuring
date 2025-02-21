@@ -25,6 +25,12 @@
 },
 {
   "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/FittsClass.cpp.o -c /home/tom/Code/nuring/src/FittsClass.cpp",
+  "file": "/home/tom/Code/nuring/src/FittsClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/FittsClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
   "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/InputClass.cpp.o -c /home/tom/Code/nuring/src/InputClass.cpp",
   "file": "/home/tom/Code/nuring/src/InputClass.cpp",
   "output": "CMakeFiles/NURingIntegratedController.dir/src/InputClass.cpp.o"

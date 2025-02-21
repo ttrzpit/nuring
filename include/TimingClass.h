@@ -24,6 +24,8 @@ public:
 	// Public functions
 	void StartTimer();
 	void UpdateTimer();
+	void TaskTimerStart();
+	void TaskTimerEnd();
 
 
 private:
@@ -36,4 +38,8 @@ private:
 	std::chrono::steady_clock::time_point currentTime;
 	std::chrono::steady_clock::time_point previousTime;
 	std::chrono::duration<double>		  elapsedTime;
+	std::chrono::steady_clock::time_point taskTimeStart;
+	std::chrono::steady_clock::time_point taskTimeEnd;
+	std::chrono::duration<double>		  taskTimeElapsed;
+	bool								  TASK_TIMER_STARTED = false;
 };

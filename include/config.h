@@ -11,16 +11,18 @@
 // Configuration selection
 #define HIGH_RESOLUTION 1
 
-#if HIGH_RESOLUTION
+#if HIGH_RESOLUTION == 1
 
 // Config name
 inline const std::string CONFIG_TYPE = "HighResolution";
 
 // Display properties
-inline constexpr unsigned short CONFIG_DIS_WIDTH	   = 1600;
-inline constexpr unsigned short CONFIG_DIS_HEIGHT	   = 1360;
-inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH  = 40;
-inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT = 20;
+inline constexpr unsigned short CONFIG_DIS_WIDTH		   = 1600;
+inline constexpr unsigned short CONFIG_DIS_HEIGHT		   = 1360;
+inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH	   = 40;
+inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT	   = 22;	// 20
+inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 80;	// 20
+inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 40;	// 20
 
 // Camera intrinsic parameters
 inline constexpr unsigned short CONFIG_CAM_WIDTH	   = 1600;
@@ -37,16 +39,18 @@ inline const cv::Mat CONFIG_CAMERA_MATRIX	  = ( cv::Mat_<double>( 3, 3 ) << 600.
 inline const cv::Mat CONFIG_DISTORTION_COEFFS = ( cv::Mat_<double>( 1, 5 ) << 0.01561, -0.03298, 0.00020, 0.00136, 0.00561 );
 
 
-#else
+#elif HIGH_RESOLUTION == 0
 
 // Config name
 inline const std::string CONFIG_TYPE = "LowResolution";
 
 // Display properties
-inline constexpr unsigned short CONFIG_DIS_WIDTH	   = 1280;
-inline constexpr unsigned short CONFIG_DIS_HEIGHT	   = 1200;
-inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH  = 32;
-inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT = 30;
+inline constexpr unsigned short CONFIG_DIS_WIDTH		   = 1280;
+inline constexpr unsigned short CONFIG_DIS_HEIGHT		   = 1200;
+inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH	   = 32;
+inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT	   = 30;
+inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 80;	// 20
+inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 40;	// 20
 
 // Camera intrinsic parameters
 inline constexpr unsigned short CONFIG_CAM_WIDTH	   = 1280;
@@ -70,6 +74,10 @@ inline std::string CONFIG_SERIAL_PORT = "/dev/ttyACM0";
 
 // Marker constants
 inline constexpr short CONFIG_MARKER_WIDTH = 20;	// [mm] Marker dimension
+
+// Unit conversions per touchscreen
+#define MM2PX 3.66142
+#define PX2MM 0.27312
 
 // Camera properties
 inline constexpr short			CONFIG_CAM_BRIGHTNESS		 = 0;
@@ -103,6 +111,11 @@ extern const cv::Scalar CONFIG_colBlack, CONFIG_colWhite;
 extern const cv::Scalar CONFIG_colCyaMd, CONFIG_colCyaLt, CONFIG_colCyaDk;
 extern const cv::Scalar CONFIG_colMagMd, CONFIG_colMagLt, CONFIG_colMagDk;
 
+// Fitts Law Test
+inline constexpr unsigned short CONFIG_FITTS_SCREEN_EXCLUSION_ZONE = 93;
+inline constexpr unsigned short CONFIG_FITTS_MARKER_SIZE		   = CONFIG_MARKER_WIDTH;
+inline constexpr unsigned short CONFIG_FITTS_SCREEN_WIDTH		   = 1920;
+inline constexpr unsigned short CONFIG_FITTS_SCREEN_HEIGHT		   = 1080;
 
 // // Available Resolutions @ 90Hz
 // // Resolution   1920x1080   1920x1200   1600x1200   1280x960    1280x720    1024x768    960x720     800x600

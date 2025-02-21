@@ -4,4 +4,5 @@ v4l2-ctl --list-devices
 List capture device details and format
 v4l2-ctl --device=/dev/video0 --all
 
-
+Map touchscreen input to actual touchscreen
+xinput map-to-output 14 HDMI-0

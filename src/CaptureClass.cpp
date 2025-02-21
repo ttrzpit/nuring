@@ -8,7 +8,7 @@
 CaptureClass::CaptureClass( SystemDataManager& ctx )
 	: dataHandle( ctx )
 	, shared( ctx.getData() ) {
-	std::cout << "Capture: Thread " << cv::getThreadNum() << " of " << cv::getNumThreads() << "\n";
+
 	Initialize();
 }
 
