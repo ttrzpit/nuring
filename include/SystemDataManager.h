@@ -39,9 +39,10 @@ struct ManagedData {
 	bool FLAG_LOGGING_ON	   = false;
 
 	// Testing
-	char ACTIVE_TASK  = 0;
-	char TASK_COMMAND = 0;
-	char USER_ID	  = 0;
+	std::string TASK_NAME	 = "";
+	char		TASK_NUMBER	 = 0;
+	char		TASK_COMMAND = 0;
+	short		TASK_USER_ID = 100;
 
 	// OpenCV image matrices
 	cv::Mat matFrameRaw			= cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
@@ -86,15 +87,18 @@ struct ManagedData {
 	std::string displayString = "";
 
 	// Logging variables
-	std::string loggingCustom1 = "";
-	std::string loggingCustom2 = "";
-	std::string loggingCustom3 = "";
-	std::string loggingCustom4 = "";
-	std::string loggingCustom5 = "";
+	std::string loggingFilename = "";
+	std::string loggingCustom1	= "";
+	std::string loggingCustom2	= "";
+	std::string loggingCustom3	= "";
+	std::string loggingCustom4	= "";
+	std::string loggingCustom5	= "";
 
 	// Task variables
-	cv::Point3i fittsErrorPx = cv::Point3i( 0, 0, 0 );
-	cv::Point3i fittsErrorMm = cv::Point3i( 0, 0, 0 );
+	cv::Point3i fittsErrorPx		= cv::Point3i( 0, 0, 0 );
+	cv::Point3i fittsErrorMm		= cv::Point3i( 0, 0, 0 );
+	float		fittsCompletionTime = 0.0f;
+	short		fittsTestNumber		= 0;
 };
 
 class SystemDataManager {

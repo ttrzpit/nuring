@@ -51,7 +51,7 @@ void TouchscreenClass::Close() {
 void TouchscreenClass::ParseClick() {
 	if ( buttonPressedNew == true ) {
 		// Switch-case for active task
-		switch ( shared->ACTIVE_TASK ) {
+		switch ( shared->TASK_NUMBER ) {
 		case 0:
 			// Nothing
 			break;

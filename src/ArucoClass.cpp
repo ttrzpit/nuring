@@ -22,17 +22,18 @@ void ArucoClass::Initialize() {
 	shared->arucoDictionary = cv::aruco::getPredefinedDictionary( cv::aruco::DICT_4X4_50 );
 
 	// Assign ArUco detector parameters
-	shared->arucoDetectorParams.adaptiveThreshConstant		  = 7;
-	shared->arucoDetectorParams.adaptiveThreshWinSizeMin	  = 3;									// 3
-	shared->arucoDetectorParams.adaptiveThreshWinSizeMax	  = 33;									// 23
-	shared->arucoDetectorParams.adaptiveThreshWinSizeStep	  = 10;									// 10
-	shared->arucoDetectorParams.minMarkerPerimeterRate		  = 0.02;								// 0.03
-	shared->arucoDetectorParams.maxMarkerPerimeterRate		  = 4.0;								// 4.0
-	shared->arucoDetectorParams.minCornerDistanceRate		  = 0.05;								// 0.05
-	shared->arucoDetectorParams.minDistanceToBorder			  = 3;									// 3
-	shared->arucoDetectorParams.cornerRefinementMethod		  = cv::aruco::CORNER_REFINE_SUBPIX;	// cv::aruco::CORNER_REFINE_SUBPIX;
-	shared->arucoDetectorParams.cornerRefinementMaxIterations = 30;									// 30
-	shared->arucoDetectorParams.cornerRefinementMinAccuracy	  = 0.1;								// 0.1
+	shared->arucoDetectorParams.adaptiveThreshConstant	 = 7;
+	shared->arucoDetectorParams.adaptiveThreshWinSizeMin = 3;	  // 3  KEEP THIS
+	shared->arucoDetectorParams.adaptiveThreshWinSizeMax = 13;	  // 23	KEEP THIS
+	// shared->arucoDetectorParams.adaptiveThreshWinSizeStep	  = 10;									// 10
+	shared->arucoDetectorParams.minMarkerPerimeterRate		  = 0.03;	 // 0.03
+	shared->arucoDetectorParams.maxMarkerPerimeterRate		  = 4.0;	 // 4.0 Not critical
+	shared->arucoDetectorParams.polygonalApproxAccuracyRate	  = 0.15;
+	shared->arucoDetectorParams.minCornerDistanceRate		  = 0.05;							  // 0.05
+	shared->arucoDetectorParams.minDistanceToBorder			  = 3;								  // 3
+	shared->arucoDetectorParams.cornerRefinementMethod		  = cv::aruco::CORNER_REFINE_NONE;	  // cv::aruco::CORNER_REFINE_SUBPIX;
+	shared->arucoDetectorParams.cornerRefinementMaxIterations = 30;								  // 30
+	shared->arucoDetectorParams.cornerRefinementMinAccuracy	  = 0.1;							  // 0.1
 
 	// Re-initialize detector
 	shared->arucoDetector = cv::aruco::ArucoDetector( shared->arucoDictionary, shared->arucoDetectorParams );
@@ -57,14 +58,14 @@ void ArucoClass::Initialize() {
  */
 void ArucoClass::FindTags() {
 
-	if( shared->FLAG_FRAME_READY ) {
+	if ( shared->FLAG_FRAME_READY ) {
 
 
 		// Reset global flag
 		shared->FLAG_TAG_FOUND = false;
 
 		// Reset individual tag state
-		for( size_t t = 0; t < shared->arucoTags.size(); t++ ) {
+		for ( size_t t = 0; t < shared->arucoTags.size(); t++ ) {
 			shared->arucoTags[t].present = false;
 		}
 
@@ -72,7 +73,7 @@ void ArucoClass::FindTags() {
 		shared->arucoDetector.detectMarkers( shared->matFrameGray, shared->arucoCorners, shared->arucoIDs, shared->arucoRejects );
 
 		// Check if markers have been found
-		if( !shared->arucoIDs.empty() ) {
+		if ( !shared->arucoIDs.empty() ) {
 
 			// Draw tags on frame
 			cv::aruco::drawDetectedMarkers( shared->matFrameUndistorted, shared->arucoCorners, shared->arucoIDs );
@@ -81,13 +82,13 @@ void ArucoClass::FindTags() {
 			cv::aruco::estimatePoseSingleMarkers( shared->arucoCorners, CONFIG_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, shared->arucoRotationVector, shared->arucoTranslationVector );
 
 			// Process each detected marker
-			for( size_t i = 0; i < shared->arucoIDs.size(); i++ ) {
+			for ( size_t i = 0; i < shared->arucoIDs.size(); i++ ) {
 
 				// Shortcut to tag number
 				short index = shared->arucoIDs[i];
 
 				// Sort out markers in valid range
-				if( shared->arucoIDs[i] > 0 && shared->arucoIDs[i] <= 11 ) {
+				if ( shared->arucoIDs[i] > 0 && shared->arucoIDs[i] <= 11 ) {
 
 					// Update global flag
 					shared->FLAG_TAG_FOUND = true;
@@ -111,12 +112,12 @@ void ArucoClass::FindTags() {
 					shared->arucoTags[index].errorTheta			  = atan2( shared->arucoTags[index].error2D.y, -shared->arucoTags[index].error2D.x );
 
 					// Constraint angle to positive values
-					if( shared->arucoTags[index].errorTheta < 0.0f ) {
+					if ( shared->arucoTags[index].errorTheta < 0.0f ) {
 						shared->arucoTags[index].errorTheta = shared->arucoTags[index].errorTheta + ( 2.0f * 3.14159f );
 					}
 
 					// Update corners vector for active marker
-					if( index == shared->arucoActiveID ) {
+					if ( index == shared->arucoActiveID ) {
 						shared->arucoActiveCorners[0] = cv::Point2i( shared->arucoCorners[i][0].x, shared->arucoCorners[i][0].y );
 						shared->arucoActiveCorners[1] = cv::Point2i( shared->arucoCorners[i][1].x, shared->arucoCorners[i][1].y );
 						shared->arucoActiveCorners[2] = cv::Point2i( shared->arucoCorners[i][2].x, shared->arucoCorners[i][2].y );

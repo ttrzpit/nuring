@@ -67,6 +67,12 @@ void TimingClass::TaskTimerEnd() {
 	// Capture final time
 	taskTimeEnd = std::chrono::steady_clock::now();
 
+	// Save final time
+	if ( shared->TASK_NUMBER == 2 ) {
+		taskTimeElapsed				= taskTimeEnd - taskTimeStart;
+		shared->fittsCompletionTime = taskTimeElapsed.count();
+	}
+
 	// Update flag
 	TASK_TIMER_STARTED = false;
 }

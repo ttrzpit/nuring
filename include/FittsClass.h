@@ -16,11 +16,13 @@
 #include "config.h"
 
 // Timer library
+#include "LoggingClass.h"
 #include "TimingClass.h"
 
 // Forward declarations
 class SystemDataManager;
 class TimingClass;
+class LoggingClass;
 struct ManagedData;
 
 
@@ -32,7 +34,7 @@ class FittsClass {
 
 public:
 	// Data manager handle
-	FittsClass( SystemDataManager& dataHandle, TimingClass& timerHandle );
+	FittsClass( SystemDataManager& dataHandle, TimingClass& timerHandle, LoggingClass& loggerHandle );
 
 	// Public functions
 	void StartTest();
@@ -62,5 +64,6 @@ private:
 	// Data manager handle
 	SystemDataManager&			 dataHandle;
 	TimingClass&				 timer;
+	LoggingClass&				 logger;
 	std::shared_ptr<ManagedData> shared;
 };

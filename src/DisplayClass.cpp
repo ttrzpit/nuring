@@ -153,6 +153,11 @@ void DisplayClass::AddText() {
 	DrawCell( std::to_string( int( shared->arucoTags[shared->arucoActiveID].errorTheta * RAD2DEG ) ), "I7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 
+	// Participant Block
+	DrawCell( "Participant ID", "AC1", 4, 2, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( shared->TASK_USER_ID ), "AC3", 4, 2, fontHeader, CONFIG_colWhite, ( shared->TASK_USER_ID == 100 ? CONFIG_colRedDk : CONFIG_colGreDk ), true );
+
+
 	// Frequency Block
 	DrawCell( "Frequency", "AG1", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( shared->timingFrequency ), "AG2", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
@@ -175,23 +180,23 @@ void DisplayClass::AddText() {
 	// Serial Block
 	DrawCell( "Serial Status", "AK3", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( ( shared->FLAG_SERIAL_OPEN ? "Online" : "Offline" ), "AK4", 4, 1, fontBody, CONFIG_colWhite, ( shared->FLAG_SERIAL_OPEN ? CONFIG_colGreDk : CONFIG_colBlack ), true );
-	DrawCell( ( shared->FLAG_SERIAL_OPEN ? shared->serialPacket.substr( 0, shared->serialPacket.size() - 1 ) : "---" ), "AK5", 4, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( ( shared->FLAG_SERIAL_OPEN ? shared->serialPacket.substr( 0, shared->serialPacket.size() - 1 ) : "---" ), "AK5", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Logging Block
 	DrawCell( "Logging", "AK6", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( shared->FLAG_LOGGING_ON ? "Logging" : "Inactive" ), "AK7", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( ( shared->FLAG_LOGGING_ON ? "Logging" : "Inactive" ), "AK7", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 
-	cv::Scalar backColor = shared->ACTIVE_TASK == 0 ? CONFIG_colGraBk : CONFIG_colBluDk;
+	cv::Scalar backColor = shared->TASK_NUMBER == 0 ? CONFIG_colGraBk : CONFIG_colBluDk;
 
 	// Task block
 	DrawCell( "Current Task", "K1", 5, 2, fontHeader * 1.5, CONFIG_colWhite, backColor, true );
 	std::string taskName;
-	if ( shared->ACTIVE_TASK == 1 ) {
+	if ( shared->TASK_NUMBER == 1 ) {
 		taskName = "1: Discrimination Task";
-	} else if ( shared->ACTIVE_TASK == 2 ) {
+	} else if ( shared->TASK_NUMBER == 2 ) {
 		taskName = "2: Fitts-Law Task";
-	} else if ( shared->ACTIVE_TASK == 3 ) {
+	} else if ( shared->TASK_NUMBER == 3 ) {
 		taskName = "3: TBD";
 	} else {
 		taskName = "0: None";

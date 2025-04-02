@@ -32,7 +32,7 @@ TimingClass		 Timing( dataHandle );	   // Loop timing measurement
 TouchscreenClass Touch( dataHandle );	   // Touchscreen position reading
 SerialClass		 Serial( dataHandle );	   // Serial interface
 LoggingClass	 Logging( dataHandle );	   // Logging interface
-FittsClass		 Fitts( dataHandle, Timing );
+FittsClass		 Fitts( dataHandle, Timing, Logging );
 
 
 
@@ -73,12 +73,15 @@ int main() {
 	// Main loop
 	while ( shared->FLAG_MAIN_RUNNING ) {
 
+
+
 		// Trial selector
-		if ( shared->ACTIVE_TASK == 0 ) {
+		if ( shared->TASK_NUMBER == 0 ) {
 			// Nothing
-		} else if ( shared->ACTIVE_TASK == 1 ) {
+		} else if ( shared->TASK_NUMBER == 1 ) {
 			// Nothing
-		} else if ( shared->ACTIVE_TASK == 2 ) {
+		} else if ( shared->TASK_NUMBER == 2 ) {
+			shared->TASK_NAME = "Fitts";
 			Fitts.Update();
 		} else {
 		}

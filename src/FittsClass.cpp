@@ -5,10 +5,11 @@
 #include "SystemDataManager.h"
 
 // Constructor
-FittsClass::FittsClass( SystemDataManager& ctx, TimingClass& timerHandle )
+FittsClass::FittsClass( SystemDataManager& ctx, TimingClass& timerHandle, LoggingClass& loggerHandle )
 	: dataHandle( ctx )
 	, shared( ctx.getData() )
-	, timer( timerHandle ) {
+	, timer( timerHandle )
+	, logger( loggerHandle ) {
 
 	// Generate random seed
 	std::srand( time( NULL ) );
@@ -32,6 +33,9 @@ void FittsClass::StartTest() {
 
 	// Update flag
 	testComplete = false;
+
+	// Update test number
+	testNumber++;
 
 	// Clear the screen
 	matBackground = CONFIG_colWhite;
@@ -89,17 +93,37 @@ void FittsClass::EndTest() {
 	shared->fittsErrorPx = cv::Point3i( ( tagTouch.x - tagCenter.x ), ( tagCenter.y - tagTouch.y ), CalculateNorm( tagCenter, tagTouch ) );
 	shared->fittsErrorMm = shared->fittsErrorPx * PX2MM;
 
-	std::cout << "ErrPx: " << shared->fittsErrorPx.x << " , " << shared->fittsErrorPx.y << " , " << shared->fittsErrorPx.z << "\n";
-	std::cout << "ErrMm: " << shared->fittsErrorMm.x << " , " << shared->fittsErrorMm.y << " , " << shared->fittsErrorMm.z << "\n";
+	// For debug
+	// std::cout << "ErrPx: " << shared->fittsErrorPx.x << " , " << shared->fittsErrorPx.y << " , " << shared->fittsErrorPx.z << "\n";
+	// std::cout << "ErrMm: " << shared->fittsErrorMm.x << " , " << shared->fittsErrorMm.y << " , " << shared->fittsErrorMm.z << "\n";
 
 	// Touch detected at
-	cv::putText( matBackground, "Test complete!", cv::Point( 20, 100 ), cv::FONT_HERSHEY_SIMPLEX, 1, CONFIG_colBlack, 1 );
+	// Add on-screen text
+	std::string line0 = "Task completed!";
+	std::string line1 = "Participant ID: " + std::to_string( shared->TASK_USER_ID );
+	std::string line2 = "Task Time: " + std::to_string( shared->fittsCompletionTime ).substr( 0, 5 ) + "s";
+	std::string line3 = "Error[px] X|Y|R: " + std::to_string( shared->fittsErrorPx.x ) + "px | " + std::to_string( shared->fittsErrorPx.y ) + "px | " + std::to_string( shared->fittsErrorPx.z ) + "px";
+	std::string line4 = "Error[mm] X|Y|R: " + std::to_string( shared->fittsErrorMm.x ) + "mm | " + std::to_string( shared->fittsErrorMm.y ) + "mm | " + std::to_string( shared->fittsErrorMm.z ) + "mm";
+	cv::putText( matBackground, line0, cv::Point( 10, 30 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
+	cv::putText( matBackground, line1, cv::Point( 10, 60 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
+	cv::putText( matBackground, line2, cv::Point( 10, 90 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
+	cv::putText( matBackground, line3, cv::Point( 10, 120 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
+	cv::putText( matBackground, line4, cv::Point( 10, 150 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
+
+
 
 	// Update
 	testComplete = true;
 
 	// Show target field
 	cv::imshow( "Fitts Testing Interface", matBackground );
+
+
+	// Save image
+	std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->TASK_NAME + "_" + std::to_string( shared->TASK_USER_ID ) + "_" + std::to_string( testNumber ) + ".png";
+	shared->displayString	  = "Saving file " + imageFilename;
+	cv::imwrite( imageFilename, matBackground );
+	std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
 }
 
 
@@ -114,11 +138,12 @@ void FittsClass::Update() {
 
 	// Randomize
 	case 'r':
-
-		testComplete = false;
+		shared->arucoActiveID = 1;
+		testComplete		  = false;
 		StartTest();
 		shared->displayString = "FittsClass: Randomizing tag position...";
 		shared->TASK_COMMAND  = 0;
+
 		break;
 	case 'c':
 		if ( !testComplete ) {
@@ -129,6 +154,14 @@ void FittsClass::Update() {
 	default:
 		//nothing
 		break;
+	}
+
+	// Log data
+	if ( !testComplete ) {
+		// Save entry
+		logger.AddEntry();
+	} else if ( testComplete ) {
+		// Save data
 	}
 }
 

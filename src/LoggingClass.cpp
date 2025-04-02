@@ -19,7 +19,6 @@ LoggingClass::LoggingClass( SystemDataManager& ctx )
  * Items to log
  * timestamp, tagID, errXmm, errYmm, errZmm, errXpx, errYpx, mag, theta
  */
-
 void LoggingClass::AddEntry() {
 
 	newEntry.timestamp = shared->timingTimestamp;
@@ -40,4 +39,11 @@ void LoggingClass::AddEntry() {
 	logFile.push_back( newEntry );
 
 	newEntry = {};
+}
+
+
+
+void LoggingClass::Save() {
+
+	std::string logFilename;
 }

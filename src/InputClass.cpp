@@ -126,12 +126,19 @@ void InputClass::ParseInput( int key ) {
 			shared->TASK_COMMAND = 'r';
 			break;
 		case 't':
-			if ( shared->ACTIVE_TASK < 3 ) {
-				shared->ACTIVE_TASK++;
+			if ( shared->TASK_NUMBER < 3 ) {
+				shared->TASK_NUMBER++;
 			} else {
-				shared->ACTIVE_TASK = 0;
+				shared->TASK_NUMBER = 0;
 			}
-			std::cout << "Test: " << std::to_string( shared->ACTIVE_TASK );
+			break;
+		case '=':
+			shared->TASK_USER_ID++;
+			break;
+		case '-':
+			if ( shared->TASK_USER_ID > 100 ) {
+				shared->TASK_USER_ID--;
+			}
 			break;
 		}
 		// std::cout << "\n";

@@ -42,7 +42,7 @@ public:
 
 	// Public functions
 	void AddEntry();
-
+	void Save();
 
 private:
 	// Vector to log data
