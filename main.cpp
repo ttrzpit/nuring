@@ -54,7 +54,7 @@ int main() {
 
 
 	// For debugging
-	// std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
+	std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
 	// cv::utils::logging::setLogLevel( cv::utils::logging::LOG_LEVEL_VERBOSE );
 
 
@@ -68,9 +68,10 @@ int main() {
 	Timing.StartTimer();
 
 	// Add shortcut panel
-	// Canvas.ShowShortcuts();
+	Canvas.ShowShortcuts();
+	Canvas.ShowVisualizer();
 
-
+	std::cout << cv::getBuildInformation() << std::endl;
 	// Main loop
 	while ( shared->FLAG_MAIN_RUNNING ) {
 
@@ -102,11 +103,22 @@ int main() {
 		// Send serial commands
 		if ( shared->FLAG_SERIAL_OPEN ) {
 			// Serial.Send( shared->serialPacket );
+
+			// Share packet if serial is enabled
+			if ( shared->FLAG_SERIAL_ENABLED ) {
+
+				shared->serialPacket = "EM" +
+					Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorMagnitude2D, 3 ) + "H" +
+					Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorTheta * RAD2DEG, 3 ) + "m" +
+					Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velMagnitude, 3 ) + "h" +
+					Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velHeading * RAD2DEG, 3 ) + "X\n";
+			}
 			Serial.Monitor();
 		}
 
 		// Update display
 		Canvas.Update();
+		Canvas.UpdateVisualizer();
 
 		// Update timer (for measuring loop frequency)
 		Timing.UpdateTimer();

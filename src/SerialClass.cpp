@@ -98,3 +98,14 @@ void SerialClass::Monitor() {
 		shared->FLAG_PACKET_WAITING = false;
 	}
 }
+
+/**
+ * @brief Pad the given value with a specified number of zeros
+ * @param val Value to be padded
+ * @param nZeroes Number of padding zeroes
+ */
+std::string SerialClass::PadValues( int val, int nZeroes ) {
+	std::ostringstream sstream;
+	sstream << std::setw( nZeroes ) << std::setfill( '0' ) << val;
+	return sstream.str();
+}

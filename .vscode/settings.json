@@ -69,6 +69,12 @@
         "queue": "cpp",
         "stack": "cpp",
         "locale": "cpp",
-        "ios": "cpp"
+        "ios": "cpp",
+        "ratio": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "iomanip": "cpp",
+        "numeric": "cpp",
+        "variant": "cpp"
     }
 }

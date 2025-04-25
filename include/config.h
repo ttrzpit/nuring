@@ -19,10 +19,12 @@ inline const std::string CONFIG_TYPE = "HighResolution";
 // Display properties
 inline constexpr unsigned short CONFIG_DIS_WIDTH		   = 1600;
 inline constexpr unsigned short CONFIG_DIS_HEIGHT		   = 1360;
+inline constexpr unsigned short CONFIG_DIS_KEY_WIDTH	   = 301;
+inline constexpr unsigned short CONFIG_DIS_KEY_HEIGHT	   = 1360;
 inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH	   = 40;
 inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT	   = 22;	// 20
-inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 80;	// 20
-inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 40;	// 20
+inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 50;	// 20
+inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 30;	// 20
 
 // Camera intrinsic parameters
 inline constexpr unsigned short CONFIG_CAM_WIDTH	   = 1600;

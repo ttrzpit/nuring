@@ -4,6 +4,8 @@
 // System data manager
 #include "SystemDataManager.h"
 
+#include "FittsClass.h"
+
 // Constructor
 InputClass::InputClass( SystemDataManager& ctx )
 	: dataHandle( ctx )
@@ -18,7 +20,7 @@ void InputClass::ParseInput( int key ) {
 	if ( key != 255 ) {
 
 		// Uncomment to be able to read detected key presses
-		// std::cout << "InputClass:   Detected key press = " << key << ", ";
+		std::cout << "InputClass:   Detected key press = " << key << "\n";
 
 		switch ( key ) {
 		case 27:	// ESC key 1048603
@@ -102,9 +104,11 @@ void InputClass::ParseInput( int key ) {
 		case 's':	 // S
 			shared->FLAG_SERIAL_OPEN = !shared->FLAG_SERIAL_OPEN;
 			if ( shared->FLAG_SERIAL_OPEN ) {
-				shared->displayString = "InputClass: Enabling serial output.";
+				shared->displayString		= "InputClass: Enabling serial output.";
+				shared->FLAG_SERIAL_ENABLED = true;
 			} else {
-				shared->displayString = "InputClass: Disabling serial output.";
+				shared->FLAG_SERIAL_ENABLED = false;
+				shared->displayString		= "InputClass: Disabling serial output.";
 			}
 			break;
 		case 'x':	 // X
@@ -115,17 +119,17 @@ void InputClass::ParseInput( int key ) {
 			shared->FLAG_SERIAL_OPEN	  = false;
 			shared->FLAG_AMPLIFIERS_READY = false;
 			break;
-			// 		case 'r':
-			// 			Fitts.testStarted = false;
-			// 			Fitts.StartTest( matBlank );
-			// 			OutputDisplay.setStatusString( "Randomizing Fitts Test Marker." );
+		case 'r':
+			// shared->fittsTestStarted = false;
+			// Fitts.StartTest();
+			// OutputDisplay.setStatusString( "Randomizing Fitts Test Marker." );
 			// 		}
 			// 	}
 			// }
 		case 176:	 // Numpad 0
 			shared->TASK_COMMAND = 'r';
 			break;
-		case 't':
+		case 116:
 			if ( shared->TASK_NUMBER < 3 ) {
 				shared->TASK_NUMBER++;
 			} else {
@@ -139,6 +143,22 @@ void InputClass::ParseInput( int key ) {
 			if ( shared->TASK_USER_ID > 100 ) {
 				shared->TASK_USER_ID--;
 			}
+			break;
+		case 91:
+			shared->controllerK -= 0.001;
+			shared->displayString = "InputClass: Decreasing K to " + std::to_string( shared->controllerK ) + ".";
+			break;
+		case 93:
+			shared->controllerK += 0.001;
+			shared->displayString = "InputClass: Increasing K to " + std::to_string( shared->controllerK ) + ".";
+			break;
+		case 59:
+			shared->controllerB -= 0.001;
+			shared->displayString = "InputClass: Decreasing B to " + std::to_string( shared->controllerB ) + ".";
+			break;
+		case 39:
+			shared->controllerB += 0.001;
+			shared->displayString = "InputClass: Increasing B to " + std::to_string( shared->controllerB ) + ".";
 			break;
 		}
 		// std::cout << "\n";

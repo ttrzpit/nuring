@@ -42,6 +42,7 @@ public:
 	void EndTest();
 
 
+
 private:
 	// Private functions
 	unsigned short CalculateNorm( cv::Point2i pt1, cv::Point2i pt2 );

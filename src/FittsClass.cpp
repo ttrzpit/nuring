@@ -51,7 +51,7 @@ void FittsClass::StartTest() {
 	markerPosition.y = minY + ( rand() % ( maxY - minY + 1 ) );
 
 	// Output position for debugging
-	// std::cout << "Rand: " << markerPosition.x << " , " << markerPosition.y << "\n";
+	std::cout << "Rand: " << markerPosition.x << " , " << markerPosition.y << "\n";
 
 	// Copy to target window
 	matAruco01.copyTo( matBackground( cv::Rect( markerPosition.x, markerPosition.y, matAruco01.cols, matAruco01.rows ) ) );

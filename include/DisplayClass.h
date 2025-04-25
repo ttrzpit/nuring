@@ -33,6 +33,8 @@ public:
 	// Public functions
 	void Update();
 	void ShowShortcuts();
+	void ShowVisualizer();
+	void UpdateVisualizer();
 
 private:
 	// Data manager handle
@@ -40,10 +42,26 @@ private:
 	std::shared_ptr<ManagedData> shared;
 
 	// Private functions
-	void ShowInterface();
-	void AddText();
-	void DrawCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
-	void DrawKeyCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
+	void		ShowInterface();
+	void		AddText();
+	void		DrawCell( std::string str,
+						  std::string cell0,
+						  short		  width,
+						  short		  height,
+						  float		  sz,
+						  cv::Scalar  textColor,
+						  cv::Scalar  fillColor,
+						  bool		  centered );
+	void		DrawKeyCell( std::string str,
+							 std::string cell0,
+							 short		 width,
+							 short		 height,
+							 float		 sz,
+							 cv::Scalar	 textColor,
+							 cv::Scalar	 fillColor,
+							 bool		 centered );
+	cv::Point2i ProjectPoint( const cv::Point3f& p3d );
+	cv::Point2i ProjectIsometric( const cv::Point3f& p3d );
 
 	// Private variables
 	float	 fontHeader = 0.0f;
@@ -77,5 +95,38 @@ private:
 	short key_textX	 = 0;
 	short key_textY	 = 0;
 
-	cv::Mat matShortcuts = cv::Mat( CONFIG_DIS_HEIGHT, 401, CV_8UC3 );
+	// Visualizer settings
+	const float				 focalLength  = 500.0f;
+	const cv::Point2i		 cameraCenter = cv::Point2i( 320, 240 );
+	std::vector<cv::Point2i> ProjectedCorners;
+
+	cv::Mat matShortcuts  = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_KEY_WIDTH, CV_8UC3 );
+	cv::Mat matVisualizer = cv::Mat( 600, 800, CV_8UC3 );
+
+	// Define 3D corners of a cube
+	std::vector<cv::Point3f> cubeCorners = { { 0, -500, -500 },
+											 { 0, -500, 500 },
+											 { 0, 500, 500 },
+											 { 0, 500, -500 },
+											 { 500, -500, -500 },
+											 { 500, -500, 500 },
+											 { 500, 500, 500 },
+											 { 500, 500, -500 } };
+
+
+	// Edges of 3D cube
+	std::vector<std::pair<int, int>> edges = {
+		{ 0, 1 },
+		{ 1, 2 },
+		{ 2, 3 },
+		{ 3, 0 },	 // bottom face
+		{ 4, 5 },
+		{ 5, 6 },
+		{ 6, 7 },
+		{ 7, 4 },	 // top face
+		{ 0, 4 },
+		{ 1, 5 },
+		{ 2, 6 },
+		{ 3, 7 }	// vertical edges
+	};
 };

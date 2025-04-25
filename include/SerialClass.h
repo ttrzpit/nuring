@@ -5,9 +5,9 @@
 
 // Serial libraries
 #include <fcntl.h>		// File controls
+#include <iomanip>		// For padding zeroes
 #include <termios.h>	// Terminal control
 #include <unistd.h>		// Write, read, and close functions
-
 
 // Forward declarations
 class SystemDataManager;
@@ -25,10 +25,11 @@ public:
 	SerialClass( SystemDataManager& dataHandle );
 
 	// Public functions
-	void Send( const std::string& msg );
-	void Close();
-	bool GetStatus();
-	void Monitor();
+	void		Send( const std::string& msg );
+	void		Close();
+	bool		GetStatus();
+	void		Monitor();
+	std::string PadValues( int val, int nZeroes );
 
 
 private:

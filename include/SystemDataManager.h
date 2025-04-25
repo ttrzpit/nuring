@@ -27,6 +27,8 @@ struct Tags {
 	short		   errorMagnitude2D		= 0;
 	short		   errorMagnitudeNorm2D = 0;
 	float		   errorTheta			= 0.0f;
+	float		   velMagnitude			= 0.0f;
+	float		   velHeading			= 0.0f;
 	short		   area					= 0;
 	KalmanFilter3D kf;
 };
@@ -42,6 +44,7 @@ struct ManagedData {
 	bool FLAG_AMPLIFIERS_READY = false;
 	bool FLAG_PACKET_WAITING   = false;
 	bool FLAG_LOGGING_ON	   = false;
+	bool FLAG_SERIAL_ENABLED   = false;
 
 	// Testing
 	std::string TASK_NAME	 = "";
@@ -100,14 +103,18 @@ struct ManagedData {
 	std::string loggingCustom4	= "";
 	std::string loggingCustom5	= "";
 
-	// Filter variables
-	float filterAlpha = 0.05f;
+	// Controller variables
+	float controllerK  = 0.010f;	// N/mm
+	float controllerB  = 0.000f;	// N*s/mm
+	float controllerFx = 0.00f;		// N
+	float controllerFy = 0.00f;		// N
 
 	// Task variables
 	cv::Point3i fittsErrorPx		= cv::Point3i( 0, 0, 0 );
 	cv::Point3i fittsErrorMm		= cv::Point3i( 0, 0, 0 );
 	float		fittsCompletionTime = 0.0f;
 	short		fittsTestNumber		= 0;
+	bool		fittsTestStarted	= false;
 };
 
 class SystemDataManager {
