@@ -23,6 +23,7 @@ auto shared = dataHandle.getData();
 #include "include/TimingClass.h"
 #include "include/TouchscreenClass.h"
 
+
 // New class objects
 CaptureClass	 Capture( dataHandle );	   // Camera capture
 ArucoClass		 Aruco( dataHandle );	   // Aruco detector

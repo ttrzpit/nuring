@@ -12,7 +12,6 @@ ArucoClass::ArucoClass( SystemDataManager& ctx )
 }
 
 
-
 /**
  * @brief Initialize ArUco detector
  */
@@ -22,18 +21,18 @@ void ArucoClass::Initialize() {
 	shared->arucoDictionary = cv::aruco::getPredefinedDictionary( cv::aruco::DICT_4X4_50 );
 
 	// Assign ArUco detector parameters
-	shared->arucoDetectorParams.adaptiveThreshConstant	 = 7;
+	shared->arucoDetectorParams.adaptiveThreshConstant	 = 5;	  // 7
 	shared->arucoDetectorParams.adaptiveThreshWinSizeMin = 3;	  // 3  KEEP THIS
-	shared->arucoDetectorParams.adaptiveThreshWinSizeMax = 13;	  // 23	KEEP THIS
+	shared->arucoDetectorParams.adaptiveThreshWinSizeMax = 33;	  // 13	KEEP THIS
 	// shared->arucoDetectorParams.adaptiveThreshWinSizeStep	  = 10;									// 10
-	shared->arucoDetectorParams.minMarkerPerimeterRate		  = 0.03;	 // 0.03
-	shared->arucoDetectorParams.maxMarkerPerimeterRate		  = 4.0;	 // 4.0 Not critical
-	shared->arucoDetectorParams.polygonalApproxAccuracyRate	  = 0.15;
-	shared->arucoDetectorParams.minCornerDistanceRate		  = 0.05;							  // 0.05
-	shared->arucoDetectorParams.minDistanceToBorder			  = 3;								  // 3
-	shared->arucoDetectorParams.cornerRefinementMethod		  = cv::aruco::CORNER_REFINE_NONE;	  // cv::aruco::CORNER_REFINE_SUBPIX;
-	shared->arucoDetectorParams.cornerRefinementMaxIterations = 30;								  // 30
-	shared->arucoDetectorParams.cornerRefinementMinAccuracy	  = 0.1;							  // 0.1
+	shared->arucoDetectorParams.minMarkerPerimeterRate		  = 0.01;								// 0.03
+	shared->arucoDetectorParams.maxMarkerPerimeterRate		  = 4.0;								// 4.0 Not critical
+	shared->arucoDetectorParams.polygonalApproxAccuracyRate	  = 0.1;								// 0.15
+	shared->arucoDetectorParams.minCornerDistanceRate		  = 0.05;								// 0.05
+	shared->arucoDetectorParams.minDistanceToBorder			  = 3;									// 3
+	shared->arucoDetectorParams.cornerRefinementMethod		  = cv::aruco::CORNER_REFINE_SUBPIX;	// cv::aruco::CORNER_REFINE_SUBPIX;
+	shared->arucoDetectorParams.cornerRefinementMaxIterations = 30;									// 30
+	shared->arucoDetectorParams.cornerRefinementMinAccuracy	  = 0.1;								// 0.1
 
 	// Re-initialize detector
 	shared->arucoDetector = cv::aruco::ArucoDetector( shared->arucoDictionary, shared->arucoDetectorParams );
@@ -76,7 +75,7 @@ void ArucoClass::FindTags() {
 		if ( !shared->arucoIDs.empty() ) {
 
 			// Draw tags on frame
-			cv::aruco::drawDetectedMarkers( shared->matFrameUndistorted, shared->arucoCorners, shared->arucoIDs );
+			// cv::aruco::drawDetectedMarkers( shared->matFrameUndistorted, shared->arucoCorners, shared->arucoIDs );
 
 			// Estimate tag pose
 			cv::aruco::estimatePoseSingleMarkers( shared->arucoCorners, CONFIG_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, shared->arucoRotationVector, shared->arucoTranslationVector );
@@ -88,7 +87,7 @@ void ArucoClass::FindTags() {
 				short index = shared->arucoIDs[i];
 
 				// Sort out markers in valid range
-				if ( shared->arucoIDs[i] > 0 && shared->arucoIDs[i] <= 11 ) {
+				if ( shared->arucoIDs[i] > 0 && shared->arucoIDs[i] <= 5 ) {
 
 					// Update global flag
 					shared->FLAG_TAG_FOUND = true;
@@ -100,9 +99,32 @@ void ArucoClass::FindTags() {
 					int avgX = int( ( shared->arucoCorners[i][0].x + shared->arucoCorners[i][1].x + shared->arucoCorners[i][2].x + shared->arucoCorners[i][3].x ) / 4.0f );
 					int avgY = int( ( shared->arucoCorners[i][0].y + shared->arucoCorners[i][1].y + shared->arucoCorners[i][2].y + shared->arucoCorners[i][3].y ) / 4.0f );
 
+					// Debug
+					std::cout << shared->arucoIDs[i] << "\n";
 
-					// Update marker positions
-					shared->arucoTags[index].error3D = cv::Point3i( int( shared->arucoTranslationVector[i][0] ), int( shared->arucoTranslationVector[i][1] ), int( shared->arucoTranslationVector[i][2] ) );
+					// Save raw position
+					cv::Point3f rawPosition( shared->arucoTranslationVector[i][0], shared->arucoTranslationVector[i][1], shared->arucoTranslationVector[i][2] );
+
+					// Update kalman filter
+					float dt = 1.0f / shared->timingFrequency;
+					shared->arucoTags[index].kf.update( rawPosition, dt );
+					std::cout << dt << "\n";
+
+					// Use filtered data for position
+					shared->arucoTags[index].error3D = shared->arucoTags[index].kf.getPosition();
+
+					// Use filtered data for velocity
+					cv::Point3f vel = shared->arucoTags[index].kf.getVelocity();
+
+					// Deadband to suppress noise
+					if ( cv::norm( vel ) < 2.0f ) {
+						vel = cv::Point3f( 0.0f, 0.0f, 0.0f );
+					}
+
+					// Update velocity
+					shared->arucoTags[index].errorVel3D = vel;
+
+					// Update other params
 					shared->arucoTags[index].error2D = cv::Point2d( CONFIG_CAM_PRINCIPAL_X - avgX, CONFIG_CAM_PRINCIPAL_Y - avgY );
 					shared->arucoTags[index].theta	 = shared->arucoRotationVector[i][1];
 					shared->arucoTags[index].errorMagnitude3D =
@@ -110,6 +132,21 @@ void ArucoClass::FindTags() {
 					shared->arucoTags[index].errorMagnitude2D	  = sqrt( ( shared->arucoTags[index].error2D.x * shared->arucoTags[index].error2D.x ) + ( shared->arucoTags[index].error2D.y * shared->arucoTags[index].error2D.y ) );
 					shared->arucoTags[index].errorMagnitudeNorm2D = std::min( shared->arucoTags[index].errorMagnitude2D / ( CONFIG_DET_RADIUS / 100 ), 100 );
 					shared->arucoTags[index].errorTheta			  = atan2( shared->arucoTags[index].error2D.y, -shared->arucoTags[index].error2D.x );
+
+
+
+					// // Calculate velocity of active tag
+					// if ( index == shared->arucoActiveID ) {
+					// 	// Calculate velocity
+					// 	float		dt				= ( shared->timingFrequency > 0.0f ) ? 1.0f / shared->timingFrequency : 1.0f;
+					// 	cv::Point3f instantVelocity = ( shared->arucoTags[index].error3D - shared->arucoTags[index].errorPrev3D ) * ( 1.0f / dt );
+
+					// 	// Low-pass velocity data
+					// 	shared->arucoTags[index].errorVel3D.x = shared->filterAlpha * instantVelocity.x + ( 1.0f - shared->filterAlpha ) * shared->arucoTags[index].errorVel3D.x;
+					// 	shared->arucoTags[index].errorVel3D.y = shared->filterAlpha * instantVelocity.y + ( 1.0f - shared->filterAlpha ) * shared->arucoTags[index].errorVel3D.y;
+					// 	shared->arucoTags[index].errorVel3D.z = shared->filterAlpha * instantVelocity.z + ( 1.0f - shared->filterAlpha ) * shared->arucoTags[index].errorVel3D.z;
+					// }
+
 
 					// Constraint angle to positive values
 					if ( shared->arucoTags[index].errorTheta < 0.0f ) {
@@ -123,6 +160,7 @@ void ArucoClass::FindTags() {
 						shared->arucoActiveCorners[2] = cv::Point2i( shared->arucoCorners[i][2].x, shared->arucoCorners[i][2].y );
 						shared->arucoActiveCorners[3] = cv::Point2i( shared->arucoCorners[i][3].x, shared->arucoCorners[i][3].y );
 					}
+
 
 					// Update area for each tag
 					shared->arucoTags[index].area = cv::contourArea( shared->arucoCorners[i], true );

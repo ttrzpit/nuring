@@ -23,8 +23,8 @@ DisplayClass::DisplayClass( SystemDataManager& ctx )
 		key_fontHeader = 0.75f;
 		key_fontBody   = 0.65f;
 	} else if ( CONFIG_TYPE == "HighResolution" ) {
-		fontHeader	   = 0.5f;
-		fontBody	   = 0.4f;
+		fontHeader	   = 0.35f;
+		fontBody	   = 0.3f;
 		key_fontHeader = 0.8f;
 		key_fontBody   = 0.7f;
 	}
@@ -43,7 +43,6 @@ void DisplayClass::Update() {
 
 	// Add video frame
 	shared->matFrameUndistorted.copyTo( shared->matFrameOverlay( cv::Rect( 0, 0, shared->matFrameUndistorted.cols, shared->matFrameUndistorted.rows ) ) );
-
 
 	// Draw green outline and crosshairs if marker found
 	if ( shared->FLAG_TAG_FOUND ) {
@@ -67,6 +66,17 @@ void DisplayClass::Update() {
 							   CONFIG_CAM_PRINCIPAL_Y - shared->arucoTags[shared->arucoActiveID].errorMagnitudeNorm2D * ( CONFIG_DET_RADIUS / 100 ) * sin( shared->arucoTags[shared->arucoActiveID].errorTheta ) ),
 				  CONFIG_colCyaMd,
 				  2 );
+
+		// Draw velocity
+		cv::line( shared->matFrameOverlay,
+				  cv::Point2i( CONFIG_CAM_PRINCIPAL_X + shared->arucoTags[shared->arucoActiveID].errorMagnitude2D * cos( shared->arucoTags[shared->arucoActiveID].errorTheta ),
+							   CONFIG_CAM_PRINCIPAL_Y - shared->arucoTags[shared->arucoActiveID].errorMagnitude2D * sin( shared->arucoTags[shared->arucoActiveID].errorTheta ) ),
+				  cv::Point2i( CONFIG_CAM_PRINCIPAL_X + shared->arucoTags[shared->arucoActiveID].errorMagnitude2D * cos( shared->arucoTags[shared->arucoActiveID].errorTheta ) + shared->arucoTags[shared->arucoActiveID].errorVel3D.x * 1,
+							   CONFIG_CAM_PRINCIPAL_Y - shared->arucoTags[shared->arucoActiveID].errorMagnitude2D * sin( shared->arucoTags[shared->arucoActiveID].errorTheta ) + shared->arucoTags[shared->arucoActiveID].errorVel3D.y * -1 ),
+				  CONFIG_colMagMd,
+				  2 );
+
+
 
 		// Draw border on active tag
 		if ( shared->FLAG_TAG_FOUND && shared->arucoTags[shared->arucoActiveID].present ) {
@@ -129,15 +139,21 @@ void DisplayClass::AddText() {
 	DrawCell( "10", "J2", 1, 1, fontBody, ( shared->arucoTags[10].present ? CONFIG_colWhite : CONFIG_colGraDk ), ( shared->arucoActiveID == 10 ? CONFIG_colGreDk : CONFIG_colBlack ), true );
 
 	// Position [mm] Block
-	DrawCell( "Position [mm]", "A3", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Pos [mm]", "B3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "x", "A4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "y", "A5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "z", "A6", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "R", "A7", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( shared->arucoTags[shared->arucoActiveID].error3D.x ), "B4", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( shared->arucoTags[shared->arucoActiveID].error3D.y ), "B5", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( shared->arucoTags[shared->arucoActiveID].error3D.z ), "B6", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( shared->arucoTags[shared->arucoActiveID].errorMagnitude3D ), "B7", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->arucoTags[shared->arucoActiveID].error3D.x ) ), "B4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->arucoTags[shared->arucoActiveID].error3D.y ) ), "B5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->arucoTags[shared->arucoActiveID].error3D.z ) ), "B6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->arucoTags[shared->arucoActiveID].errorMagnitude3D ) ), "B7", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Velocity [mm/s] Block
+	DrawCell( "Vel [mm/s]", "D3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( int( shared->arucoTags[shared->arucoActiveID].errorVel3D.x ) ), "D4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->arucoTags[shared->arucoActiveID].errorVel3D.y ) ), "D5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->arucoTags[shared->arucoActiveID].errorVel3D.z ) ), "D6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Position [px] Block
 	DrawCell( "Position [px]", "F3", 5, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -246,7 +262,7 @@ void DisplayClass::DrawCell( std::string str, std::string cell0, short width, sh
 
 	// Calculate text dimensions
 	if ( sz >= fontHeader ) {
-		textSize = cv::getTextSize( str, cv::FONT_HERSHEY_DUPLEX, sz, 1, 0 );
+		textSize = cv::getTextSize( str, cv::FONT_HERSHEY_SIMPLEX, sz, 1, 0 );
 	} else {
 		textSize = cv::getTextSize( str, cv::FONT_HERSHEY_SIMPLEX, sz, 1, 0 );
 	}
@@ -262,7 +278,7 @@ void DisplayClass::DrawCell( std::string str, std::string cell0, short width, sh
 
 	// Place text
 	if ( sz >= fontHeader ) {
-		cv::putText( shared->matFrameOverlay, str, cv::Point( textX, textY ), cv::FONT_HERSHEY_DUPLEX, sz, textColor, 1 );
+		cv::putText( shared->matFrameOverlay, str, cv::Point( textX, textY ), cv::FONT_HERSHEY_SIMPLEX, sz, textColor, 1 );
 	} else {
 		cv::putText( shared->matFrameOverlay, str, cv::Point( textX, textY ), cv::FONT_HERSHEY_SIMPLEX, sz, textColor, 1 );
 	}

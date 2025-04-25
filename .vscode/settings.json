@@ -68,6 +68,7 @@
         "filesystem": "cpp",
         "queue": "cpp",
         "stack": "cpp",
-        "locale": "cpp"
+        "locale": "cpp",
+        "ios": "cpp"
     }
 }

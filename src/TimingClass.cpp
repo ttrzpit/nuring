@@ -47,6 +47,7 @@ void TimingClass::UpdateTimer() {
 	// Check if 1 second has passed
 	if ( elapsedTime.count() >= 1.0 ) {
 		shared->timingFrequency = short( loopCounter / elapsedTime.count() );
+		shared->timingTimestep	= 1.0f / shared->timingFrequency;
 		loopCounter				= 0;
 		previousTime			= currentTime;
 	}

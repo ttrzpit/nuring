@@ -5,6 +5,7 @@
 #include <memory>
 
 // OpenCV libraries
+#include <ArucoClass.h>
 #include <opencv2/aruco.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/cudaimgproc.hpp>
@@ -12,18 +13,22 @@
 // Runtime configuration
 #include "config.h"
 
+
 // Container for marker information
 struct Tags {
-	short		ID					 = 0;
-	bool		present				 = false;
-	cv::Point3i error3D				 = cv::Point3i( 0, 0, 0 );
-	cv::Point2i error2D				 = cv::Point2i( 0, 0 );
-	float		theta				 = 0.0f;
-	short		errorMagnitude3D	 = 0;
-	short		errorMagnitude2D	 = 0;
-	short		errorMagnitudeNorm2D = 0;
-	float		errorTheta			 = 0.0f;
-	short		area				 = 0;
+	short		   ID					= 0;
+	bool		   present				= false;
+	cv::Point3f	   error3D				= cv::Point3i( 0, 0, 0 );
+	cv::Point3f	   errorPrev3D			= cv::Point3i( 0, 0, 0 );
+	cv::Point3f	   errorVel3D			= cv::Point3i( 0, 0, 0 );
+	cv::Point2f	   error2D				= cv::Point2i( 0, 0 );
+	float		   theta				= 0.0f;
+	short		   errorMagnitude3D		= 0;
+	short		   errorMagnitude2D		= 0;
+	short		   errorMagnitudeNorm2D = 0;
+	float		   errorTheta			= 0.0f;
+	short		   area					= 0;
+	KalmanFilter3D kf;
 };
 
 // Shared system variable container
@@ -74,8 +79,9 @@ struct ManagedData {
 	short								  arucoMaxArea		 = 30000;
 
 	// Timing variables
-	short timingFrequency = 0;
+	short timingFrequency = 45;
 	float timingTimestamp = 0.0f;
+	float timingTimestep  = 0.0f;
 
 	// Touchscreen variables
 	cv::Point3i touchPosition = cv::Point3i( 0, 0, 0 );
@@ -93,6 +99,9 @@ struct ManagedData {
 	std::string loggingCustom3	= "";
 	std::string loggingCustom4	= "";
 	std::string loggingCustom5	= "";
+
+	// Filter variables
+	float filterAlpha = 0.05f;
 
 	// Task variables
 	cv::Point3i fittsErrorPx		= cv::Point3i( 0, 0, 0 );
