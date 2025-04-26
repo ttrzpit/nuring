@@ -16,7 +16,7 @@ auto shared = dataHandle.getData();
 #include "include/ArucoClass.h"
 #include "include/CaptureClass.h"
 #include "include/DisplayClass.h"
-#include "include/FittsClass.h"
+// #include "include/FittsClass.h"
 #include "include/InputClass.h"
 #include "include/LoggingClass.h"
 #include "include/SerialClass.h"
@@ -33,7 +33,7 @@ TimingClass		 Timing( dataHandle );	   // Loop timing measurement
 TouchscreenClass Touch( dataHandle );	   // Touchscreen position reading
 SerialClass		 Serial( dataHandle );	   // Serial interface
 LoggingClass	 Logging( dataHandle );	   // Logging interface
-FittsClass		 Fitts( dataHandle, Timing, Logging );
+// FittsClass		 Fitts( dataHandle, Timing, Logging );
 
 
 
@@ -54,7 +54,7 @@ int main() {
 
 
 	// For debugging
-	std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
+	// std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
 	// cv::utils::logging::setLogLevel( cv::utils::logging::LOG_LEVEL_VERBOSE );
 
 
@@ -69,24 +69,23 @@ int main() {
 
 	// Add shortcut panel
 	Canvas.ShowShortcuts();
-	Canvas.ShowVisualizer();
+	// Canvas.ShowVisualizer();
 
-	std::cout << cv::getBuildInformation() << std::endl;
 	// Main loop
 	while ( shared->FLAG_MAIN_RUNNING ) {
 
 
 
-		// Trial selector
-		if ( shared->TASK_NUMBER == 0 ) {
-			// Nothing
-		} else if ( shared->TASK_NUMBER == 1 ) {
-			// Nothing
-		} else if ( shared->TASK_NUMBER == 2 ) {
-			shared->TASK_NAME = "Fitts";
-			Fitts.Update();
-		} else {
-		}
+		// // Trial selector
+		// if ( shared->TASK_NUMBER == 0 ) {
+		// 	// Nothing
+		// } else if ( shared->TASK_NUMBER == 1 ) {
+		// 	// Nothing
+		// } else if ( shared->TASK_NUMBER == 2 ) {
+		// 	shared->TASK_NAME = "Fitts";
+		// 	Fitts.Update();
+		// } else {
+		// }
 
 		// Parse any input and use OpenCV WaitKey()
 		Input.ParseInput( cv::pollKey() & 0xFF );
@@ -107,18 +106,15 @@ int main() {
 			// Share packet if serial is enabled
 			if ( shared->FLAG_SERIAL_ENABLED ) {
 
-				shared->serialPacket = "EM" +
-					Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorMagnitude2D, 3 ) + "H" +
-					Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorTheta * RAD2DEG, 3 ) + "m" +
-					Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velMagnitude, 3 ) + "h" +
-					Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velHeading * RAD2DEG, 3 ) + "X\n";
+				shared->serialPacket = "EM" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorMagnitude2D, 3 ) + "H" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorTheta * RAD2DEG, 3 ) + "m"
+					+ Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velMagnitude, 3 ) + "h" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velHeading * RAD2DEG, 3 ) + "X\n";
 			}
 			Serial.Monitor();
 		}
 
 		// Update display
 		Canvas.Update();
-		Canvas.UpdateVisualizer();
+		// Canvas.UpdateVisualizer();
 
 		// Update timer (for measuring loop frequency)
 		Timing.UpdateTimer();

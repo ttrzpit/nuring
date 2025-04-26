@@ -22,9 +22,11 @@ inline constexpr unsigned short CONFIG_DIS_HEIGHT		   = 1360;
 inline constexpr unsigned short CONFIG_DIS_KEY_WIDTH	   = 301;
 inline constexpr unsigned short CONFIG_DIS_KEY_HEIGHT	   = 1360;
 inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH	   = 40;
-inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT	   = 22;	// 20
-inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 50;	// 20
-inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 30;	// 20
+inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT	   = 22;	 // 20
+inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 50;	 // 20
+inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 30;	 // 20
+inline constexpr unsigned short CONFIG_DIS_VIZ_WIDTH	   = 900;	 // 20
+inline constexpr unsigned short CONFIG_DIS_VIZ_HEIGHT	   = 600;	 // 20
 
 // Camera intrinsic parameters
 inline constexpr unsigned short CONFIG_CAM_WIDTH	   = 1600;
@@ -102,12 +104,12 @@ inline constexpr bool			CONFIG_CAM_AUTO_FOCUS		 = 0;
 inline constexpr unsigned short CONFIG_CAM_ZOOM				 = 0;
 
 // Declare colors (defined in `config.cpp`)
-extern const cv::Scalar CONFIG_colRedMd, CONFIG_colRedLt, CONFIG_colRedDk;
-extern const cv::Scalar CONFIG_colOraMd, CONFIG_colOraLt, CONFIG_colOraDk;
-extern const cv::Scalar CONFIG_colYelMd, CONFIG_colYelLt, CONFIG_colYelDk;
-extern const cv::Scalar CONFIG_colGreMd, CONFIG_colGreLt, CONFIG_colGreDk, CONFIG_colGreBk;
-extern const cv::Scalar CONFIG_colBluMd, CONFIG_colBluLt, CONFIG_colBluDk;
-extern const cv::Scalar CONFIG_colVioMd, CONFIG_colVioLt, CONFIG_colVioDk;
+extern const cv::Scalar CONFIG_colRedMd, CONFIG_colRedLt, CONFIG_colRedDk, CONFIG_colRedBk, CONFIG_colRedWt;
+extern const cv::Scalar CONFIG_colOraMd, CONFIG_colOraLt, CONFIG_colOraDk, CONFIG_colOraBk, CONFIG_colOraWt;
+extern const cv::Scalar CONFIG_colYelMd, CONFIG_colYelLt, CONFIG_colYelDk, CONFIG_colYelBk, CONFIG_colYelWt;
+extern const cv::Scalar CONFIG_colGreMd, CONFIG_colGreLt, CONFIG_colGreDk, CONFIG_colGreBk, CONFIG_colGreWt;
+extern const cv::Scalar CONFIG_colBluMd, CONFIG_colBluLt, CONFIG_colBluDk, CONFIG_colBluBk, CONFIG_colBluWt;
+extern const cv::Scalar CONFIG_colVioMd, CONFIG_colVioLt, CONFIG_colVioDk, CONFIG_colVioBk, CONFIG_colVioWt;
 extern const cv::Scalar CONFIG_colGraMd, CONFIG_colGraLt, CONFIG_colGraDk, CONFIG_colGraBk;
 extern const cv::Scalar CONFIG_colBlack, CONFIG_colWhite;
 extern const cv::Scalar CONFIG_colCyaMd, CONFIG_colCyaLt, CONFIG_colCyaDk;

@@ -35,6 +35,15 @@ public:
 	void ShowShortcuts();
 	void ShowVisualizer();
 	void UpdateVisualizer();
+	void ClearVisualizer();
+
+	// Public variables
+	std::vector<cv::Point3i> trailPoints;
+	std::vector<int>		 trailColor;
+	int						 trailCounter  = 0;
+	int						 trailInterval = 1;
+	int						 trailLimit	   = 1000;
+	int						 zOffset	   = 0;
 
 private:
 	// Data manager handle
@@ -44,23 +53,8 @@ private:
 	// Private functions
 	void		ShowInterface();
 	void		AddText();
-	void		DrawCell( std::string str,
-						  std::string cell0,
-						  short		  width,
-						  short		  height,
-						  float		  sz,
-						  cv::Scalar  textColor,
-						  cv::Scalar  fillColor,
-						  bool		  centered );
-	void		DrawKeyCell( std::string str,
-							 std::string cell0,
-							 short		 width,
-							 short		 height,
-							 float		 sz,
-							 cv::Scalar	 textColor,
-							 cv::Scalar	 fillColor,
-							 bool		 centered );
-	cv::Point2i ProjectPoint( const cv::Point3f& p3d );
+	void		DrawCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
+	void		DrawKeyCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
 	cv::Point2i ProjectIsometric( const cv::Point3f& p3d );
 
 	// Private variables
@@ -96,37 +90,24 @@ private:
 	short key_textY	 = 0;
 
 	// Visualizer settings
-	const float				 focalLength  = 500.0f;
-	const cv::Point2i		 cameraCenter = cv::Point2i( 320, 240 );
 	std::vector<cv::Point2i> ProjectedCorners;
-
-	cv::Mat matShortcuts  = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_KEY_WIDTH, CV_8UC3 );
-	cv::Mat matVisualizer = cv::Mat( 600, 800, CV_8UC3 );
+	cv::Mat					 matShortcuts  = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_KEY_WIDTH, CV_8UC3 );
+	cv::Mat					 matVisualizer = cv::Mat( 400, 600, CV_8UC3 );
+	int						 vizLimXY	   = 500;
+	int						 vizLimZ	   = 1000;
+	const float				 focalLength   = 800.0f;
+	float					 azimuth	   = CV_PI / 4;		// 45 degrees 4
+	float					 elevation	   = CV_PI / 16;	// 30 degrees 6
 
 	// Define 3D corners of a cube
-	std::vector<cv::Point3f> cubeCorners = { { 0, -500, -500 },
-											 { 0, -500, 500 },
-											 { 0, 500, 500 },
-											 { 0, 500, -500 },
-											 { 500, -500, -500 },
-											 { 500, -500, 500 },
-											 { 500, 500, 500 },
-											 { 500, 500, -500 } };
+	const std::vector<cv::Point3i> cubeCorners = { { -vizLimXY, -vizLimXY, 0 }, { vizLimXY, -vizLimXY, 0 }, { vizLimXY, vizLimXY, 0 }, { -vizLimXY, vizLimXY, 0 }, { -vizLimXY, -vizLimXY, vizLimZ }, { vizLimXY, -vizLimXY, vizLimZ }, { vizLimXY, vizLimXY, vizLimZ }, { -vizLimXY, vizLimXY, vizLimZ } };
+
 
 
 	// Edges of 3D cube
-	std::vector<std::pair<int, int>> edges = {
-		{ 0, 1 },
-		{ 1, 2 },
-		{ 2, 3 },
-		{ 3, 0 },	 // bottom face
-		{ 4, 5 },
-		{ 5, 6 },
-		{ 6, 7 },
-		{ 7, 4 },	 // top face
-		{ 0, 4 },
-		{ 1, 5 },
-		{ 2, 6 },
-		{ 3, 7 }	// vertical edges
+	const std::vector<std::pair<int, int>> edges = {
+		{ 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 },	   // bottom face
+		{ 4, 5 }, { 5, 6 }, { 6, 7 }, { 7, 4 },	   // top face
+		{ 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }	   // vertical edges
 	};
 };

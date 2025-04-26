@@ -59,32 +59,6 @@ void InputClass::ParseInput( int key ) {
 			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->arucoActiveID == 5 ? "0." : "5." );
 			( shared->arucoActiveID == 5 ? shared->arucoActiveID = 0 : shared->arucoActiveID = 5 );
 			break;
-		// case 182:	 // Numpad 6
-		case '6':	 // 6
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->arucoActiveID == 6 ? "0." : "6." );
-			( shared->arucoActiveID == 6 ? shared->arucoActiveID = 0 : shared->arucoActiveID = 6 );
-			break;
-		// case 183:	 // Numpad 7
-		case '7':	 // 7
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->arucoActiveID == 7 ? "0." : "7." );
-			( shared->arucoActiveID == 7 ? shared->arucoActiveID = 0 : shared->arucoActiveID = 7 );
-			break;
-		// case 184:	 // Numpad 8
-		case '8':	 // 8
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->arucoActiveID == 8 ? "0." : "8." );
-			( shared->arucoActiveID == 8 ? shared->arucoActiveID = 0 : shared->arucoActiveID = 8 );
-			break;
-		// case 185:	 // Numpad 9
-		case '9':	 // 9
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->arucoActiveID == 9 ? "0." : "9." );
-			( shared->arucoActiveID == 9 ? shared->arucoActiveID = 0 : shared->arucoActiveID = 9 );
-			break;
-		// case 176:	 // Numpad 0
-		case '0':	 // 10
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->arucoActiveID == 10 ? "0." : "10." );
-			( shared->arucoActiveID == 10 ? shared->arucoActiveID = 0 : shared->arucoActiveID = 10 );
-			break;
-
 		case '`':	 // ` (tilde)
 			shared->displayString = "InputClass: Disabling all active markers.";
 			shared->arucoActiveID = 0;
@@ -126,39 +100,30 @@ void InputClass::ParseInput( int key ) {
 			// 		}
 			// 	}
 			// }
-		case 176:	 // Numpad 0
-			shared->TASK_COMMAND = 'r';
-			break;
-		case 116:
-			if ( shared->TASK_NUMBER < 3 ) {
-				shared->TASK_NUMBER++;
-			} else {
-				shared->TASK_NUMBER = 0;
-			}
-			break;
-		case '=':
-			shared->TASK_USER_ID++;
-			break;
-		case '-':
-			if ( shared->TASK_USER_ID > 100 ) {
-				shared->TASK_USER_ID--;
-			}
-			break;
-		case 91:
+		case 91:	// '['
 			shared->controllerK -= 0.001;
 			shared->displayString = "InputClass: Decreasing K to " + std::to_string( shared->controllerK ) + ".";
 			break;
-		case 93:
+		case 93:	// ']'
 			shared->controllerK += 0.001;
 			shared->displayString = "InputClass: Increasing K to " + std::to_string( shared->controllerK ) + ".";
 			break;
-		case 59:
+		case 59:	// ';'
 			shared->controllerB -= 0.001;
 			shared->displayString = "InputClass: Decreasing B to " + std::to_string( shared->controllerB ) + ".";
 			break;
-		case 39:
+		case 39:	// '''
 			shared->controllerB += 0.001;
 			shared->displayString = "InputClass: Increasing B to " + std::to_string( shared->controllerB ) + ".";
+			break;
+		case 99:	// 'c'
+			shared->vizClear	  = true;
+			shared->displayString = "InputClass: Resetting visualization trails.";
+			break;
+		case 118:	 // 'v'
+			shared->vizEnabled	  = !shared->vizEnabled;
+			shared->displayString = "InputClass: 3D Visualization " + std::string( shared->vizEnabled ? "enabled." : "disabled." );
+
 			break;
 		}
 		// std::cout << "\n";

@@ -3519,7 +3519,7 @@
 				}
 			],
 			"type" : "PATH",
-			"value" : "X11_Xss_INCLUDE_PATH-NOTFOUND"
+			"value" : "/usr/include"
 		},
 		{
 			"name" : "X11_Xss_LIB",
@@ -3535,7 +3535,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "X11_Xss_LIB-NOTFOUND"
+			"value" : "/usr/lib/x86_64-linux-gnu/libXss.so"
 		},
 		{
 			"name" : "X11_Xt_INCLUDE_PATH",
@@ -3551,7 +3551,7 @@
 				}
 			],
 			"type" : "PATH",
-			"value" : "X11_Xt_INCLUDE_PATH-NOTFOUND"
+			"value" : "/usr/include"
 		},
 		{
 			"name" : "X11_Xt_LIB",
@@ -3567,7 +3567,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "X11_Xt_LIB-NOTFOUND"
+			"value" : "/usr/lib/x86_64-linux-gnu/libXt.so"
 		},
 		{
 			"name" : "X11_Xtst_INCLUDE_PATH",
