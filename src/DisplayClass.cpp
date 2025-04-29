@@ -233,13 +233,13 @@ void DisplayClass::AddText() {
 	DrawCell( "Amplifiers", "AI1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( ( shared->FLAG_AMPLIFIERS_READY ? "Online" : "Offline" ), "AI2", 2, 1, fontBody, CONFIG_colWhite, ( shared->FLAG_AMPLIFIERS_READY ? CONFIG_colGreDk : CONFIG_colBlack ), true );
 	DrawCell( "Serial Status", "AK1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( shared->FLAG_SERIAL_OPEN ? "Online" : "Offline" ), "AK2", 2, 1, fontBody, CONFIG_colWhite, ( shared->FLAG_SERIAL_OPEN ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( ( shared->FLAG_SERIAL_ENABLED ? "Online" : "Offline" ), "AK2", 2, 1, fontBody, CONFIG_colWhite, ( shared->FLAG_SERIAL_ENABLED ? CONFIG_colGreDk : CONFIG_colBlack ), true );
 	DrawCell( "Logging", "AM1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( ( shared->FLAG_LOGGING_ON ? "Logging" : "Offline" ), "AM2", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Serial packet blocks
 	DrawCell( "Outgoing Packet", "AG3", 8, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( ( shared->FLAG_SERIAL_OPEN && shared->FLAG_AMPLIFIERS_READY ) ? shared->serialPacket.substr( 0, shared->serialPacket.size() - 1 ) : "Amplifiers or serial disabled" ), "AG4", 8, 2, fontHeader * 2, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->serialPacket.substr( 0, shared->serialPacket.size() - 1 ), "AG4", 8, 2, fontHeader * 2, CONFIG_colWhite, ( shared->serialPacket == "DX\n" ) ? CONFIG_colBlack : CONFIG_colGreDk, true );
 	DrawCell( "Filename", "AG6", 8, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[FILENAME]", "AG7", 8, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
@@ -391,7 +391,7 @@ void DisplayClass::DrawKeyCell( std::string str, std::string cell0, short width,
 		cv::putText( matShortcuts, str, cv::Point( key_textX, key_textY ), cv::FONT_HERSHEY_SIMPLEX, sz, textColor, 1 );
 	}
 
-	std::cout << key_c0 << "," << key_r0 << "," << key_rH << "," << key_cW << "\n";
+	// std::cout << key_c0 << "," << key_r0 << "," << key_rH << "," << key_cW << "\n";
 }
 
 
@@ -474,26 +474,36 @@ void DisplayClass::UpdateVisualizer() {
 	}
 
 	// Draw target square
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( 0, -30, 30 ) ), ProjectIsometric( cv::Point3f( 0, 30, 30 ) ), CONFIG_colGraMd, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( 0, -30, -30 ) ), ProjectIsometric( cv::Point3f( 0, 30, -30 ) ), CONFIG_colGraMd, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( 0, 30, -30 ) ), ProjectIsometric( cv::Point3f( 0, 30, 30 ) ), CONFIG_colGraMd, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( 0, -30, -30 ) ), ProjectIsometric( cv::Point3f( 0, -30, 30 ) ), CONFIG_colGraMd, 1 );
-
-
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -30, 30 ) ), ProjectIsometric( cv::Point3i( 0, 30, 30 ) ), CONFIG_colGraLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -30, -30 ) ), ProjectIsometric( cv::Point3i( 0, 30, -30 ) ), CONFIG_colGraLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 30, -30 ) ), ProjectIsometric( cv::Point3i( 0, 30, 30 ) ), CONFIG_colGraLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -30, -30 ) ), ProjectIsometric( cv::Point3i( 0, -30, 30 ) ), CONFIG_colGraLt, 1 );
 
 	// X axis
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3f( 0, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( 0, vizLimXY, 0 ) ), ProjectIsometric( cv::Point3f( vizLimZ, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3f( 1000, -vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( 0, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( vizLimZ, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( 1000, -vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
 
 	// Y axis
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( 0, 0, -vizLimXY ) ), ProjectIsometric( cv::Point3f( 0, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( 0, 0, vizLimXY ) ), ProjectIsometric( cv::Point3f( 1000, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, -vizLimXY ) ), ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), ProjectIsometric( cv::Point3i( 1000, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
+
+	// Calculate camera + marker positions
+	cv::Point3i p3D		= cv::Point3i( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z - zOffset );
+	cv::Point3i p3DInv	= cv::Point3i( shared->arucoTags[shared->arucoActiveID].error3D.z - zOffset, shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.x * -1 );
+	int			ptSizeX = int( float( ( 1000.0 - ( p3D.x + vizLimXY ) ) / 1000.0 ) * 10.0 );
+	int			ptSizeY = int( float( ( 1000.0 - ( -1 * p3D.y + vizLimXY ) ) / 1000.0 ) * 10.0 );
+	int			ptSizeZ = int( float( ( 1000.0 - p3D.z ) / 1000.0 ) * 10.0 );
+
+	// Line from marker to target
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, 0 ) ), ProjectIsometric( p3DInv ), CONFIG_colCyaMd, 2 );
+
+	// Moving local axis
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, p3D.y, vizLimXY ) ), ProjectIsometric( p3DInv ), CONFIG_colGreMd, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, vizLimXY, p3DInv.z ) ), ProjectIsometric( p3DInv ), CONFIG_colRedMd, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, p3DInv.y, p3DInv.z ) ), ProjectIsometric( p3DInv ), CONFIG_colBluMd, 1 );
 
 
-	// Draw shadows
-	// cv::Point3f p = shared->arucoTags[shared->arucoActiveID].error3D;
-	cv::Point3f p = cv::Point3f( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z - zOffset );
 
 	// Create color gradient
 	float zClamped = std::clamp( shared->arucoTags[shared->arucoActiveID].error3D.z - zOffset, 0.0f, 1000.0f );
@@ -501,7 +511,7 @@ void DisplayClass::UpdateVisualizer() {
 
 	// Add current point to trail
 	if ( trailCounter++ >= trailInterval ) {
-		trailPoints.push_back( p );
+		trailPoints.push_back( p3DInv );
 		// trailColor.push_back( ( int )intensity );
 		trailCounter = 0;
 
@@ -512,61 +522,78 @@ void DisplayClass::UpdateVisualizer() {
 		}
 	}
 
-
-
-	// Moving axis
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( p.z - zOffset, -p.y, vizLimXY ) ), ProjectIsometric( cv::Point3f( p.z - zOffset, -p.y, p.x ) ), CONFIG_colGreMd, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( p.z - zOffset, vizLimXY, p.x ) ), ProjectIsometric( cv::Point3f( p.z - zOffset, -p.y, p.x ) ), CONFIG_colRedMd, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3f( 0, -p.y, p.x ) ), ProjectIsometric( cv::Point3f( p.z - zOffset, -p.y, p.x ) ), CONFIG_colBluMd, 1 );
-
-	int ptSize = ( ( 1000 - p.z ) / 800 ) * 10;
-
-	// Draw 3D dot
-	cv::Point2i projected = ProjectIsometric( cv::Point3f( shared->arucoTags[shared->arucoActiveID].error3D.z - zOffset, shared->arucoTags[shared->arucoActiveID].error3D.y * -1, shared->arucoTags[shared->arucoActiveID].error3D.x ) );
-
-
-
 	// Draw trail points
 	for ( int i = 0; i < trailPoints.size(); i++ ) {
 
 		float ratio		= static_cast<float>( i ) / static_cast<float>( trailPoints.size() );
 		int	  intensity = static_cast<int>( 191 * ( 1.0f - ratio ) );
 
-		// // Z trail
-		cv::Point2i shadowXYZ = ProjectIsometric( cv::Point3i( 0, -trailPoints.at( i ).y, trailPoints.at( i ).x ) );
-		cv::circle( matVisualizer, shadowXYZ, 2, cv::Scalar( 255, 64 + intensity, 64 + intensity ), -1 );
+		// Z trail
+		cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( 0, trailPoints.at( i ).y, trailPoints.at( i ).z ) ), 2, cv::Scalar( 255, 64 + intensity, 64 + intensity ), -1 );
 
 		// Y trail
-		cv::Point2i shadowXY = ProjectIsometric( cv::Point3i( trailPoints.at( i ).z, -trailPoints.at( i ).y, vizLimXY ) );
-		cv::circle( matVisualizer, shadowXY, 2, cv::Scalar( 64 + intensity, 255, 64 + intensity ), -1 );
+		cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( trailPoints.at( i ).x, trailPoints.at( i ).y, vizLimXY ) ), 2, cv::Scalar( 64 + intensity, 255, 64 + intensity ), -1 );
 
 		// X trail
-		cv::Point2f shadowXZ = ProjectIsometric( cv::Point3f( trailPoints.at( i ).z, vizLimXY, trailPoints.at( i ).x ) );	 // Swap x<->z
-		cv::circle( matVisualizer, shadowXZ, 2, cv::Scalar( 64 + intensity, 64 + intensity, 255 ), -1 );
+		cv::circle( matVisualizer, ProjectIsometric( cv::Point3f( trailPoints.at( i ).x, vizLimXY, trailPoints.at( i ).z ) ), 2, cv::Scalar( 64 + intensity, 64 + intensity, 255 ), -1 );
 	}
 
-	// Line from marker to target
-	cv::line( matVisualizer, projected, ProjectIsometric( cv::Point3f( 0, 0, 0 ) ), CONFIG_colCyaMd, 2 );
+	// Shadow on wall
+	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, p3D.y, vizLimXY ) ), ptSizeX, CONFIG_colGreLt, -1 );	   // Shadow on YZ axis (right)
+	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( 0, p3D.y, p3DInv.z ) ), ptSizeZ, CONFIG_colBluWt, -1 );			   // Shadow on XY plane (bottom)
+	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, vizLimXY, p3DInv.z ) ), ptSizeY, CONFIG_colRedLt, -1 );	   // Shadow on XZ (screen)
 
-	// Draw marker
-	cv::circle( matVisualizer, projected, 10, CONFIG_colWhite, -1 );
-	cv::circle( matVisualizer, projected, 10, CONFIG_colBlack, 1 );
+	// // Draw marker (last to place over other elements)
+	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 5, CONFIG_colWhite, -1 );
+	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 5, CONFIG_colBlack, 1 );
 
-	// Shadow on XY plane (bottom)
-	cv::Point2f shadowXY = ProjectIsometric( cv::Point3f( 0, -p.y, p.x ) );	   // Swap x<->z
-	cv::circle( matVisualizer, shadowXY, ptSize, CONFIG_colBluLt, 1 );		   // Red-ish
 
-	// Shadow on YZ plane (left wall at x = -500)
-	cv::Point2f shadowYZ = ProjectIsometric( cv::Point3f( p.z, -p.y, vizLimXY ) );	  // Swap x<->z
-	cv::circle( matVisualizer, shadowYZ, 5, CONFIG_colGreDk, 1 );					  // Y shadow
+	// // 1. Rodrigues rotation
+	// cv::Mat R;
+	// cv::Rodrigues( shared->arucoTags[shared->arucoActiveID].rotationVector, R );
 
-	// Shadow on XZ plane (back wall at y = 500)
-	cv::Point2f shadowXZ = ProjectIsometric( cv::Point3f( p.z, vizLimXY, p.x ) );	 // Swap x<->z
-	cv::circle( matVisualizer, shadowXZ, 5, CONFIG_colRedDk, 1 );					 // X shadow
+	// // 2. Define local points (front and back faces)
+	// double wFront = 50.0;	 // half-width for front face (near camera)
+	// double hFront = 30.0;	 // half-height for front face
+	// double wBack  = 25.0;	 // half-width for back face (far from camera)
+	// double hBack  = 15.0;	 // half-height for back face
+	// double depth  = 50.0;	 // distance between front and back faces
+
+	// std::vector<cv::Point3f> localPoints = { // Front face (larger)
+	// 										 cv::Point3f( -wFront, -hFront, 0 ), cv::Point3f( wFront, -hFront, 0 ), cv::Point3f( wFront, hFront, 0 ), cv::Point3f( -wFront, hFront, 0 ),
+
+	// 										 // Back face (smaller, farther along local +Z axis)
+	// 										 cv::Point3f( -wBack, -hBack, depth ), cv::Point3f( wBack, -hBack, depth ), cv::Point3f( wBack, hBack, depth ), cv::Point3f( -wBack, hBack, depth ) };
+
+	// // 3. Rotate and transform to world coordinates
+	// std::vector<cv::Point3i> worldPoints;
+	// for ( const auto& pt : localPoints ) {
+	// 	cv::Mat ptMat	  = ( cv::Mat_<double>( 3, 1 ) << pt.x, pt.y, pt.z );
+	// 	cv::Mat rotatedPt = R * ptMat;
+
+	// 	worldPoints.emplace_back( static_cast<int>( p3DInv.x - rotatedPt.at<double>( 2 ) ),	   // -Z to X
+	// 							  static_cast<int>( p3DInv.y + rotatedPt.at<double>( 1 ) ),	   // Y stays
+	// 							  static_cast<int>( p3DInv.z - rotatedPt.at<double>( 0 ) )	   // -X to Z
+	// 	);
+	// }
+
+	// // 4. Draw front and back faces
+	// for ( int i = 0; i < 4; ++i ) {
+	// 	cv::line( matVisualizer, ProjectIsometric( worldPoints[i] ), ProjectIsometric( worldPoints[( i + 1 ) % 4] ), CONFIG_colBluMd, 2 );
+	// 	cv::line( matVisualizer, ProjectIsometric( worldPoints[i + 4] ), ProjectIsometric( worldPoints[( ( i + 1 ) % 4 ) + 4] ), CONFIG_colBluMd, 2 );
+	// }
+
+	// // 5. Draw side edges connecting front and back faces
+	// for ( int i = 0; i < 4; ++i ) {
+	// 	cv::line( matVisualizer, ProjectIsometric( worldPoints[i] ), ProjectIsometric( worldPoints[i + 4] ), CONFIG_colBluMd, 2 );
+	// }
+
+
 
 	// Show
 	cv::imshow( "3D Visualizer", matVisualizer );
 }
+
 
 
 // cv::Point2i DisplayClass::ProjectPoint( const cv::Point3f& p3d ) {
@@ -579,7 +606,7 @@ void DisplayClass::UpdateVisualizer() {
 
 
 // Apply isometric camera transform and perspective
-cv::Point2i DisplayClass::ProjectIsometric( const cv::Point3f& p3d ) {
+cv::Point2i DisplayClass::ProjectIsometric( const cv::Point3i& p3d ) {
 	// Step 1: rotate the 3D point around X and Y axes
 
 
@@ -602,4 +629,20 @@ cv::Point2i DisplayClass::ProjectIsometric( const cv::Point3f& p3d ) {
 	float y_proj = ( y2 * focalLength ) / ( z2 + 2500.0f ) + ( ( CONFIG_DIS_VIZ_HEIGHT / 2 ) - 150 );
 
 	return cv::Point2f( x_proj, y_proj );
+}
+
+
+cv::Point2i DisplayClass::GetForwardDirectionFromPose( const cv::Vec3d rvec, const cv::Vec3d tvec, const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, float axisLength ) {
+	// Define 3D points: origin and Z-axis point
+	std::vector<cv::Point3f> axisPoints;
+	axisPoints.push_back( cv::Point3f( 0, 0, 0 ) );				// Origin
+	axisPoints.push_back( cv::Point3f( 0, 0, axisLength ) );	// Forward along Z
+
+	// Project to 2D
+	std::vector<cv::Point2f> imagePoints;
+	cv::projectPoints( axisPoints, rvec, tvec, cameraMatrix, distCoeffs, imagePoints );
+
+	// Direction vector from origin to Z point
+	cv::Point2i dir = imagePoints[1] - imagePoints[0];
+	return dir;
 }

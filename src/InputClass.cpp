@@ -1,5 +1,6 @@
 // Call to class header
 #include "InputClass.h"
+#include <iomanip>	  // For padding zeroes
 
 // System data manager
 #include "SystemDataManager.h"
@@ -25,7 +26,7 @@ void InputClass::ParseInput( int key ) {
 		switch ( key ) {
 		case 27:	// ESC key 1048603
 			if ( shared->FLAG_SERIAL_OPEN ) {
-				shared->serialPacket  = "C\n";
+				// shared->serialPacket  = "C\n";
 				shared->displayString = shared->serialPacket.substr( 0, shared->serialPacket.length() - 1 );
 			}
 			shared->FLAG_SERIAL_OPEN = false;
@@ -66,21 +67,23 @@ void InputClass::ParseInput( int key ) {
 		case 'e':	 // E
 			shared->FLAG_AMPLIFIERS_READY = !shared->FLAG_AMPLIFIERS_READY;
 			if ( shared->FLAG_AMPLIFIERS_READY ) {
-				shared->serialPacket		= "e\n";
-				shared->FLAG_PACKET_WAITING = true;
-				shared->displayString		= "InputClass: Amplifiers enabled.";
+				// shared->serialPacket		= "e\n";
+				// shared->FLAG_PACKET_WAITING = true;
+				shared->displayString = "InputClass: Amplifiers enabled.";
 			} else {
-				shared->serialPacket		= "d\n";
+				shared->serialPacket		= "DX\n";
 				shared->FLAG_PACKET_WAITING = true;
 				shared->displayString		= "InputClass: Amplifiers disabled.";
 			}
 			break;
 		case 's':	 // S
-			shared->FLAG_SERIAL_OPEN = !shared->FLAG_SERIAL_OPEN;
-			if ( shared->FLAG_SERIAL_OPEN ) {
+			shared->FLAG_SERIAL_ENABLED = !shared->FLAG_SERIAL_ENABLED;
+			if ( shared->FLAG_SERIAL_ENABLED ) {
 				shared->displayString		= "InputClass: Enabling serial output.";
 				shared->FLAG_SERIAL_ENABLED = true;
 			} else {
+				shared->serialPacket		= "DX\n";
+				shared->FLAG_PACKET_WAITING = true;
 				shared->FLAG_SERIAL_ENABLED = false;
 				shared->displayString		= "InputClass: Disabling serial output.";
 			}
@@ -88,7 +91,8 @@ void InputClass::ParseInput( int key ) {
 		case 'x':	 // X
 			shared->displayString = "InputClass: Software E-Stop Triggered. Amplifiers and serial output disabled.";
 			if ( shared->FLAG_SERIAL_OPEN ) {
-				shared->serialPacket = "X\n";
+				shared->serialPacket		= "DX\n";
+				shared->FLAG_PACKET_WAITING = true;
 			}
 			shared->FLAG_SERIAL_OPEN	  = false;
 			shared->FLAG_AMPLIFIERS_READY = false;
@@ -100,10 +104,11 @@ void InputClass::ParseInput( int key ) {
 			// 		}
 			// 	}
 			// }
-		case 91:	// '['
+		case 91: {	  // '['
 			shared->controllerK -= 0.001;
 			shared->displayString = "InputClass: Decreasing K to " + std::to_string( shared->controllerK ) + ".";
 			break;
+		}
 		case 93:	// ']'
 			shared->controllerK += 0.001;
 			shared->displayString = "InputClass: Increasing K to " + std::to_string( shared->controllerK ) + ".";

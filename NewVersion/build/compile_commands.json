@@ -1,0 +1,74 @@
+[
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/main.cpp.o -c /home/tom/Code/nuring/main.cpp",
+  "file": "/home/tom/Code/nuring/main.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/main.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/ArucoClass.cpp.o -c /home/tom/Code/nuring/src/ArucoClass.cpp",
+  "file": "/home/tom/Code/nuring/src/ArucoClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/ArucoClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/CaptureClass.cpp.o -c /home/tom/Code/nuring/src/CaptureClass.cpp",
+  "file": "/home/tom/Code/nuring/src/CaptureClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/CaptureClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/DisplayClass.cpp.o -c /home/tom/Code/nuring/src/DisplayClass.cpp",
+  "file": "/home/tom/Code/nuring/src/DisplayClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/DisplayClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/FittsClass.cpp.o -c /home/tom/Code/nuring/src/FittsClass.cpp",
+  "file": "/home/tom/Code/nuring/src/FittsClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/FittsClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/InputClass.cpp.o -c /home/tom/Code/nuring/src/InputClass.cpp",
+  "file": "/home/tom/Code/nuring/src/InputClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/InputClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/LoggingClass.cpp.o -c /home/tom/Code/nuring/src/LoggingClass.cpp",
+  "file": "/home/tom/Code/nuring/src/LoggingClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/LoggingClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/SerialClass.cpp.o -c /home/tom/Code/nuring/src/SerialClass.cpp",
+  "file": "/home/tom/Code/nuring/src/SerialClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/SerialClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/SystemDataManager.cpp.o -c /home/tom/Code/nuring/src/SystemDataManager.cpp",
+  "file": "/home/tom/Code/nuring/src/SystemDataManager.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/SystemDataManager.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/TimingClass.cpp.o -c /home/tom/Code/nuring/src/TimingClass.cpp",
+  "file": "/home/tom/Code/nuring/src/TimingClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/TimingClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/TouchscreenClass.cpp.o -c /home/tom/Code/nuring/src/TouchscreenClass.cpp",
+  "file": "/home/tom/Code/nuring/src/TouchscreenClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/TouchscreenClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/config.cpp.o -c /home/tom/Code/nuring/src/config.cpp",
+  "file": "/home/tom/Code/nuring/src/config.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/config.cpp.o"
+}
+]

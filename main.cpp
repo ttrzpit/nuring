@@ -97,19 +97,33 @@ int main() {
 		Aruco.FindTags();
 
 		// Check touchscreen input
-		Touch.GetCursorPosition();
+		// Touch.GetCursorPosition();
 
 		// Send serial commands
-		if ( shared->FLAG_SERIAL_OPEN ) {
-			// Serial.Send( shared->serialPacket );
+		if ( shared->FLAG_SERIAL_OPEN ) {	 // Check if serial port is open
 
-			// Share packet if serial is enabled
+			// Check if serial is enabled and amplifiers are enabled
 			if ( shared->FLAG_SERIAL_ENABLED ) {
 
-				shared->serialPacket = "EM" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorMagnitude2D, 3 ) + "H" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorTheta * RAD2DEG, 3 ) + "m"
-					+ Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velMagnitude, 3 ) + "h" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velHeading * RAD2DEG, 3 ) + "X\n";
+				if ( shared->FLAG_AMPLIFIERS_READY ) {
+					shared->serialPacket = "EM" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorMagnitude2D, 3 ) + "H" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorTheta * RAD2DEG, 3 ) + "m"
+						+ Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velMagnitude, 3 ) + "h" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velHeading * RAD2DEG, 3 ) + "X\n";
+					shared->FLAG_PACKET_WAITING = true;
+				} else {
+					shared->serialPacket		= "DX\n";
+					shared->FLAG_PACKET_WAITING = true;
+				}
+
+			} else {
+
+				shared->serialPacket		= "DX\n";
+				shared->FLAG_PACKET_WAITING = true;
 			}
+
 			Serial.Monitor();
+		} else {
+			shared->serialPacket = "DX\n";
+			// shared->FLAG_PACKET_WAITING = true;
 		}
 
 		// Update display

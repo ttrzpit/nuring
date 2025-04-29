@@ -1,0 +1,3 @@
+/home/tom/Code/nuring/build/CMakeFiles/NURingIntegratedController.dir
+/home/tom/Code/nuring/build/CMakeFiles/edit_cache.dir
+/home/tom/Code/nuring/build/CMakeFiles/rebuild_cache.dir

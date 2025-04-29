@@ -15,6 +15,8 @@
 class SystemDataManager;
 struct ManagedData;
 
+// Constants
+#define RAD2DEG 57.2958
 
 
 /** 
