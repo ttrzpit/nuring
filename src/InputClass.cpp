@@ -1,6 +1,8 @@
 // Call to class header
 #include "InputClass.h"
+#include <chrono>
 #include <iomanip>	  // For padding zeroes
+#include <thread>
 
 // System data manager
 #include "SystemDataManager.h"
@@ -25,15 +27,20 @@ void InputClass::ParseInput( int key ) {
 
 		switch ( key ) {
 		case 27:	// ESC key 1048603
-			if ( shared->FLAG_SERIAL_OPEN ) {
-				// shared->serialPacket  = "C\n";
-				shared->displayString = shared->serialPacket.substr( 0, shared->serialPacket.length() - 1 );
-			}
-			shared->FLAG_SERIAL_OPEN = false;
-			shared->displayString	 = "InputClass: Stop key pressed, exiting.";
+			shared->FLAG_SERIAL_ENABLED	  = false;
+			shared->FLAG_AMPLIFIERS_READY = false;
+			shared->serialPacket		  = "DX\n";
+			shared->FLAG_PACKET_WAITING	  = true;
+			shared->displayString		  = "InputClass: Shutting down...";
+			shared->FLAG_SERIAL_ENABLED	  = false;
+			shared->FLAG_SERIAL_OPEN	  = false;
+
+			shared->displayString = "InputClass: Stop key pressed, exiting.";
 			cv::destroyAllWindows();
 			std::cout << "shutdown initiated.\n";
-			shared->FLAG_MAIN_RUNNING = false;
+			shared->serialPacket		= "DX\n";
+			shared->FLAG_PACKET_WAITING = true;
+			shared->FLAG_SHUTTING_DOWN	= true;
 			break;
 		// case 177:	 // Numpad 1
 		case '1':	 // 1
@@ -94,7 +101,6 @@ void InputClass::ParseInput( int key ) {
 				shared->serialPacket		= "DX\n";
 				shared->FLAG_PACKET_WAITING = true;
 			}
-			shared->FLAG_SERIAL_OPEN	  = false;
 			shared->FLAG_AMPLIFIERS_READY = false;
 			break;
 		case 'r':
@@ -128,9 +134,19 @@ void InputClass::ParseInput( int key ) {
 		case 118:	 // 'v'
 			shared->vizEnabled	  = !shared->vizEnabled;
 			shared->displayString = "InputClass: 3D Visualization " + std::string( shared->vizEnabled ? "enabled." : "disabled." );
-
+			break;
+		case 61:	// '-'
+			shared->controllerCompZ -= 20;
+			shared->displayString = "InputClass: Z-Comp set to " + shared->controllerCompZ;
+			break;
+		case 45:	// '+'
+			shared->controllerCompZ += 20;
+			shared->displayString = "InputClass: Z-Comp set to " + shared->controllerCompZ;
 			break;
 		}
 		// std::cout << "\n";
+	} else {
+		shared->serialPacket		= "DX\n";
+		shared->FLAG_PACKET_WAITING = true;
 	}
 }

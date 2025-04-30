@@ -105,9 +105,20 @@ int main() {
 			// Check if serial is enabled and amplifiers are enabled
 			if ( shared->FLAG_SERIAL_ENABLED ) {
 
-				if ( shared->FLAG_AMPLIFIERS_READY ) {
-					shared->serialPacket = "EM" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorMagnitude2D, 3 ) + "H" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorTheta * RAD2DEG, 3 ) + "m"
-						+ Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velMagnitude, 3 ) + "h" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velHeading * RAD2DEG, 3 ) + "X\n";
+				if ( shared->FLAG_AMPLIFIERS_READY && shared->arucoActiveID != 0 ) {
+
+					// Format properly
+					int8_t signX = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.x );
+					int8_t signY = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.y );
+
+					shared->serialPacket = "Ex" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.x ), 3 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.y ), 3 ) + "z"
+						+ Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.z ), 3 ) + "X\n";
+
+
+					// shared->serialPacket = "Ex" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.x, 3 ) + "y" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.y, 3 ) + "z" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.z, 3 ) + "X\n";
+
+					// shared->serialPacket = "EM" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorMagnitudeNorm2D, 3 ) + "H" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorTheta * RAD2DEG, 3 ) + "m"
+					// 	+ Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velMagnitude, 3 ) + "h" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velHeading * RAD2DEG, 3 ) + "X\n";
 					shared->FLAG_PACKET_WAITING = true;
 				} else {
 					shared->serialPacket		= "DX\n";
@@ -133,9 +144,14 @@ int main() {
 		// Update timer (for measuring loop frequency)
 		Timing.UpdateTimer();
 
+		if ( shared->FLAG_SHUTTING_DOWN ) {
+			shared->serialPacket		= "DX\n";
+			shared->FLAG_PACKET_WAITING = true;
+			shared->FLAG_MAIN_RUNNING	= false;
+		}
+
 		// std::cout << shared->touchPosition.x << " , " << shared->touchPosition.y << " | " << shared->touchPosition.z << "\n";
 	}
-
 
 	return 0;
 }

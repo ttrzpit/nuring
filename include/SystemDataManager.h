@@ -48,6 +48,7 @@ struct ManagedData {
 	bool FLAG_PACKET_WAITING   = false;
 	bool FLAG_LOGGING_ON	   = false;
 	bool FLAG_SERIAL_ENABLED   = false;
+	bool FLAG_SHUTTING_DOWN	   = false;
 
 	// Testing
 	std::string TASK_NAME	 = "";
@@ -107,10 +108,11 @@ struct ManagedData {
 	std::string loggingCustom5	= "";
 
 	// Controller variables
-	float controllerK  = 0.010f;	// N/mm
-	float controllerB  = 0.000f;	// N*s/mm
-	float controllerFx = 0.00f;		// N
-	float controllerFy = 0.00f;		// N
+	float	controllerK		= 0.010f;	 // N/mm
+	float	controllerB		= 0.000f;	 // N*s/mm
+	float	controllerFx	= 0.00f;	 // N
+	float	controllerFy	= 0.00f;	 // N
+	int16_t controllerCompZ = 0;		 // mm
 
 	// Task variables
 	cv::Point3i fittsErrorPx		= cv::Point3i( 0, 0, 0 );

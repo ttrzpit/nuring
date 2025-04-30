@@ -109,3 +109,7 @@ std::string SerialClass::PadValues( int val, int nZeroes ) {
 	sstream << std::setw( nZeroes ) << std::setfill( '0' ) << val;
 	return sstream.str();
 }
+
+int8_t SerialClass::Sign( int val ) {
+	return ( ( val < 0 ) ? 1 : 0 );
+}

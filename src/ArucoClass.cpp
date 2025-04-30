@@ -110,7 +110,8 @@ void ArucoClass::FindTags() {
 					shared->arucoTags[index].kf.update( rawPosition, dt );
 
 					// Use filtered data for position
-					shared->arucoTags[index].error3D = shared->arucoTags[index].kf.getPosition();
+					shared->arucoTags[index].error3D   = shared->arucoTags[index].kf.getPosition();
+					shared->arucoTags[index].error3D.z = shared->arucoTags[index].error3D.z + shared->controllerCompZ;
 
 					// Use filtered data for velocity
 					cv::Point3f vel = shared->arucoTags[index].kf.getVelocity();

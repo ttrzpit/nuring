@@ -30,6 +30,7 @@ public:
 	bool		GetStatus();
 	void		Monitor();
 	std::string PadValues( int val, int nZeroes );
+	int8_t		Sign( int val );
 
 
 private:
