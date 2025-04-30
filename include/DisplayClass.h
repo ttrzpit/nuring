@@ -93,10 +93,10 @@ private:
 	// Visualizer settings
 	std::vector<cv::Point2i> ProjectedCorners;
 	cv::Mat					 matShortcuts  = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_KEY_WIDTH, CV_8UC3 );
-	cv::Mat					 matVisualizer = cv::Mat( 400, 600, CV_8UC3 );
+	cv::Mat					 matVisualizer = cv::Mat( CONFIG_DIS_VIZ_HEIGHT, CONFIG_DIS_VIZ_WIDTH, CV_8UC3 );
 	int						 vizLimXY	   = 500;
 	int						 vizLimZ	   = 1000;
-	const float				 focalLength   = 800.0f;
+	const float				 focalLength   = 2400.0f;		//800
 	float					 azimuth	   = CV_PI / 4;		// 45 degrees 4
 	float					 elevation	   = CV_PI / 16;	// 30 degrees 6
 

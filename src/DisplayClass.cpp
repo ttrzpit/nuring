@@ -450,7 +450,7 @@ void DisplayClass::ShowVisualizer() {
 
 	// Create window
 	cv::namedWindow( "3D Visualizer", cv::WINDOW_AUTOSIZE );
-	cv::moveWindow( "3D Visualizer", 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_VIZ_WIDTH - 6, 0 );
+	cv::moveWindow( "3D Visualizer", 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_VIZ_WIDTH - 6 - CONFIG_DIS_KEY_WIDTH, 0 );
 	cv::imshow( "3D Visualizer", matVisualizer );
 }
 

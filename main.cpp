@@ -107,13 +107,17 @@ int main() {
 
 				if ( shared->FLAG_AMPLIFIERS_READY && shared->arucoActiveID != 0 ) {
 
-					// Format properly
-					int8_t signX = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.x );
-					int8_t signY = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.y );
+					if ( shared->FLAG_TAG_FOUND ) {
 
-					shared->serialPacket = "Ex" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.x ), 3 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.y ), 3 ) + "z"
-						+ Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.z ), 3 ) + "X\n";
+						// Format properly
+						int8_t signX = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.x );
+						int8_t signY = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.y );
 
+						shared->serialPacket = "Ex" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.x ), 3 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.y ), 3 ) + "z"
+							+ Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.z ), 3 ) + "X\n";
+					} else {
+						shared->serialPacket = "RoX\n";
+					}
 
 					// shared->serialPacket = "Ex" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.x, 3 ) + "y" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.y, 3 ) + "z" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.z, 3 ) + "X\n";
 
