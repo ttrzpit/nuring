@@ -28,11 +28,13 @@ FittsClass::FittsClass( SystemDataManager& ctx, TimingClass& timerHandle, Loggin
 
 /**
  * @brief Start the Fitts Law trial
+ * @param axis Which axis to run test on ('x', 'y', 'z' (both) )
  */
-void FittsClass::StartTest() {
+void FittsClass::StartTest( char axis ) {
 
 	// Update flag
-	testComplete = false;
+	testComplete			= false;
+	shared->fittsActiveAxis = 'x';
 
 	// Update test number
 	testNumber++;
@@ -46,9 +48,19 @@ void FittsClass::StartTest() {
 	unsigned short minY = 0 + 72;
 	unsigned short maxY = CONFIG_FITTS_SCREEN_HEIGHT - CONFIG_FITTS_SCREEN_EXCLUSION_ZONE - 93;
 
-	// Generate random marker position
-	markerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) );
-	markerPosition.y = minY + ( rand() % ( maxY - minY + 1 ) );
+
+	// Generate random marker position based on desired axis
+	if ( axis == 'x' ) {
+		markerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) );
+		markerPosition.y = CONFIG_FITTS_SCREEN_HEIGHT / 2;
+	} else if ( axis == 'y' ) {
+		markerPosition.x = CONFIG_FITTS_SCREEN_WIDTH / 2;
+		markerPosition.y = minY + ( rand() % ( maxY - minY + 1 ) );
+	} else {
+		markerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) );
+		markerPosition.y = minY + ( rand() % ( maxY - minY + 1 ) );
+	}
+
 
 	// Output position for debugging
 	std::cout << "Rand: " << markerPosition.x << " , " << markerPosition.y << "\n";
@@ -140,7 +152,7 @@ void FittsClass::Update() {
 	case 'r':
 		shared->arucoActiveID = 1;
 		testComplete		  = false;
-		StartTest();
+		StartTest( shared->fittsActiveAxis );
 		shared->displayString = "FittsClass: Randomizing tag position...";
 		shared->TASK_COMMAND  = 0;
 

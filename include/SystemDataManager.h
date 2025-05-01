@@ -120,6 +120,7 @@ struct ManagedData {
 	float		fittsCompletionTime = 0.0f;
 	short		fittsTestNumber		= 0;
 	bool		fittsTestStarted	= false;
+	char		fittsActiveAxis		= 'z';
 
 	// Trails
 	bool vizClear	= false;

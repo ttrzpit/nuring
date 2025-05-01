@@ -143,6 +143,12 @@ void InputClass::ParseInput( int key ) {
 			shared->controllerCompZ += 20;
 			shared->displayString = "InputClass: Z-Comp set to " + shared->controllerCompZ;
 			break;
+		case 102:	 // 'f'
+			// Run fitts-law test
+			shared->TASK_NAME		 = "FITTS";
+			shared->fittsTestStarted = false;
+			shared->displayString	 = "InputClass: Starting fitts-law test.";
+			break;
 		}
 		// std::cout << "\n";
 	} else {

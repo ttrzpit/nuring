@@ -16,7 +16,7 @@ auto shared = dataHandle.getData();
 #include "include/ArucoClass.h"
 #include "include/CaptureClass.h"
 #include "include/DisplayClass.h"
-// #include "include/FittsClass.h"
+#include "include/FittsClass.h"
 #include "include/InputClass.h"
 #include "include/LoggingClass.h"
 #include "include/SerialClass.h"
@@ -33,7 +33,7 @@ TimingClass		 Timing( dataHandle );	   // Loop timing measurement
 TouchscreenClass Touch( dataHandle );	   // Touchscreen position reading
 SerialClass		 Serial( dataHandle );	   // Serial interface
 LoggingClass	 Logging( dataHandle );	   // Logging interface
-// FittsClass		 Fitts( dataHandle, Timing, Logging );
+FittsClass		 Fitts( dataHandle, Timing, Logging );
 
 
 
@@ -51,29 +51,30 @@ int main() {
 	std::ios_base::sync_with_stdio( false );
 	std::cout.setf( std::ios::unitbuf );
 
-
-
 	// For debugging
 	// std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
 	// cv::utils::logging::setLogLevel( cv::utils::logging::LOG_LEVEL_VERBOSE );
 
-
-
 	// Status update
 	std::cout << "\nMain:         Program running...\n\n";
-
-
 
 	// Start timer for measuring loop frequency
 	Timing.StartTimer();
 
 	// Add shortcut panel
 	Canvas.ShowShortcuts();
-	// Canvas.ShowVisualizer();
 
 	// Main loop
 	while ( shared->FLAG_MAIN_RUNNING ) {
 
+
+		// Task selector
+		if ( shared->TASK_NAME == "FITTS" ) {
+			if ( !shared->fittsTestStarted ) {
+				shared->fittsTestStarted = true;
+				Fitts.StartTest( 'x' );
+			}
+		}
 
 
 		// // Trial selector
@@ -97,7 +98,7 @@ int main() {
 		Aruco.FindTags();
 
 		// Check touchscreen input
-		// Touch.GetCursorPosition();
+		Touch.GetCursorPosition();
 
 		// Send serial commands
 		if ( shared->FLAG_SERIAL_OPEN ) {	 // Check if serial port is open
@@ -113,7 +114,7 @@ int main() {
 						int8_t signX = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.x );
 						int8_t signY = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.y );
 
-						shared->serialPacket = "Ex" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.x ), 3 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.y ), 3 ) + "z"
+						shared->serialPacket = "Ex" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.x * 1.5 ), 3 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.y ), 3 ) + "z"
 							+ Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.z ), 3 ) + "X\n";
 					} else {
 						shared->serialPacket = "RoX\n";
@@ -143,7 +144,6 @@ int main() {
 
 		// Update display
 		Canvas.Update();
-		// Canvas.UpdateVisualizer();
 
 		// Update timer (for measuring loop frequency)
 		Timing.UpdateTimer();

@@ -37,7 +37,7 @@ public:
 	FittsClass( SystemDataManager& dataHandle, TimingClass& timerHandle, LoggingClass& loggerHandle );
 
 	// Public functions
-	void StartTest();
+	void StartTest( char axis );
 	void Update();
 	void EndTest();
 

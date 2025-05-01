@@ -220,11 +220,11 @@ void DisplayClass::AddText() {
 	// DrawCell( "Frequency", "AG1", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	// DrawCell( std::to_string( shared->timingFrequency ), "AG2", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
-	// // Mouse output block
-	// DrawCell( "Mouse", "AG3", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	// DrawCell( std::to_string( shared->touchPosition.x ), "AG4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	// DrawCell( std::to_string( shared->touchPosition.y ), "AI4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	// DrawCell( ( shared->touchPosition.z == 1 ? "Button1" : "" ), "AG5", 4, 1, fontBody, CONFIG_colWhite, ( shared->touchPosition.z ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	// Mouse output block
+	DrawCell( "Mouse", "AE1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( shared->touchPosition.x ), "AE2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( shared->touchPosition.y ), "AF2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( ( shared->touchPosition.z == 1 ? "Button1" : "" ), "AE3", 2, 1, fontBody, CONFIG_colWhite, ( shared->touchPosition.z ? CONFIG_colGreDk : CONFIG_colBlack ), true );
 	// // std::cout << mouseXY.z << "\n";
 
 	// Status blocks
@@ -473,11 +473,12 @@ void DisplayClass::UpdateVisualizer() {
 		cv::line( matVisualizer, ProjectedCorners[edge.first], ProjectedCorners[edge.second], CONFIG_colGraLt, 1 );
 	}
 
+	uint8_t markerSize = 20;
 	// Draw target square
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -30, 30 ) ), ProjectIsometric( cv::Point3i( 0, 30, 30 ) ), CONFIG_colGraLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -30, -30 ) ), ProjectIsometric( cv::Point3i( 0, 30, -30 ) ), CONFIG_colGraLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 30, -30 ) ), ProjectIsometric( cv::Point3i( 0, 30, 30 ) ), CONFIG_colGraLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -30, -30 ) ), ProjectIsometric( cv::Point3i( 0, -30, 30 ) ), CONFIG_colGraLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, -markerSize ) ), CONFIG_colGraLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, -markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
 
 	// X axis
 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( 0, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
@@ -544,8 +545,8 @@ void DisplayClass::UpdateVisualizer() {
 	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, vizLimXY, p3DInv.z ) ), ptSizeY, CONFIG_colRedLt, -1 );	   // Shadow on XZ (screen)
 
 	// // Draw marker (last to place over other elements)
-	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 5, CONFIG_colWhite, -1 );
-	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 5, CONFIG_colBlack, 1 );
+	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 10, CONFIG_colWhite, -1 );
+	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 10, CONFIG_colBlack, 1 );
 
 
 	// // 1. Rodrigues rotation
