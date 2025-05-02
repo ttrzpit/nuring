@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 // Memory for shared data
 #include <memory>
 

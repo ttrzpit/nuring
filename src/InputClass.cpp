@@ -127,9 +127,15 @@ void InputClass::ParseInput( int key ) {
 			shared->controllerB += 0.001;
 			shared->displayString = "InputClass: Increasing B to " + std::to_string( shared->controllerB ) + ".";
 			break;
-		case 99:	// 'c'
+		case 122:	 // 'z'
 			shared->vizClear	  = true;
 			shared->displayString = "InputClass: Resetting visualization trails.";
+			break;
+		case 99:	// 'c'
+			shared->TASK_NAME = "CALIBRATE";
+			// shared->TASK_RUNNING  = true;
+			shared->calibrationComplete = false;
+			shared->displayString		= "InputClass: Starting calibration.";
 			break;
 		case 118:	 // 'v'
 			shared->vizEnabled	  = !shared->vizEnabled;
@@ -145,9 +151,10 @@ void InputClass::ParseInput( int key ) {
 			break;
 		case 102:	 // 'f'
 			// Run fitts-law test
-			shared->TASK_NAME		 = "FITTS";
-			shared->fittsTestStarted = false;
-			shared->displayString	 = "InputClass: Starting fitts-law test.";
+			shared->TASK_NAME = "FITTS";
+			// shared->TASK_RUNNING = true;
+			// shared->fittsTestStarted = false;
+			shared->displayString = "InputClass: Starting fitts-law test.";
 			break;
 		}
 		// std::cout << "\n";

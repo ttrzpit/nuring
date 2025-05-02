@@ -220,11 +220,26 @@ void DisplayClass::AddText() {
 	// DrawCell( "Frequency", "AG1", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	// DrawCell( std::to_string( shared->timingFrequency ), "AG2", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
+	// Calibration Blocks
+	DrawCell( "Calibration Status", "AD1", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( ( shared->calibrationComplete ? "Complete" : "Incomplete" ), "AD2", 3, 1, fontHeader, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( "x", "AD3", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "y", "AD4", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "z", "AD5", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( shared->calibrationOffset.x ), "AE3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( shared->calibrationOffset.y ), "AE4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( shared->calibrationOffset.z ), "AE5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
 	// Mouse output block
-	DrawCell( "Mouse", "AE1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( shared->touchPosition.x ), "AE2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( shared->touchPosition.y ), "AF2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( ( shared->touchPosition.z == 1 ? "Button1" : "" ), "AE3", 2, 1, fontBody, CONFIG_colWhite, ( shared->touchPosition.z ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	// DrawCell( "Mouse", "AE1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( std::to_string( shared->touchPosition.x ), "AE2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( std::to_string( shared->touchPosition.y ), "AF2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( std::to_string( shared->touchPosition.x - ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) ), "AE3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( std::to_string( shared->touchPosition.y - ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) ), "AF3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( ( shared->touchPosition.z == 1 ? "Button1" : "" ), "AE4", 2, 1, fontBody, CONFIG_colWhite, ( shared->touchPosition.z ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+
+
+
 	// // std::cout << mouseXY.z << "\n";
 
 	// Status blocks
@@ -423,12 +438,17 @@ void DisplayClass::ShowShortcuts() {
 	DrawKeyCell( ";   '", "A10", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawKeyCell( "Decrease | increase damping B", "B10", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
 
+	// Calibration
+	DrawKeyCell( "Calibration:", "A12", 6, 1, key_fontHeader * 1.3, CONFIG_colWhite, CONFIG_colGraBk, false );
+	DrawKeyCell( "c", "A13", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "Run calibration tool", "B13", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+
 	// Visualizer
-	DrawKeyCell( "Visualizer:", "A12", 6, 1, key_fontHeader * 1.3, CONFIG_colWhite, CONFIG_colGraBk, false );
-	DrawKeyCell( "v", "A13", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "Enable visualizer (toggle)", "B13", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "c", "A14", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "Clear visualizer ", "B14", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "Visualizer:", "A15", 6, 1, key_fontHeader * 1.3, CONFIG_colWhite, CONFIG_colGraBk, false );
+	DrawKeyCell( "v", "A15", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "Enable visualizer (toggle)", "B15", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "c", "A16", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "Clear visualizer ", "B16", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
 
 
 

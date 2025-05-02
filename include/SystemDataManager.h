@@ -55,6 +55,7 @@ struct ManagedData {
 	char		TASK_NUMBER	 = 0;
 	char		TASK_COMMAND = 0;
 	short		TASK_USER_ID = 100;
+	bool		TASK_RUNNING = false;
 
 	// OpenCV image matrices
 	cv::Mat matFrameRaw			= cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
@@ -119,13 +120,17 @@ struct ManagedData {
 	cv::Point3i fittsErrorMm		= cv::Point3i( 0, 0, 0 );
 	float		fittsCompletionTime = 0.0f;
 	short		fittsTestNumber		= 0;
-	bool		fittsTestStarted	= false;
-	char		fittsActiveAxis		= 'z';
+	// bool		fittsTestStarted	= false;
+	char fittsActiveAxis = 'z';
 
 	// Trails
 	bool vizClear	= false;
 	bool vizEnabled = false;
 	bool vizLoaded	= false;
+
+	// Calibration
+	bool		calibrationComplete = false;
+	cv::Point3i calibrationOffset	= cv::Point3i( 0, 0, 0 );
 };
 
 class SystemDataManager {

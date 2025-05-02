@@ -69,7 +69,7 @@ void TimingClass::TaskTimerEnd() {
 	taskTimeEnd = std::chrono::steady_clock::now();
 
 	// Save final time
-	if ( shared->TASK_NUMBER == 2 ) {
+	if ( shared->TASK_NAME == "FITTS" ) {
 		taskTimeElapsed				= taskTimeEnd - taskTimeStart;
 		shared->fittsCompletionTime = taskTimeElapsed.count();
 	}

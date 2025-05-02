@@ -5,6 +5,7 @@
 
 // Linux headers for reading mouse position / touch
 #include <X11/Xlib.h>
+#include <X11/extensions/XInput2.h>
 
 
 // Forward declarations
@@ -29,10 +30,14 @@ public:
 	void GetCursorPosition();
 	void Close();
 
+
 private:
 	// Private functions
 	void ParseClick();
 	void ProcessEvents();
+	void SelectInputFromDevice( Display* display, int deviceId, Window window );
+	int	 GetTouchscreenDeviceId( Display* display, const std::string& deviceName );
+	void InitializeTouchEvents();
 
 	// Private variables
 	bool buttonPressedNew = false;
@@ -42,6 +47,7 @@ private:
 	int			 rootX, rootY, winX, winY;
 	unsigned int buttonMask;
 	Window		 childReturn, rootReturn, root;
+	int			 xinputOpcode = -1;	   // 🔶 NEW: stores XInput2 extension opcode
 
 	// Display handle for X11
 	Display* displayHandle = XOpenDisplay( nullptr );

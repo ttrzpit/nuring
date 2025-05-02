@@ -14,6 +14,7 @@ auto shared = dataHandle.getData();
 
 // Custom class objects
 #include "include/ArucoClass.h"
+#include "include/CalibrationClass.h"
 #include "include/CaptureClass.h"
 #include "include/DisplayClass.h"
 #include "include/FittsClass.h"
@@ -25,16 +26,16 @@ auto shared = dataHandle.getData();
 
 
 // New class objects
-CaptureClass	 Capture( dataHandle );	   // Camera capture
-ArucoClass		 Aruco( dataHandle );	   // Aruco detector
-DisplayClass	 Canvas( dataHandle );	   // Display output
-InputClass		 Input( dataHandle );	   // Keyboard input
-TimingClass		 Timing( dataHandle );	   // Loop timing measurement
-TouchscreenClass Touch( dataHandle );	   // Touchscreen position reading
-SerialClass		 Serial( dataHandle );	   // Serial interface
-LoggingClass	 Logging( dataHandle );	   // Logging interface
-FittsClass		 Fitts( dataHandle, Timing, Logging );
-
+CaptureClass	 Capture( dataHandle );					  // Camera capture
+ArucoClass		 Aruco( dataHandle );					  // Aruco detector
+DisplayClass	 Canvas( dataHandle );					  // Display output
+InputClass		 Input( dataHandle );					  // Keyboard input
+TimingClass		 Timing( dataHandle );					  // Loop timing measurement
+TouchscreenClass Touch( dataHandle );					  // Touchscreen position reading
+SerialClass		 Serial( dataHandle );					  // Serial interface
+LoggingClass	 Logging( dataHandle );					  // Logging interface
+FittsClass		 Fitts( dataHandle, Timing, Logging );	  // For fitts-law testing
+CalibrationClass Calibration( dataHandle );				  // For calibration of user to touchscreen
 
 
 // Function prototypes
@@ -70,9 +71,21 @@ int main() {
 
 		// Task selector
 		if ( shared->TASK_NAME == "FITTS" ) {
-			if ( !shared->fittsTestStarted ) {
-				shared->fittsTestStarted = true;
+			if ( !shared->TASK_RUNNING ) {
+				shared->TASK_RUNNING = true;
 				Fitts.StartTest( 'x' );
+			} else {
+				Fitts.Update();
+			}
+		} else if ( shared->TASK_NAME == "CALIBRATE" ) {
+			if ( !shared->TASK_RUNNING ) {
+				shared->calibrationComplete = false;
+				shared->calibrationOffset	= cv::Point3i( 0, 0, 0 );
+				shared->TASK_NUMBER			= 0;
+				shared->TASK_RUNNING		= true;
+				Calibration.CalibrateDevice();
+			} else {
+				Calibration.Update();
 			}
 		}
 

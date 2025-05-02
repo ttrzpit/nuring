@@ -27,6 +27,8 @@ inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 50;	  // 20
 inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 30;	  // 20
 inline constexpr unsigned short CONFIG_DIS_VIZ_WIDTH	   = 1540;	  // 20
 inline constexpr unsigned short CONFIG_DIS_VIZ_HEIGHT	   = 1360;	  // 20
+inline constexpr unsigned short CONFIG_TOUCHSCREEN_WIDTH   = 1920;
+inline constexpr unsigned short CONFIG_TOUCHSCREEN_HEIGHT  = 1080;
 
 // Camera intrinsic parameters
 inline constexpr unsigned short CONFIG_CAM_WIDTH	   = 1600;

@@ -136,6 +136,10 @@ void FittsClass::EndTest() {
 	shared->displayString	  = "Saving file " + imageFilename;
 	cv::imwrite( imageFilename, matBackground );
 	std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
+
+	// Update and remove task
+	shared->TASK_NAME	 = "";
+	shared->TASK_RUNNING = false;
 }
 
 
@@ -145,36 +149,46 @@ void FittsClass::EndTest() {
  */
 void FittsClass::Update() {
 
-	// Check commands
-	switch ( shared->TASK_COMMAND ) {
+	// Check if fitts test is running
+	if ( shared->TASK_RUNNING == true ) {
 
-	// Randomize
-	case 'r':
-		shared->arucoActiveID = 1;
-		testComplete		  = false;
-		StartTest( shared->fittsActiveAxis );
-		shared->displayString = "FittsClass: Randomizing tag position...";
-		shared->TASK_COMMAND  = 0;
-
-		break;
-	case 'c':
-		if ( !testComplete ) {
+		// Check if touchscreen pressed
+		if ( shared->touchPosition.z == 1 ) {
 			EndTest();
-			shared->TASK_COMMAND = 0;
+			shared->TASK_RUNNING = false;
 		}
-		break;
-	default:
-		//nothing
-		break;
 	}
 
-	// Log data
-	if ( !testComplete ) {
-		// Save entry
-		logger.AddEntry();
-	} else if ( testComplete ) {
-		// Save data
-	}
+	// // Check commands
+	// switch ( shared->TASK_COMMAND ) {
+
+	// // Randomize
+	// case 'r':
+	// 	shared->arucoActiveID = 1;
+	// 	testComplete		  = false;
+	// 	StartTest( shared->fittsActiveAxis );
+	// 	shared->displayString = "FittsClass: Randomizing tag position...";
+	// 	shared->TASK_COMMAND  = 0;
+
+	// 	break;
+	// case 'c':
+	// 	if ( !testComplete ) {
+	// 		EndTest();
+	// 		shared->TASK_COMMAND = 0;
+	// 	}
+	// 	break;
+	// default:
+	// 	//nothing
+	// 	break;
+	// }
+
+	// // Log data
+	// if ( !testComplete ) {
+	// 	// Save entry
+	// 	logger.AddEntry();
+	// } else if ( testComplete ) {
+	// 	// Save data
+	// }
 }
 
 
