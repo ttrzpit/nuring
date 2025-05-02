@@ -29,20 +29,28 @@ public:
 	CalibrationClass( SystemDataManager& dataHandle );
 
 	// Public class functions
-	void CalibrateDevice();
+	void InitializeCalibration();
+	void StartCalibration();
 	void Update();
-	void FinishCalibration();
 
 private:
 	// Data manager handle
 	SystemDataManager&			 dataHandle;
 	std::shared_ptr<ManagedData> shared;
 
+	// Private class functions
+
+	void FinishCalibration();
+
+
+
 	// Private variables
 	std::vector<cv::Point3i> calibrationPoints;
+	std::vector<int>		 calibrationZPoints;
 
 	// ArUco tag
-	cv::Mat matAruco = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-08-20mm.png" );
+	cv::Mat matAruco = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-08-20mm-scaled.png" );
+
 
 
 	// Calibration screen

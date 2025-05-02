@@ -10,8 +10,6 @@ SystemDataManager dataHandle;
 // Handle to shared data
 auto shared = dataHandle.getData();
 
-
-
 // Custom class objects
 #include "include/ArucoClass.h"
 #include "include/CalibrationClass.h"
@@ -40,13 +38,15 @@ CalibrationClass Calibration( dataHandle );				  // For calibration of user to t
 
 // Function prototypes
 void SignalHandler( int signum );
-
+void TaskCalibrate();
+void TaskFitts();
 
 
 /**
  * @brief Main program
  */
 int main() {
+
 
 	// Optimization for C/C++ data types
 	std::ios_base::sync_with_stdio( false );
@@ -71,35 +71,12 @@ int main() {
 
 		// Task selector
 		if ( shared->TASK_NAME == "FITTS" ) {
-			if ( !shared->TASK_RUNNING ) {
-				shared->TASK_RUNNING = true;
-				Fitts.StartTest( 'x' );
-			} else {
-				Fitts.Update();
-			}
+			TaskFitts();
 		} else if ( shared->TASK_NAME == "CALIBRATE" ) {
-			if ( !shared->TASK_RUNNING ) {
-				shared->calibrationComplete = false;
-				shared->calibrationOffset	= cv::Point3i( 0, 0, 0 );
-				shared->TASK_NUMBER			= 0;
-				shared->TASK_RUNNING		= true;
-				Calibration.CalibrateDevice();
-			} else {
-				Calibration.Update();
-			}
+			TaskCalibrate();
 		}
 
 
-		// // Trial selector
-		// if ( shared->TASK_NUMBER == 0 ) {
-		// 	// Nothing
-		// } else if ( shared->TASK_NUMBER == 1 ) {
-		// 	// Nothing
-		// } else if ( shared->TASK_NUMBER == 2 ) {
-		// 	shared->TASK_NAME = "Fitts";
-		// 	Fitts.Update();
-		// } else {
-		// }
 
 		// Parse any input and use OpenCV WaitKey()
 		Input.ParseInput( cv::pollKey() & 0xFF );
@@ -169,7 +146,7 @@ int main() {
 
 		// std::cout << shared->touchPosition.x << " , " << shared->touchPosition.y << " | " << shared->touchPosition.z << "\n";
 	}
-
+	cv::destroyAllWindows();
 	return 0;
 }
 
@@ -183,4 +160,36 @@ void SignalHandler( int signum ) {
 	shared->FLAG_MAIN_RUNNING = false;
 	Touch.Close();
 	exit( signum );
+}
+
+/**
+ * @brief Run calibration routine
+ */
+void TaskCalibrate() {
+
+	if ( !shared->TASK_RUNNING ) {
+		shared->calibrationComplete = false;
+		shared->calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
+		shared->TASK_NUMBER			= 0;
+		shared->TASK_RUNNING		= true;
+		shared->arucoActiveID		= 8;
+		Calibration.InitializeCalibration();
+		Calibration.StartCalibration();
+	} else {
+		Calibration.Update();
+	}
+}
+
+
+/**
+ * @brief Start fitts law testing
+ */
+void TaskFitts() {
+
+	if ( !shared->TASK_RUNNING ) {
+		shared->TASK_RUNNING = true;
+		Fitts.StartTest( 'x' );
+	} else {
+		Fitts.Update();
+	}
 }

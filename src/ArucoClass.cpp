@@ -87,7 +87,7 @@ void ArucoClass::FindTags() {
 				short index = shared->arucoIDs[i];
 
 				// Sort out markers in valid range
-				if ( shared->arucoIDs[i] > 0 && shared->arucoIDs[i] <= 5 ) {
+				if ( ( shared->arucoIDs[i] > 0 && shared->arucoIDs[i] <= 5 ) || ( shared->arucoIDs[i] == 8 ) ) {
 
 					// Update global flag
 					shared->FLAG_TAG_FOUND = true;

@@ -62,6 +62,12 @@ void DisplayClass::Update() {
 		}
 		cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X - shared->arucoTags[shared->arucoActiveID].error2D.x, CONFIG_CAM_PRINCIPAL_Y - shared->arucoTags[shared->arucoActiveID].error2D.y ), CONFIG_colCyaMd, 2 );
 
+		// Draw rectangle if in calibration mode
+		if ( shared->TASK_NAME == "CALIBRATE" ) {
+			uint8_t side = 40;
+			cv::rectangle( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X - side, CONFIG_CAM_PRINCIPAL_Y - side ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X + side, CONFIG_CAM_PRINCIPAL_Y + side ), CONFIG_colBluMd, 2 );
+		}
+
 		// Draw velocity on marker
 		// cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X - shared->arucoTags[shared->arucoActiveID].error2D.x, CONFIG_CAM_PRINCIPAL_Y - shared->arucoTags[shared->arucoActiveID].error2D.y ),
 		// 		  cv::Point2i( CONFIG_CAM_PRINCIPAL_X - shared->arucoTags[shared->arucoActiveID].error2D.x + shared->arucoTags[shared->arucoActiveID].errorVel3D.x * 1,
@@ -223,12 +229,18 @@ void DisplayClass::AddText() {
 	// Calibration Blocks
 	DrawCell( "Calibration Status", "AD1", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( ( shared->calibrationComplete ? "Complete" : "Incomplete" ), "AD2", 3, 1, fontHeader, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreDk : CONFIG_colBlack ), true );
-	DrawCell( "x", "AD3", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "y", "AD4", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "z", "AD5", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( shared->calibrationOffset.x ), "AE3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( shared->calibrationOffset.y ), "AE4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( shared->calibrationOffset.z ), "AE5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( " ", "AD3", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[px]", "AE3", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[mm]", "AF3", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "x", "AD4", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "y", "AD5", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "z", "AD6", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( shared->calibrationOffsetMM.x ), "AE4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( shared->calibrationOffsetMM.y ), "AE5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->calibrationOffsetMM.z * MM2PX ) ), "AE6", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->calibrationOffsetMM.x * PX2MM ) ), "AF4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->calibrationOffsetMM.y * PX2MM ) ), "AF5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->calibrationOffsetMM.z ) ), "AF6", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Mouse output block
 	// DrawCell( "Mouse", "AE1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -291,7 +303,7 @@ void DisplayClass::AddText() {
 
 	// // Status Block
 	DrawCell( "System:", "K6", 2, 2, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->displayString, "M6", 20, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawCell( shared->displayString, "M6", 17, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
 }
 
 

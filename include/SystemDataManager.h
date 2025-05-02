@@ -130,7 +130,7 @@ struct ManagedData {
 
 	// Calibration
 	bool		calibrationComplete = false;
-	cv::Point3i calibrationOffset	= cv::Point3i( 0, 0, 0 );
+	cv::Point3i calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
 };
 
 class SystemDataManager {

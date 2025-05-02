@@ -5,6 +5,7 @@
 // System data manager
 #include "SystemDataManager.h"
 
+
 // Constructor
 TouchscreenClass::TouchscreenClass( SystemDataManager& ctx )
 	: dataHandle( ctx )
@@ -15,6 +16,7 @@ TouchscreenClass::TouchscreenClass( SystemDataManager& ctx )
 	if ( displayHandle ) {
 		InitializeTouchEvents();	// 🔶 NEW
 	}
+
 
 	// Old version (working)
 	// if ( displayHandle ) {
