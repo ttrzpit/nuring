@@ -30,7 +30,7 @@ DisplayClass	 Canvas( dataHandle );					  // Display output
 InputClass		 Input( dataHandle );					  // Keyboard input
 TimingClass		 Timing( dataHandle );					  // Loop timing measurement
 TouchscreenClass Touch( dataHandle );					  // Touchscreen position reading
-SerialClass		 Serial( dataHandle );					  // Serial interface
+SerialClass		 Serial( dataHandle, 2 );				  // Serial interface
 LoggingClass	 Logging( dataHandle );					  // Logging interface
 FittsClass		 Fitts( dataHandle, Timing, Logging );	  // For fitts-law testing
 CalibrationClass Calibration( dataHandle );				  // For calibration of user to touchscreen
@@ -76,8 +76,6 @@ int main() {
 			TaskCalibrate();
 		}
 
-
-
 		// Parse any input and use OpenCV WaitKey()
 		Input.ParseInput( cv::pollKey() & 0xFF );
 
@@ -90,11 +88,16 @@ int main() {
 		// Check touchscreen input
 		Touch.GetCursorPosition();
 
+		// Check for new incoming serial packet
+		if ( shared->serialPortsOpen == 2 ) {
+			Serial.CheckForPacket();
+		}
+
 		// Send serial commands
-		if ( shared->FLAG_SERIAL_OPEN ) {	 // Check if serial port is open
+		if ( shared->FLAG_SERIAL0_OPEN ) {	  // Check if serial port is open
 
 			// Check if serial is enabled and amplifiers are enabled
-			if ( shared->FLAG_SERIAL_ENABLED ) {
+			if ( shared->FLAG_SERIAL0_ENABLED ) {
 
 				if ( shared->FLAG_AMPLIFIERS_READY && shared->arucoActiveID != 0 ) {
 
@@ -104,10 +107,10 @@ int main() {
 						int8_t signX = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.x );
 						int8_t signY = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.y );
 
-						shared->serialPacket = "Ex" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.x * 1.5 ), 3 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.y ), 3 ) + "z"
+						shared->serialPacket0 = "Ex" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.x * 1.5 ), 3 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.y ), 3 ) + "z"
 							+ Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.z ), 3 ) + "X\n";
 					} else {
-						shared->serialPacket = "RoX\n";
+						shared->serialPacket0 = "RoX\n";
 					}
 
 					// shared->serialPacket = "Ex" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.x, 3 ) + "y" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.y, 3 ) + "z" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.z, 3 ) + "X\n";
@@ -116,21 +119,23 @@ int main() {
 					// 	+ Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velMagnitude, 3 ) + "h" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velHeading * RAD2DEG, 3 ) + "X\n";
 					shared->FLAG_PACKET_WAITING = true;
 				} else {
-					shared->serialPacket		= "DX\n";
+					shared->serialPacket0		= "DX\n";
 					shared->FLAG_PACKET_WAITING = true;
 				}
 
 			} else {
 
-				shared->serialPacket		= "DX\n";
+				shared->serialPacket0		= "DX\n";
 				shared->FLAG_PACKET_WAITING = true;
 			}
 
 			Serial.Monitor();
 		} else {
-			shared->serialPacket = "DX\n";
+			shared->serialPacket0 = "DX\n";
 			// shared->FLAG_PACKET_WAITING = true;
 		}
+
+
 
 		// Update display
 		Canvas.Update();
@@ -139,7 +144,7 @@ int main() {
 		Timing.UpdateTimer();
 
 		if ( shared->FLAG_SHUTTING_DOWN ) {
-			shared->serialPacket		= "DX\n";
+			shared->serialPacket0		= "DX\n";
 			shared->FLAG_PACKET_WAITING = true;
 			shared->FLAG_MAIN_RUNNING	= false;
 		}

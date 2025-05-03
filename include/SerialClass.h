@@ -22,10 +22,11 @@ class SerialClass {
 
 public:
 	// Data manager handle
-	SerialClass( SystemDataManager& dataHandle );
+	SerialClass( SystemDataManager& dataHandle, uint8_t nPorts );
 
 	// Public functions
 	void		Send( const std::string& msg );
+	void		CheckForPacket();
 	void		Close();
 	bool		GetStatus();
 	void		Monitor();
@@ -35,11 +36,22 @@ public:
 
 private:
 	// Private functions
-	void Initialize();
+	void InitializePort0();
+	void InitializePort1();
 
 	// Variables
-	int			   serialPort;
-	struct termios tty;
+	int			   serialPort0;
+	int			   serialPort1;
+	struct termios tty0;
+	struct termios tty1;
+	uint8_t		   nPortsOpen = 1;
+
+	// Packet variables
+	char		buffer[64];
+	std::string readBuffer = "";
+	
+
+
 
 	// Data manager handle
 	SystemDataManager&			 dataHandle;

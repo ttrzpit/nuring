@@ -68,6 +68,13 @@ void DisplayClass::Update() {
 			cv::rectangle( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X - side, CONFIG_CAM_PRINCIPAL_Y - side ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X + side, CONFIG_CAM_PRINCIPAL_Y + side ), CONFIG_colBluMd, 2 );
 		}
 
+		if ( shared->calibrationComplete ) {
+			cv::Point2i offsetCenter = cv::Point2i( CONFIG_CAM_PRINCIPAL_X + shared->calibrationOffsetMM.x * MM2PX, CONFIG_CAM_PRINCIPAL_Y + shared->calibrationOffsetMM.y * MM2PX );
+			cv::circle( shared->matFrameOverlay, offsetCenter, 10, CONFIG_colGreMd, 2 );
+			cv::line( shared->matFrameOverlay, offsetCenter - cv::Point2i( 20, 0 ), offsetCenter + cv::Point2i( 20, 0 ), CONFIG_colGreLt, 2 );
+			cv::line( shared->matFrameOverlay, offsetCenter - cv::Point2i( 0, 20 ), offsetCenter + cv::Point2i( 0, 20 ), CONFIG_colGreLt, 2 );
+		}
+
 		// Draw velocity on marker
 		// cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X - shared->arucoTags[shared->arucoActiveID].error2D.x, CONFIG_CAM_PRINCIPAL_Y - shared->arucoTags[shared->arucoActiveID].error2D.y ),
 		// 		  cv::Point2i( CONFIG_CAM_PRINCIPAL_X - shared->arucoTags[shared->arucoActiveID].error2D.x + shared->arucoTags[shared->arucoActiveID].errorVel3D.x * 1,
@@ -222,53 +229,58 @@ void DisplayClass::AddText() {
 			  "Q5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 
-	// Frequency Block
-	// DrawCell( "Frequency", "AG1", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	// DrawCell( std::to_string( shared->timingFrequency ), "AG2", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// Mouse output block
+	DrawCell( "Mouse", "AB1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "x", "AB2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "y", "AC2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( shared->touchPosition.x + 3440 ), "AB3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( shared->touchPosition.y + 32 ), "AC3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( ( shared->touchPosition.z == 1 ? "Button 1" : "-" ), "AB4", 2, 2, fontBody, CONFIG_colWhite, ( shared->touchPosition.z ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+
 
 	// Calibration Blocks
 	DrawCell( "Calibration Status", "AD1", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( shared->calibrationComplete ? "Complete" : "Incomplete" ), "AD2", 3, 1, fontHeader, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( ( shared->calibrationComplete ? "Complete" : "Incomplete" ), "AD2", 3, 1, fontHeader, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreDk : CONFIG_colRedBk ), true );
 	DrawCell( " ", "AD3", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[px]", "AE3", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[mm]", "AF3", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "x", "AD4", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "y", "AD5", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "z", "AD6", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( shared->calibrationOffsetMM.x ), "AE4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( shared->calibrationOffsetMM.y ), "AE5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "|R|", "AD7", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( int( shared->calibrationOffsetMM.x * MM2PX ) ), "AE4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->calibrationOffsetMM.y * MM2PX ) ), "AE5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( int( shared->calibrationOffsetMM.z * MM2PX ) ), "AE6", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->calibrationOffsetMM.x * PX2MM ) ), "AF4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->calibrationOffsetMM.y * PX2MM ) ), "AF5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( cv::norm( shared->calibrationOffsetMM ) * MM2PX ) ), "AE7", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->calibrationOffsetMM.x ) ), "AF4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->calibrationOffsetMM.y ) ), "AF5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( int( shared->calibrationOffsetMM.z ) ), "AF6", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-
-	// Mouse output block
-	// DrawCell( "Mouse", "AE1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	// DrawCell( std::to_string( shared->touchPosition.x ), "AE2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	// DrawCell( std::to_string( shared->touchPosition.y ), "AF2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	// DrawCell( std::to_string( shared->touchPosition.x - ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) ), "AE3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	// DrawCell( std::to_string( shared->touchPosition.y - ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) ), "AF3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	// DrawCell( ( shared->touchPosition.z == 1 ? "Button1" : "" ), "AE4", 2, 1, fontBody, CONFIG_colWhite, ( shared->touchPosition.z ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( std::to_string( int( cv::norm( shared->calibrationOffsetMM ) ) ), "AF7", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 
 
 	// // std::cout << mouseXY.z << "\n";
 
-	// Status blocks
-	DrawCell( "Frequency", "AG1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( shared->timingFrequency ), "AG2", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Amplifiers", "AI1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( shared->FLAG_AMPLIFIERS_READY ? "Online" : "Offline" ), "AI2", 2, 1, fontBody, CONFIG_colWhite, ( shared->FLAG_AMPLIFIERS_READY ? CONFIG_colGreDk : CONFIG_colBlack ), true );
-	DrawCell( "Serial Status", "AK1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( shared->FLAG_SERIAL_ENABLED ? "Online" : "Offline" ), "AK2", 2, 1, fontBody, CONFIG_colWhite, ( shared->FLAG_SERIAL_ENABLED ? CONFIG_colGreDk : CONFIG_colBlack ), true );
-	DrawCell( "Logging", "AM1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( shared->FLAG_LOGGING_ON ? "Logging" : "Offline" ), "AM2", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
-	// Serial packet blocks
-	DrawCell( "Outgoing Packet", "AG3", 8, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->serialPacket.substr( 0, shared->serialPacket.size() - 1 ), "AG4", 8, 2, fontHeader * 2, CONFIG_colWhite, ( shared->serialPacket == "DX\n" ) ? CONFIG_colBlack : CONFIG_colGreDk, true );
-	DrawCell( "Filename", "AG6", 8, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[FILENAME]", "AG7", 8, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// Serial blocks
+	DrawCell( "Serial0 (Outbound)", "AI1", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( ( shared->FLAG_SERIAL0_ENABLED ? "Online" : "Offline" ), "AL1", 3, 1, fontBody, CONFIG_colWhite, ( shared->FLAG_SERIAL0_ENABLED ? CONFIG_colGreDk : CONFIG_colRedBk ), true );
+	DrawCell( shared->serialPacket0.substr( 0, shared->serialPacket0.size() - 1 ), "AI2", 6, 2, fontHeader * 1.6, CONFIG_colWhite, ( shared->serialPacket0 == "DX\n" ) ? CONFIG_colBlack : CONFIG_colGreDk, true );
+	DrawCell( "Serial1 (Inbound) ", "AI4", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( ( shared->FLAG_SERIAL1_ENABLED ? "Online" : "Offline" ), "AL4", 3, 1, fontBody, CONFIG_colWhite, ( shared->FLAG_SERIAL0_ENABLED ? CONFIG_colGreDk : CONFIG_colRedBk ), true );
+	DrawCell( shared->serialPacket1.substr( 0, shared->serialPacket1.size() - 1 ), "AI5", 6, 2, fontHeader * 1.6, CONFIG_colWhite, ( shared->serialPacket0 == "DX\n" ) ? CONFIG_colBlack : CONFIG_colGreDk, true );
+
+	// Status blocks
+	DrawCell( "Amplifiers", "AG1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( ( shared->FLAG_AMPLIFIERS_READY ? "Online" : "Offline" ), "AG2", 2, 2, fontBody, CONFIG_colWhite, ( shared->FLAG_AMPLIFIERS_READY ? CONFIG_colGreDk : CONFIG_colRedBk ), true );
+	DrawCell( "Frequency", "AG4", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( shared->timingFrequency ) + " Hz", "AG5", 2, 2, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Logging Block
+	DrawCell( "Logging", "AG7", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( ( shared->FLAG_LOGGING_ON ? "Logging" : "Offline" ), "AM2", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Filename", "AG6", 8, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[FILENAME]", "AI7", 6, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 
 	// // Trial blocks
@@ -302,8 +314,8 @@ void DisplayClass::AddText() {
 	// DrawCell( std::to_string( shared->timingTimestamp ), "K4", 5, 1, fontBody, CONFIG_colWhite, backColor, true );
 
 	// // Status Block
-	DrawCell( "System:", "K6", 2, 2, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->displayString, "M6", 17, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawCell( "System:", "K6", 2, 2, fontHeader * 1.5, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->displayString, "M6", 17, 2, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, false );
 }
 
 

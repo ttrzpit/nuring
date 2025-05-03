@@ -76,7 +76,8 @@ inline constexpr unsigned short CONFIG_DET_RADIUS = 400;
 #endif
 
 // Serial properties
-inline std::string CONFIG_SERIAL_PORT = "/dev/ttyACM0";
+inline std::string CONFIG_SERIAL_PORT_0 = "/dev/ttyACM0";
+inline std::string CONFIG_SERIAL_PORT_1 = "/dev/ttyACM1";
 
 // Marker constants
 inline constexpr short CONFIG_MARKER_WIDTH = 20;	// [mm] Marker dimension

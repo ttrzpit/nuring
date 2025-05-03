@@ -27,18 +27,18 @@ void InputClass::ParseInput( int key ) {
 
 		switch ( key ) {
 		case 27:	// ESC key 1048603
-			shared->FLAG_SERIAL_ENABLED	  = false;
+			shared->FLAG_SERIAL0_ENABLED  = false;
 			shared->FLAG_AMPLIFIERS_READY = false;
-			shared->serialPacket		  = "DX\n";
+			shared->serialPacket0		  = "DX\n";
 			shared->FLAG_PACKET_WAITING	  = true;
 			shared->displayString		  = "InputClass: Shutting down...";
-			shared->FLAG_SERIAL_ENABLED	  = false;
-			shared->FLAG_SERIAL_OPEN	  = false;
+			shared->FLAG_SERIAL0_ENABLED  = false;
+			shared->FLAG_SERIAL0_OPEN	  = false;
 
 			shared->displayString = "InputClass: Stop key pressed, exiting.";
 			cv::destroyAllWindows();
 			std::cout << "shutdown initiated.\n";
-			shared->serialPacket		= "DX\n";
+			shared->serialPacket0		= "DX\n";
 			shared->FLAG_PACKET_WAITING = true;
 			shared->FLAG_SHUTTING_DOWN	= true;
 			break;
@@ -78,27 +78,27 @@ void InputClass::ParseInput( int key ) {
 				// shared->FLAG_PACKET_WAITING = true;
 				shared->displayString = "InputClass: Amplifiers enabled.";
 			} else {
-				shared->serialPacket		= "DX\n";
+				shared->serialPacket0		= "DX\n";
 				shared->FLAG_PACKET_WAITING = true;
 				shared->displayString		= "InputClass: Amplifiers disabled.";
 			}
 			break;
 		case 's':	 // S
-			shared->FLAG_SERIAL_ENABLED = !shared->FLAG_SERIAL_ENABLED;
-			if ( shared->FLAG_SERIAL_ENABLED ) {
-				shared->displayString		= "InputClass: Enabling serial output.";
-				shared->FLAG_SERIAL_ENABLED = true;
+			shared->FLAG_SERIAL0_ENABLED = !shared->FLAG_SERIAL0_ENABLED;
+			if ( shared->FLAG_SERIAL0_ENABLED ) {
+				shared->displayString		 = "InputClass: Enabling serial output.";
+				shared->FLAG_SERIAL0_ENABLED = true;
 			} else {
-				shared->serialPacket		= "DX\n";
-				shared->FLAG_PACKET_WAITING = true;
-				shared->FLAG_SERIAL_ENABLED = false;
-				shared->displayString		= "InputClass: Disabling serial output.";
+				shared->serialPacket0		 = "DX\n";
+				shared->FLAG_PACKET_WAITING	 = true;
+				shared->FLAG_SERIAL0_ENABLED = false;
+				shared->displayString		 = "InputClass: Disabling serial output.";
 			}
 			break;
 		case 'x':	 // X
 			shared->displayString = "InputClass: Software E-Stop Triggered. Amplifiers and serial output disabled.";
-			if ( shared->FLAG_SERIAL_OPEN ) {
-				shared->serialPacket		= "DX\n";
+			if ( shared->FLAG_SERIAL0_OPEN ) {
+				shared->serialPacket0		= "DX\n";
 				shared->FLAG_PACKET_WAITING = true;
 			}
 			shared->FLAG_AMPLIFIERS_READY = false;
@@ -159,7 +159,7 @@ void InputClass::ParseInput( int key ) {
 		}
 		// std::cout << "\n";
 	} else {
-		shared->serialPacket		= "DX\n";
+		shared->serialPacket0		= "DX\n";
 		shared->FLAG_PACKET_WAITING = true;
 	}
 }

@@ -43,14 +43,16 @@ struct ManagedData {
 	bool FLAG_MAIN_RUNNING	   = true;
 	bool FLAG_FRAME_READY	   = false;
 	bool FLAG_TAG_FOUND		   = false;
-	bool FLAG_SERIAL_OPEN	   = false;
 	bool FLAG_AMPLIFIERS_READY = false;
 	bool FLAG_PACKET_WAITING   = false;
 	bool FLAG_LOGGING_ON	   = false;
-	bool FLAG_SERIAL_ENABLED   = false;
+	bool FLAG_SERIAL0_OPEN	   = false;
+	bool FLAG_SERIAL1_OPEN	   = false;
+	bool FLAG_SERIAL0_ENABLED  = false;
+	bool FLAG_SERIAL1_ENABLED  = false;
 	bool FLAG_SHUTTING_DOWN	   = false;
 
-	// Testing
+	// Tasks
 	std::string TASK_NAME	 = "";
 	char		TASK_NUMBER	 = 0;
 	char		TASK_COMMAND = 0;
@@ -95,7 +97,9 @@ struct ManagedData {
 	cv::Point3i touchPosition = cv::Point3i( 0, 0, 0 );
 
 	// Serial variables
-	std::string serialPacket = "";
+	std::string serialPacket0	= "";
+	std::string serialPacket1	= "";
+	uint8_t		serialPortsOpen = 0;
 
 	// Display variables
 	std::string displayString = "";

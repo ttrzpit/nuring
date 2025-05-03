@@ -12,6 +12,8 @@ CalibrationClass::CalibrationClass( SystemDataManager& ctx )
 	: dataHandle( ctx )
 	, shared( ctx.getData() ) {
 
+	// Configure interface
+	cv::namedWindow( "Calibration Window", cv::WINDOW_NORMAL );
 
 
 	// Stuff
@@ -59,6 +61,9 @@ void CalibrationClass::Update() {
 			calibrationPoints.push_back( shared->touchPosition - cv::Point3i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2, 0 ) );
 			calibrationZPoints.push_back( shared->arucoTags[shared->arucoActiveID].error3D.z );
 
+
+			std::cout << "X: " << shared->touchPosition.x << " Y: " << shared->touchPosition.y << "\n";
+
 			// Check if calibration complete
 			if ( shared->TASK_NUMBER <= 4 ) {
 				shared->touchPosition.z = 0;
@@ -69,18 +74,22 @@ void CalibrationClass::Update() {
 				FinishCalibration();
 			} else {
 
-				try {
-					cv::destroyWindow( "Calibration Window" );
-				} catch ( ... ) {
-					std::cerr << "Warning: destroyWindow failed\n";
-				}
+				shared->TASK_RUNNING  = false;
+				shared->TASK_NAME	  = "";
+				shared->arucoActiveID = 0;
+
+				// cv::setWindowProperty( "Calibration Window" , cv::WindowPropertyFlags)
+				// try {
+				// 	cv::destroyWindow( "Calibration Window" );
+				// } catch ( ... ) {
+				// 	std::cerr << "Warning: destroyWindow failed\n";
+				// }
 
 				// std::cout << "Window: " << cv::getWindowProperty( "Calibration Window", cv::WND_PROP_VISIBLE ) << "\n";
 				// if ( cv::getWindowProperty( "Calibration Window", cv::WND_PROP_VISIBLE ) >= 1.0 ) {
 				// 	cv::destroyWindow( "Calibration Window" );
 				// }
-				shared->TASK_RUNNING = false;
-				shared->TASK_NAME	 = "";
+
 				// shared->TASK_RUNNING = false;
 			}
 		}
@@ -166,8 +175,6 @@ void CalibrationClass::FinishCalibration() {
 
 void CalibrationClass::InitializeCalibration() {
 
-	// Configure interface
-	cv::namedWindow( "Calibration Window", cv::WINDOW_NORMAL );
 
 	cv::resizeWindow( "Calibration Window", CONFIG_TOUCHSCREEN_WIDTH, CONFIG_TOUCHSCREEN_HEIGHT );
 	cv::setWindowProperty( "Calibration Window", cv::WindowPropertyFlags::WND_PROP_TOPMOST, 1.0 );
