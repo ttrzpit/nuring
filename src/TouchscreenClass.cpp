@@ -59,7 +59,7 @@ void TouchscreenClass::Close() {
 void TouchscreenClass::ParseClick() {
 	if ( buttonPressedNew == true ) {
 		// Switch-case for active task
-		switch ( shared->TASK_NUMBER ) {
+		switch ( shared->TASK_REP_NUMBER ) {
 		case 0:
 			// Nothing
 			break;
@@ -67,7 +67,7 @@ void TouchscreenClass::ParseClick() {
 			// Discrimination
 			break;
 		case 2:	   // Fitts
-			if ( shared->touchPosition.z == 1 ) {
+			if ( shared->touchDetected == 1 ) {
 				shared->TASK_COMMAND = 'c';
 			} else {
 				shared->TASK_COMMAND = 0;
@@ -105,9 +105,11 @@ void TouchscreenClass::ProcessEvents() {
 
 				// Optional: update Z state
 				if ( event.xcookie.evtype == XI_TouchBegin ) {	  // Touch begin
-					shared->touchPosition.z = 1;
+					// shared->touchPosition.z = 1;
+					shared->touchDetected = true ;
 				} else if ( event.xcookie.evtype == XI_TouchEnd ) {	   // Touch end
-					shared->touchPosition.z = 0;
+					// shared->touchPosition.z = 0;
+					shared->touchDetected = false ;
 				}
 				// shared->touchPosition.z = ( event.xcookie.evtype == XI_TouchEnd ) ? 0 : 1;
 			}

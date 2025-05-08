@@ -48,6 +48,9 @@ private:
 	std::vector<cv::Point3i> calibrationPoints;
 	std::vector<int>		 calibrationZPoints;
 
+	// Calibration window name
+	std::string winCalibration = "Calibration Window";
+
 	// ArUco tag
 	cv::Mat matAruco = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-08-20mm-scaled.png" );
 

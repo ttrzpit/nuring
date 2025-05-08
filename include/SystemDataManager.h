@@ -13,6 +13,10 @@
 // Runtime configuration
 #include "config.h"
 
+// Constants
+#define RAD2DEG 57.2958
+#define DEG2RAD 0.01745
+
 
 // Container for marker information
 struct Tags {
@@ -45,7 +49,8 @@ struct ManagedData {
 	bool FLAG_TAG_FOUND		   = false;
 	bool FLAG_AMPLIFIERS_READY = false;
 	bool FLAG_PACKET_WAITING   = false;
-	bool FLAG_LOGGING_ON	   = false;
+	bool FLAG_LOGGING_ENABLED  = false;
+	bool FLAG_LOGGING_STARTED  = false;
 	bool FLAG_SERIAL0_OPEN	   = false;
 	bool FLAG_SERIAL1_OPEN	   = false;
 	bool FLAG_SERIAL0_ENABLED  = false;
@@ -53,11 +58,12 @@ struct ManagedData {
 	bool FLAG_SHUTTING_DOWN	   = false;
 
 	// Tasks
-	std::string TASK_NAME	 = "";
-	char		TASK_NUMBER	 = 0;
-	char		TASK_COMMAND = 0;
-	short		TASK_USER_ID = 100;
-	bool		TASK_RUNNING = false;
+	std::string TASK_NAME		= "";		// String name of task
+	uint8_t		TASK_USER_ID	= 000;		// Participant ID
+	char		TASK_REP_NUMBER = 0;		// Task rep number
+	char		TASK_COMMAND	= 0;		// Command
+	bool		TASK_RUNNING	= false;	// Is the task running
+	bool		TASK_COMPLETE	= false;	// Trip when task is complete
 
 	// OpenCV image matrices
 	cv::Mat matFrameRaw			= cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
@@ -94,7 +100,8 @@ struct ManagedData {
 	float timingTimestep  = 0.0f;
 
 	// Touchscreen variables
-	cv::Point3i touchPosition = cv::Point3i( 0, 0, 0 );
+	cv::Point3i touchPosition	   = cv::Point3i( 0, 0, 0 );
+	bool		touchDetected = false;
 
 	// Serial variables
 	std::string serialPacket0	= "";
@@ -105,12 +112,17 @@ struct ManagedData {
 	std::string displayString = "";
 
 	// Logging variables
-	std::string loggingFilename = "";
-	std::string loggingCustom1	= "";
-	std::string loggingCustom2	= "";
-	std::string loggingCustom3	= "";
-	std::string loggingCustom4	= "";
-	std::string loggingCustom5	= "";
+	std::string loggingFilename	 = "NULL";
+	std::string loggingHeader1	 = "Heading1";
+	std::string loggingHeader2	 = "Heading2";
+	std::string loggingHeader3	 = "Heading3";
+	std::string loggingHeader4	 = "Heading4";
+	std::string loggingHeader5	 = "Heading5";
+	std::string loggingVariable1 = "0";
+	std::string loggingVariable2 = "0";
+	std::string loggingVariable3 = "0";
+	std::string loggingVariable4 = "0";
+	std::string loggingVariable5 = "0";
 
 	// Controller variables
 	float	controllerK		= 0.010f;	 // N/mm
@@ -125,16 +137,23 @@ struct ManagedData {
 	float		fittsCompletionTime = 0.0f;
 	short		fittsTestNumber		= 0;
 	// bool		fittsTestStarted	= false;
-	char fittsActiveAxis = 'z';
+	cv::Point2i fittsMarkerPosition = cv::Point2i( 0, 0 );
+	char		fittsActiveAxis		= 'z';
 
-	// Trails
+	// 3D Visualization
 	bool vizClear	= false;
 	bool vizEnabled = false;
 	bool vizLoaded	= false;
 
+	// 2D Angle Visualization
+	bool  angleEnabled = false;
+	bool  angleLoaded  = false;
+	float angleTheta   = 0.0f;
+
 	// Calibration
 	bool		calibrationComplete = false;
 	cv::Point3i calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
+	bool		calibrationLoaded	= false;
 };
 
 class SystemDataManager {

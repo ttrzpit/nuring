@@ -12,9 +12,6 @@ CalibrationClass::CalibrationClass( SystemDataManager& ctx )
 	: dataHandle( ctx )
 	, shared( ctx.getData() ) {
 
-	// Configure interface
-	cv::namedWindow( "Calibration Window", cv::WINDOW_NORMAL );
-
 
 	// Stuff
 }
@@ -24,6 +21,11 @@ CalibrationClass::CalibrationClass( SystemDataManager& ctx )
  * @brief Calibrate the camera and user finger
  */
 void CalibrationClass::StartCalibration() {
+
+	// Configure interface
+	cv::namedWindow( winCalibration, cv::WINDOW_AUTOSIZE );
+	cv::moveWindow( winCalibration, 3440, 0 );
+
 
 	// Clear window
 	matCalibration = CONFIG_colWhite;
@@ -36,13 +38,14 @@ void CalibrationClass::StartCalibration() {
 
 	// Add instructional text
 	std::string line0 = "Please touch the screen while keeping the center of the camera aligned with the dot below. ";
-	std::string line1 = "Completed: " + std::to_string( shared->TASK_NUMBER ) + " / 5";
+	std::string line1 = "Completed: " + std::to_string( shared->TASK_REP_NUMBER ) + " / 5";
 	cv::putText( matCalibration, line0, cv::Point( 10, 40 ), cv::FONT_HERSHEY_SIMPLEX, 1.2, CONFIG_colBlack, 2 );
 	cv::putText( matCalibration, line1, cv::Point( 10, 80 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
 
 
 	// Show calibration screen
-	cv::imshow( "Calibration Window", matCalibration );
+	cv::imshow( winCalibration, matCalibration );
+	shared->calibrationLoaded = true;
 }
 
 
@@ -56,8 +59,8 @@ void CalibrationClass::Update() {
 	if ( shared->TASK_RUNNING == true ) {
 
 		// Check if touchscreen pressed
-		if ( shared->touchPosition.z == 1 ) {
-			shared->TASK_NUMBER++;
+		if ( shared->touchDetected == 1 ) {
+			shared->TASK_REP_NUMBER++;
 			calibrationPoints.push_back( shared->touchPosition - cv::Point3i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2, 0 ) );
 			calibrationZPoints.push_back( shared->arucoTags[shared->arucoActiveID].error3D.z );
 
@@ -65,11 +68,11 @@ void CalibrationClass::Update() {
 			std::cout << "X: " << shared->touchPosition.x << " Y: " << shared->touchPosition.y << "\n";
 
 			// Check if calibration complete
-			if ( shared->TASK_NUMBER <= 4 ) {
-				shared->touchPosition.z = 0;
+			if ( shared->TASK_REP_NUMBER <= 4 ) {
+				shared->touchDetected = 0;
 				StartCalibration();
-			} else if ( shared->TASK_NUMBER == 5 ) {
-				shared->touchPosition.z		= 0;
+			} else if ( shared->TASK_REP_NUMBER == 5 ) {
+				shared->touchDetected		= 0;
 				shared->calibrationComplete = true;
 				FinishCalibration();
 			} else {
@@ -78,19 +81,11 @@ void CalibrationClass::Update() {
 				shared->TASK_NAME	  = "";
 				shared->arucoActiveID = 0;
 
-				// cv::setWindowProperty( "Calibration Window" , cv::WindowPropertyFlags)
-				// try {
-				// 	cv::destroyWindow( "Calibration Window" );
-				// } catch ( ... ) {
-				// 	std::cerr << "Warning: destroyWindow failed\n";
-				// }
-
-				// std::cout << "Window: " << cv::getWindowProperty( "Calibration Window", cv::WND_PROP_VISIBLE ) << "\n";
-				// if ( cv::getWindowProperty( "Calibration Window", cv::WND_PROP_VISIBLE ) >= 1.0 ) {
-				// 	cv::destroyWindow( "Calibration Window" );
-				// }
-
-				// shared->TASK_RUNNING = false;
+				// Check if window is loaded before destroying
+				if ( shared->calibrationLoaded ) {
+					cv::destroyWindow( winCalibration );
+					shared->angleLoaded = false;
+				}
 			}
 		}
 	}
@@ -165,7 +160,7 @@ void CalibrationClass::FinishCalibration() {
 	cv::putText( matCalibration, line3, cv::Point( 10, 120 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colRedMd, 2 );
 
 	// Show updated image
-	cv::imshow( "Calibration Window", matCalibration );
+	cv::imshow( winCalibration, matCalibration );
 
 	// Update and remove task
 	calibrationPoints.clear();
@@ -177,7 +172,7 @@ void CalibrationClass::InitializeCalibration() {
 
 
 	cv::resizeWindow( "Calibration Window", CONFIG_TOUCHSCREEN_WIDTH, CONFIG_TOUCHSCREEN_HEIGHT );
-	cv::setWindowProperty( "Calibration Window", cv::WindowPropertyFlags::WND_PROP_TOPMOST, 1.0 );
+	// cv::setWindowProperty( "Calibration Window", cv::WindowPropertyFlags::WND_PROP_TOPMOST, 1.0 );
 	cv::moveWindow( "Calibration Window", 3440, 0 );
-	cv::setWindowProperty( "Calibration Window", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN );
+	// cv::setWindowProperty( "Calibration Window", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN );
 }

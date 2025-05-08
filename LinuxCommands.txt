@@ -9,3 +9,6 @@ xinput map-to-output 14 HDMI-0
 
 Launch putty
 putty
+
+Launch doxywizard
+doxywizard

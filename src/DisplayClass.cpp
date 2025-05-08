@@ -15,8 +15,8 @@ DisplayClass::DisplayClass( SystemDataManager& ctx )
 	: dataHandle( ctx )
 	, shared( ctx.getData() ) {
 
-	cv::namedWindow( "NURing Interface", cv::WINDOW_AUTOSIZE );
-	cv::moveWindow( "NURing Interface", 3440 - CONFIG_DIS_WIDTH - 2, 0 );
+	cv::namedWindow( winInterface, cv::WINDOW_AUTOSIZE );
+	cv::moveWindow( winInterface, 3440 - CONFIG_DIS_WIDTH - 2, 0 );
 
 	// Set font based on chosen resolution
 	if ( CONFIG_TYPE == "LowResolution" ) {
@@ -108,26 +108,8 @@ void DisplayClass::Update() {
 	// Show interface
 	ShowInterface();
 
-
-	// Launch viz if requested
-	if ( shared->vizEnabled ) {
-
-		// Check if window loaded
-		if ( shared->vizLoaded ) {
-			// Update
-			UpdateVisualizer();
-		} else {
-			ShowVisualizer();
-			shared->vizLoaded = true;
-		}
-	} else {
-
-		// Check if window loaded
-		if ( shared->vizLoaded ) {
-			shared->vizLoaded = false;
-			cv::destroyWindow( "3D Visualizer" );
-		}
-	}
+	// Check if other windows have been requested
+	CheckOptions();
 }
 
 
@@ -138,7 +120,7 @@ void DisplayClass::Update() {
 void DisplayClass::ShowInterface() {
 
 	// Show image
-	cv::imshow( "NURing Interface", shared->matFrameOverlay );
+	cv::imshow( winInterface, shared->matFrameOverlay );
 	// cv::imshow( "Raw", shared->matFrameUndistorted );
 
 	// Output confirmation
@@ -235,7 +217,7 @@ void DisplayClass::AddText() {
 	DrawCell( "y", "AC2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( shared->touchPosition.x + 3440 ), "AB3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( shared->touchPosition.y + 32 ), "AC3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( ( shared->touchPosition.z == 1 ? "Button 1" : "-" ), "AB4", 2, 2, fontBody, CONFIG_colWhite, ( shared->touchPosition.z ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( ( shared->touchDetected == 1 ? "Button 1" : "-" ), "AB4", 2, 2, fontBody, CONFIG_colWhite, ( shared->touchDetected ? CONFIG_colGreDk : CONFIG_colBlack ), true );
 
 
 	// Calibration Blocks
@@ -277,10 +259,10 @@ void DisplayClass::AddText() {
 	DrawCell( std::to_string( shared->timingFrequency ) + " Hz", "AG5", 2, 2, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Logging Block
-	DrawCell( "Logging", "AG7", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Logging", "AG7", 2, 1, fontHeader, CONFIG_colWhite, ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) ? CONFIG_colGreDk : CONFIG_colGraBk, true );
 	// DrawCell( ( shared->FLAG_LOGGING_ON ? "Logging" : "Offline" ), "AM2", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	// DrawCell( "Filename", "AG6", 8, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[FILENAME]", "AI7", 6, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( ( ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) ? shared->loggingFilename : "DISABLED" ), "AI7", 6, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 
 	// // Trial blocks
@@ -438,8 +420,8 @@ void DisplayClass::DrawKeyCell( std::string str, std::string cell0, short width,
 void DisplayClass::ShowShortcuts() {
 
 	// Create window
-	cv::namedWindow( "Keyboard Shortcuts", cv::WINDOW_AUTOSIZE );
-	cv::moveWindow( "Keyboard Shortcuts", 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_KEY_WIDTH - 4, 0 );
+	cv::namedWindow( winShortcuts, cv::WINDOW_AUTOSIZE );
+	cv::moveWindow( winShortcuts, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_KEY_WIDTH - 4, 0 );
 
 	// System
 	DrawKeyCell( "System:", "A1", 6, 1, key_fontHeader * 1.3, CONFIG_colWhite, CONFIG_colGraBk, false );
@@ -493,9 +475,9 @@ void DisplayClass::ShowVisualizer() {
 	}
 
 	// Create window
-	cv::namedWindow( "3D Visualizer", cv::WINDOW_AUTOSIZE );
-	cv::moveWindow( "3D Visualizer", 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_VIZ_WIDTH - 6 - CONFIG_DIS_KEY_WIDTH, 0 );
-	cv::imshow( "3D Visualizer", matVisualizer );
+	cv::namedWindow( winVisualizer, cv::WINDOW_AUTOSIZE );
+	cv::moveWindow( winVisualizer, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_VIZ_WIDTH - 6 - CONFIG_DIS_KEY_WIDTH, 0 );
+	cv::imshow( winVisualizer, matVisualizer );
 }
 
 
@@ -690,4 +672,95 @@ cv::Point2i DisplayClass::GetForwardDirectionFromPose( const cv::Vec3d rvec, con
 	// Direction vector from origin to Z point
 	cv::Point2i dir = imagePoints[1] - imagePoints[0];
 	return dir;
+}
+
+
+
+// void DisplayClass::ShowAngle() {
+
+
+// 	// Create window
+// 	cv::namedWindow( winAngle, cv::WINDOW_AUTOSIZE );
+// 	cv::moveWindow( winAngle, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_VIZ_WIDTH - 6 - CONFIG_DIS_KEY_WIDTH, 0 );
+// 	cv::imshow( winAngle, matAngles );
+// }
+
+
+// void DisplayClass::UpdateAngle() {
+
+// 	matAngles = CONFIG_colWhite;
+
+// 	uint16_t midX = CONFIG_DIS_ANGLE_WIDTH / 2;
+
+
+// 	// Draw middle line
+// 	cv::line( matAngles, cv::Point2i( midX, 10 ), cv::Point2i( midX, CONFIG_FIELD_LENGTH_PX ), CONFIG_colGraLt, 2 );
+
+// 	// Draw "screen" at top
+// 	cv::line( matAngles, cv::Point2i( midX - ( CONFIG_FIELD_WIDTH_PX / 2 ), 10 ), cv::Point2i( midX + ( CONFIG_FIELD_WIDTH_PX / 2 ), 10 ), CONFIG_colGreLt, 10 );
+
+// 	// Draw test platform axis
+// 	cv::line( matAngles, cv::Point2i( midX - ( CONFIG_FIELD_WIDTH_PX / 2 ), CONFIG_FIELD_LENGTH_PX ), cv::Point2i( midX + ( CONFIG_FIELD_WIDTH_PX / 2 ), CONFIG_FIELD_LENGTH_PX ), CONFIG_colBluWt, 10 );
+
+// 	// Draw encoder elements
+// 	int16_t endX = std::clamp( int( cos( ( shared->angleTheta * 3.0f + 90.0f ) * DEG2RAD ) * 1000 ), -int( CONFIG_DIS_ANGLE_WIDTH ), int( CONFIG_DIS_ANGLE_WIDTH ) );
+// 	int16_t endY = std::clamp( int( sin( ( shared->angleTheta * 3.0f + 90.0f ) * DEG2RAD ) * 2000 ), 0, int( CONFIG_DIS_ANGLE_HEIGHT ) );
+// 	cv::circle( matAngles, cv::Point2i( midX, CONFIG_FIELD_LENGTH_PX ), 10, CONFIG_colBluLt, -1 );
+// 	cv::line( matAngles, cv::Point2i( midX, CONFIG_FIELD_LENGTH_PX ), cv::Point2i( midX + endX, CONFIG_FIELD_LENGTH_PX - endY ), CONFIG_colBluMd, 2 );
+
+
+// 	// Draw marker
+// 	int16_t markerX = ( ( shared->fittsMarkerPosition.x ) / 1662.0f ) * 1340.0f;
+// 	// std::cout << markerX;
+// 	cv::circle( matAngles, cv::Point2i( markerX + CONFIG_MARKER_WIDTH, 50 ), 10, CONFIG_colGreMd, -1 );
+
+// 	// // Draw "encoder"
+// 	// int16_t endX = std::clamp( int( cos( ( shared->angleTheta + 90.0f ) * DEG2RAD ) * 1000 ), -int( CONFIG_DIS_VIZ_WIDTH ), int( CONFIG_DIS_VIZ_WIDTH ) );
+// 	// int16_t endY = std::clamp( int( sin( ( shared->angleTheta + 90.0f ) * DEG2RAD ) * 2000 ), 0, int( CONFIG_DIS_VIZ_HEIGHT ) );
+// 	// cv::circle( matAngles, cv::Point2i( CONFIG_DIS_VIZ_WIDTH / 2, CONFIG_DIS_VIZ_HEIGHT - 100 ), 20, CONFIG_colBluMd, 2 );
+
+// 	cv::imshow( winAngle, matAngles );
+// }
+
+
+void DisplayClass::CheckOptions() {
+
+	// Launch viz if requested
+	if ( shared->vizEnabled ) {
+
+		// Check if window loaded
+		if ( shared->vizLoaded ) {
+			// Update
+			UpdateVisualizer();
+		} else {
+			ShowVisualizer();
+			shared->vizLoaded = true;
+		}
+	} else {
+
+		// Check if window loaded
+		if ( shared->vizLoaded ) {
+			shared->vizLoaded = false;
+			cv::destroyWindow( winVisualizer );
+		}
+	}
+
+	// // Launch angle if requested
+	// if ( shared->angleEnabled ) {
+
+	// 	// Check if window loaded
+	// 	if ( shared->angleLoaded ) {
+	// 		UpdateAngle();
+	// 	} else {
+	// 		ShowAngle();
+	// 		shared->angleLoaded = true;
+	// 	}
+	// } else {
+
+	// 	// Check if window is loaded before destroying
+	// 	if ( shared->angleLoaded ) {
+	// 		cv::destroyWindow( winAngle );
+	// 		shared->angleLoaded = false;
+	// 	}
+	// }
 }

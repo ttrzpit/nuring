@@ -22,19 +22,14 @@ LoggingClass::LoggingClass( SystemDataManager& ctx )
 void LoggingClass::AddEntry() {
 
 	newEntry.timestamp = shared->timingTimestamp;
-	newEntry.ID		   = shared->arucoActiveID;
 	newEntry.errXmm	   = shared->arucoTags[shared->arucoActiveID].error3D.x;
 	newEntry.errYmm	   = shared->arucoTags[shared->arucoActiveID].error3D.y;
 	newEntry.errZmm	   = shared->arucoTags[shared->arucoActiveID].error3D.z;
-	newEntry.errXpx	   = shared->arucoTags[shared->arucoActiveID].error2D.x;
-	newEntry.errYpx	   = shared->arucoTags[shared->arucoActiveID].error2D.y;
-	newEntry.magnitude = shared->arucoTags[shared->arucoActiveID].errorMagnitude2D;
-	newEntry.heading   = shared->arucoTags[shared->arucoActiveID].errorTheta;
-	newEntry.custom1   = shared->loggingCustom1;
-	newEntry.custom2   = shared->loggingCustom2;
-	newEntry.custom3   = shared->loggingCustom3;
-	newEntry.custom4   = shared->loggingCustom4;
-	newEntry.custom5   = shared->loggingCustom5;
+	newEntry.custom1   = shared->loggingVariable1;
+	newEntry.custom2   = shared->loggingVariable2;
+	newEntry.custom3   = shared->loggingVariable3;
+	newEntry.custom4   = shared->loggingVariable4;
+	newEntry.custom5   = shared->loggingVariable5;
 
 	logFile.push_back( newEntry );
 
@@ -45,5 +40,54 @@ void LoggingClass::AddEntry() {
 
 void LoggingClass::Save() {
 
-	std::string logFilename;
+	// Stop logging
+	shared->FLAG_LOGGING_STARTED = false;
+
+	// Open file
+	std::ofstream file( "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".txt" );
+
+	// Check if file opened safely
+	if ( !file.is_open() ) {
+		std::cerr << "Failed to open file\n";
+		shared->displayString = "Logging Class: Failed to open file";
+		return;
+	}
+
+
+	// Write header
+	std::string headerString = "timestamp,errXmm,errYmm,errZmmm," + shared->loggingHeader1 + "," + shared->loggingHeader2 + "," + shared->loggingHeader3 + "," + shared->loggingHeader4 + "," + shared->loggingHeader5 + "\n";
+	file << headerString;
+
+	// Write file contents
+	for ( const auto& entry : logFile ) {
+		file << entry.timestamp << "," << entry.errXmm << "," << entry.errYmm << "," << entry.errZmm << "," << entry.custom1 << "," << entry.custom2 << "," << entry.custom3 << "," << entry.custom4 << "," << entry.custom5 << "\n";
+	}
+
+	// Close file
+	file.close();
+}
+
+
+void LoggingClass::Initialize() {
+
+
+	// Clear old data
+	logFile.clear();
+
+	// Update new file name
+	shared->loggingFilename = "p" + PadValues( shared->TASK_USER_ID, 3 ) + "_t" + shared->TASK_NAME + "_r" + std::to_string( shared->TASK_REP_NUMBER );
+	shared->displayString	= "LoggingClass: Filename initialized as " + shared->loggingFilename;
+}
+
+
+
+/**
+ * @brief Pad the given value with a specified number of zeros
+ * @param val Value to be padded
+ * @param nZeroes Number of padding zeroes
+ */
+std::string LoggingClass::PadValues( int val, int nZeroes ) {
+	std::ostringstream sstream;
+	sstream << std::setw( nZeroes ) << std::setfill( '0' ) << val;
+	return sstream.str();
 }

@@ -43,10 +43,17 @@ void TaskFitts();
 
 
 /**
- * @brief Main program
+ * @brief Main program loop
+ * 
+ * @return int 
  */
 int main() {
 
+
+
+	// Settings
+	shared->FLAG_LOGGING_ENABLED = true;
+	shared->TASK_USER_ID		 = 000;
 
 	// Optimization for C/C++ data types
 	std::ios_base::sync_with_stdio( false );
@@ -68,7 +75,6 @@ int main() {
 	// Main loop
 	while ( shared->FLAG_MAIN_RUNNING ) {
 
-
 		// Task selector
 		if ( shared->TASK_NAME == "FITTS" ) {
 			TaskFitts();
@@ -89,7 +95,7 @@ int main() {
 		Touch.GetCursorPosition();
 
 		// Check for new incoming serial packet
-		if ( shared->serialPortsOpen == 2 ) {
+		if ( shared->FLAG_SERIAL1_OPEN ) {
 			Serial.CheckForPacket();
 		}
 
@@ -143,6 +149,15 @@ int main() {
 		// Update timer (for measuring loop frequency)
 		Timing.UpdateTimer();
 
+
+		// Save logging file
+		if ( shared->TASK_COMPLETE ) {
+			Logging.Save();
+			std::cout << "File saved!\n";
+			shared->TASK_COMPLETE = false;
+		}
+
+
 		if ( shared->FLAG_SHUTTING_DOWN ) {
 			shared->serialPacket0		= "DX\n";
 			shared->FLAG_PACKET_WAITING = true;
@@ -172,10 +187,32 @@ void SignalHandler( int signum ) {
  */
 void TaskCalibrate() {
 
+
+	// Initialize logging file and update entries
+	if ( shared->FLAG_LOGGING_ENABLED && !shared->FLAG_LOGGING_STARTED && shared->TASK_RUNNING ) {
+
+		// Customize header
+		shared->loggingHeader1 = "UserOffsetX";
+		shared->loggingHeader2 = "UserOffsetY";
+		shared->loggingHeader3 = "UserOffsetZ";
+
+		// Initialize and add initial entry
+		Logging.Initialize();
+		Logging.AddEntry();
+		shared->FLAG_LOGGING_STARTED = true;
+
+	} else if ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) {
+
+		shared->loggingVariable1 = std::to_string( shared->calibrationOffsetMM.x );
+		shared->loggingVariable1 = std::to_string( shared->calibrationOffsetMM.y );
+		shared->loggingVariable1 = std::to_string( shared->calibrationOffsetMM.z );
+		Logging.AddEntry();
+	}
+
 	if ( !shared->TASK_RUNNING ) {
 		shared->calibrationComplete = false;
 		shared->calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
-		shared->TASK_NUMBER			= 0;
+		shared->TASK_REP_NUMBER		= 0;
 		shared->TASK_RUNNING		= true;
 		shared->arucoActiveID		= 8;
 		Calibration.InitializeCalibration();
@@ -191,9 +228,31 @@ void TaskCalibrate() {
  */
 void TaskFitts() {
 
+	// Initialize logging file and update entries
+	if ( shared->FLAG_LOGGING_ENABLED && !shared->FLAG_LOGGING_STARTED && shared->TASK_RUNNING ) {
+
+		// Customize header
+		shared->loggingHeader1 = "MarkerPresent";
+		shared->loggingHeader2 = "Touched";
+
+		// Initialize and add initial entry
+		Logging.Initialize();
+		Logging.AddEntry();
+		shared->FLAG_LOGGING_STARTED = true;
+
+	} else if ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) {
+
+		shared->loggingVariable1 = std::to_string( shared->arucoTags[shared->arucoActiveID].present );
+		shared->loggingVariable2 = std::to_string( shared->touchDetected );
+		Logging.AddEntry();
+	}
+
+	// Run task
 	if ( !shared->TASK_RUNNING ) {
-		shared->TASK_RUNNING = true;
-		Fitts.StartTest( 'x' );
+		shared->TASK_RUNNING  = true;
+		shared->TASK_COMPLETE = false;
+		shared->arucoActiveID = 1;
+		Fitts.StartTest( 'y' );
 	} else {
 		Fitts.Update();
 	}

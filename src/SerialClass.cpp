@@ -1,10 +1,27 @@
+//[DOXYGEN]
+/**
+ * @file SerialClass.cpp
+ * @author your name (you@domain.com)
+ * @brief Manage serial communications
+ * @version 0.1
+ * @date 2025-05-07
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ */
+
 // Call to class header
 #include "SerialClass.h"
 
 // System data manager
 #include "SystemDataManager.h"
 
-// Constructor
+/**
+ * @brief Construct a new Serial Class:: Serial Class object
+ * 
+ * @param ctx Handle to data manager
+ * @param nPorts Number of ports to activate
+ */
 SerialClass::SerialClass( SystemDataManager& ctx, uint8_t nPorts )
 	: dataHandle( ctx )
 	, shared( ctx.getData() ) {
@@ -24,7 +41,8 @@ SerialClass::SerialClass( SystemDataManager& ctx, uint8_t nPorts )
 
 
 /**
- * @brief Initialize first serial port (for sending commands to teensy)
+ * @brief Initialize first serial port for sending data
+ * 
  */
 void SerialClass::InitializePort0() {
 
@@ -78,7 +96,8 @@ void SerialClass::InitializePort0() {
 
 
 /**
- * @brief Initialize second serial port (for receiving commands from teensy)
+ * @brief Initialize second serial port
+ * 
  */
 void SerialClass::InitializePort1() {
 	// Open serial port
@@ -194,7 +213,8 @@ void SerialClass::CheckForPacket() {
 		if ( newLinePosition != std::string::npos ) {
 			shared->serialPacket1 = readBuffer.substr( 0, newLinePosition );
 			readBuffer.erase( 0, newLinePosition + 1 );
-			std::cout << "New Packet: " << shared->serialPacket1 << "\n";
+			shared->angleTheta = std::stof( shared->serialPacket1 );
+			// std::cout << "New Packet: " << shared->serialPacket1 << "\n";
 		}
 
 	} else if ( bytesRead < 0 && errno != EAGAIN ) {

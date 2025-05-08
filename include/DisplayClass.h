@@ -36,6 +36,9 @@ public:
 	void ShowVisualizer();
 	void UpdateVisualizer();
 	void ClearVisualizer();
+	void ShowAngle();
+	void UpdateAngle();
+	void CheckOptions();
 
 	// Public variables
 	std::vector<cv::Point3i> trailPoints;
@@ -57,6 +60,12 @@ private:
 	void		DrawKeyCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
 	cv::Point2i ProjectIsometric( const cv::Point3i& p3d );
 	cv::Point2i GetForwardDirectionFromPose( const cv::Vec3d rvec, const cv::Vec3d tvec, const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, float axisLength );
+
+	// Window names
+	std::string winAngle	  = "Angle Visualizer";
+	std::string winInterface  = "NURing Interface";
+	std::string winShortcuts  = "Keyboard Shortcuts";
+	std::string winVisualizer = "3D Visualizer";
 
 	// Private variables
 	float	 fontHeader = 0.0f;
@@ -94,6 +103,7 @@ private:
 	std::vector<cv::Point2i> ProjectedCorners;
 	cv::Mat					 matShortcuts  = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_KEY_WIDTH, CV_8UC3 );
 	cv::Mat					 matVisualizer = cv::Mat( CONFIG_DIS_VIZ_HEIGHT, CONFIG_DIS_VIZ_WIDTH, CV_8UC3 );
+	cv::Mat					 matAngles	   = cv::Mat( CONFIG_DIS_ANGLE_HEIGHT, CONFIG_DIS_ANGLE_WIDTH, CV_8UC3 );
 	int						 vizLimXY	   = 500;
 	int						 vizLimZ	   = 1000;
 	const float				 focalLength   = 2400.0f;		//800

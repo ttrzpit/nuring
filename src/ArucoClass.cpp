@@ -4,7 +4,11 @@
 // System data manager
 #include "SystemDataManager.h"
 
-// Constructor
+/**
+ * @brief Construct a new Aruco Class:: Aruco Class object
+ * 
+ * @param ctx Handle to data manager
+ */
 ArucoClass::ArucoClass( SystemDataManager& ctx )
 	: dataHandle( ctx )
 	, shared( ctx.getData() ) {
@@ -13,7 +17,8 @@ ArucoClass::ArucoClass( SystemDataManager& ctx )
 
 
 /**
- * @brief Initialize ArUco detector
+ * @brief Initialize ArUco detector parameters
+ * 
  */
 void ArucoClass::Initialize() {
 

@@ -32,12 +32,13 @@ FittsClass::FittsClass( SystemDataManager& ctx, TimingClass& timerHandle, Loggin
  */
 void FittsClass::StartTest( char axis ) {
 
+	
 	// Update flag
 	testComplete			= false;
 	shared->fittsActiveAxis = 'x';
 
 	// Update test number
-	testNumber++;
+	shared->TASK_REP_NUMBER++;
 
 	// Clear the screen
 	matBackground = CONFIG_colWhite;
@@ -48,25 +49,34 @@ void FittsClass::StartTest( char axis ) {
 	unsigned short minY = 0 + 72;
 	unsigned short maxY = CONFIG_FITTS_SCREEN_HEIGHT - CONFIG_FITTS_SCREEN_EXCLUSION_ZONE - 93;
 
-
 	// Generate random marker position based on desired axis
 	if ( axis == 'x' ) {
-		markerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) );
-		markerPosition.y = CONFIG_FITTS_SCREEN_HEIGHT / 2;
+
+		// Calculate marker position
+		shared->fittsMarkerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) ) + ( matAruco01.rows / 2 );
+		shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) + ( matAruco01.rows / 2 );
+
+		// Generate vertical bar
+		cv::line( matBackground, cv::Point2i( shared->fittsMarkerPosition.x + ( matAruco01.rows / 2 ), 0 ), cv::Point2i( shared->fittsMarkerPosition.x + ( matAruco01.rows / 2 ), CONFIG_FITTS_SCREEN_HEIGHT ), CONFIG_colGreLt, matAruco01.cols );
+
 	} else if ( axis == 'y' ) {
-		markerPosition.x = CONFIG_FITTS_SCREEN_WIDTH / 2;
-		markerPosition.y = minY + ( rand() % ( maxY - minY + 1 ) );
+		// Calculate marker position
+		shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) + ( matAruco01.rows / 2 );
+		shared->fittsMarkerPosition.y = minY + ( rand() % ( maxY - minY + 1 ) ) + ( matAruco01.rows / 2 );
+
+		// Generate vertical bar
+		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+
 	} else {
-		markerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) );
-		markerPosition.y = minY + ( rand() % ( maxY - minY + 1 ) );
+		shared->fittsMarkerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) ) - matAruco01.cols / 2;
+		shared->fittsMarkerPosition.y = minY + ( rand() % ( maxY - minY + 1 ) ) - ( matAruco01.rows / 2 );
 	}
 
-
 	// Output position for debugging
-	std::cout << "Rand: " << markerPosition.x << " , " << markerPosition.y << "\n";
+	std::cout << "Rand: " << shared->fittsMarkerPosition.x << " , " << shared->fittsMarkerPosition.y << "\n";
 
 	// Copy to target window
-	matAruco01.copyTo( matBackground( cv::Rect( markerPosition.x, markerPosition.y, matAruco01.cols, matAruco01.rows ) ) );
+	matAruco01.copyTo( matBackground( cv::Rect( shared->fittsMarkerPosition.x, shared->fittsMarkerPosition.y, matAruco01.cols, matAruco01.rows ) ) );
 
 	// Show target field
 	cv::imshow( "Fitts Testing Interface", matBackground );
@@ -95,7 +105,7 @@ void FittsClass::EndTest() {
 	cv::circle( matBackground, touchPosition, 20, CONFIG_colRedMd, 2 );
 
 	// Draw lines from target to touch
-	cv::Point2i tagCenter = cv::Point2i( markerPosition.x + ( matAruco01.cols / 2 ), markerPosition.y + ( matAruco01.rows / 2 ) );
+	cv::Point2i tagCenter = cv::Point2i( shared->fittsMarkerPosition.x + ( matAruco01.cols / 2 ), shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) );
 	cv::Point2i tagTouch  = cv::Point( shared->touchPosition.x, shared->touchPosition.y );
 	cv::line( matBackground, tagCenter, cv::Point( tagCenter.x, tagTouch.y ), CONFIG_colRedLt, 2 );
 	cv::line( matBackground, cv::Point( tagCenter.x, tagTouch.y ), cv::Point( tagTouch.x, tagTouch.y ), CONFIG_colRedLt, 2 );
@@ -132,14 +142,17 @@ void FittsClass::EndTest() {
 
 
 	// Save image
-	std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->TASK_NAME + "_" + std::to_string( shared->TASK_USER_ID ) + "_" + std::to_string( testNumber ) + ".png";
-	shared->displayString	  = "Saving file " + imageFilename;
-	cv::imwrite( imageFilename, matBackground );
-	std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
+	if ( shared->FLAG_LOGGING_ENABLED ) {
+		std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
+		shared->displayString	  = "Saving file " + imageFilename;
+		cv::imwrite( imageFilename, matBackground );
+		std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
+	}
 
 	// Update and remove task
 	shared->TASK_NAME	 = "";
 	shared->TASK_RUNNING = false;
+	shared->TASK_COMPLETE = true ; 
 }
 
 
@@ -149,11 +162,13 @@ void FittsClass::EndTest() {
  */
 void FittsClass::Update() {
 
+	
+
 	// Check if fitts test is running
 	if ( shared->TASK_RUNNING == true ) {
 
 		// Check if touchscreen pressed
-		if ( shared->touchPosition.z == 1 ) {
+		if ( shared->touchDetected == 1 ) {
 			EndTest();
 			shared->TASK_RUNNING = false;
 		}

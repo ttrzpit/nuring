@@ -48,9 +48,7 @@ private:
 	// Private variables
 	cv::Point2i errorPx		   = cv::Point2i( 0, 0 );
 	cv::Point2f errorMm		   = cv::Point2f( 0, 0 );
-	cv::Point2i markerPosition = cv::Point2i( 0, 0 );
 	cv::Point2i touchPosition  = cv::Point2i( 0, 0 );
-	short		testNumber	   = 0;
 	bool		testStarted	   = false;
 	bool		testComplete   = false;
 

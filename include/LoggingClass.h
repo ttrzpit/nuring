@@ -1,5 +1,9 @@
 #pragma once
 
+// Libraries
+#include <fstream>	  // For saving files
+#include <iomanip>	  // For padding zeroes
+
 // OpenCV core functions
 #include <opencv2/core.hpp>
 
@@ -17,14 +21,9 @@ struct ManagedData;
 struct loggingStruct {
 
 	float		timestamp;
-	char		ID;
 	short		errXmm;
 	short		errYmm;
 	short		errZmm;
-	short		errXpx;
-	short		errYpx;
-	short		magnitude;
-	float		heading;
 	std::string custom1;
 	std::string custom2;
 	std::string custom3;
@@ -43,8 +42,13 @@ public:
 	// Public functions
 	void AddEntry();
 	void Save();
+	void Initialize();
+
 
 private:
+	// Private functions
+	std::string PadValues( int val, int nZeroes );
+
 	// Vector to log data
 	std::vector<loggingStruct> logFile;
 

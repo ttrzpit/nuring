@@ -141,6 +141,10 @@ void InputClass::ParseInput( int key ) {
 			shared->vizEnabled	  = !shared->vizEnabled;
 			shared->displayString = "InputClass: 3D Visualization " + std::string( shared->vizEnabled ? "enabled." : "disabled." );
 			break;
+		// case 97:	// 'a'
+		// 	shared->angleEnabled  = !shared->angleEnabled;
+		// 	shared->displayString = "InputClass: Angle Visualization " + std::string( shared->angleEnabled ? "enabled." : "disabled." );
+		// 	break;
 		case 61:	// '-'
 			shared->controllerCompZ -= 20;
 			shared->displayString = "InputClass: Z-Comp set to " + shared->controllerCompZ;
@@ -149,12 +153,19 @@ void InputClass::ParseInput( int key ) {
 			shared->controllerCompZ += 20;
 			shared->displayString = "InputClass: Z-Comp set to " + shared->controllerCompZ;
 			break;
+
 		case 102:	 // 'f'
 			// Run fitts-law test
-			shared->TASK_NAME = "FITTS";
+			shared->TASK_RUNNING = false;
+			shared->TASK_NAME	 = "FITTS";
 			// shared->TASK_RUNNING = true;
 			// shared->fittsTestStarted = false;
 			shared->displayString = "InputClass: Starting fitts-law test.";
+			break;
+		case 108:	 // l
+			shared->FLAG_LOGGING_STARTED = !shared->FLAG_LOGGING_STARTED;
+			shared->displayString		 = "InputClass: Started logging.";
+			std::cout << "InputClass: Logging started.\n";
 			break;
 		}
 		// std::cout << "\n";
