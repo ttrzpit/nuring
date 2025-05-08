@@ -211,9 +211,40 @@ void SerialClass::CheckForPacket() {
 		// Look for new line character
 		int8_t newLinePosition = readBuffer.find( '\n' );
 		if ( newLinePosition != std::string::npos ) {
-			shared->serialPacket1 = readBuffer.substr( 0, newLinePosition );
+
+			// shared->serialPacket1 = readBuffer.substr( 0, newLinePosition );
+
+			// Make sure packet is valid before trying anything
+			if ( readBuffer[0] == 'A' && readBuffer[newLinePosition - 2] == 'X' ) {
+
+				try {
+
+					shared->controllerOutput.x = std::stoi( readBuffer.substr( 1, 2 ) );
+					shared->controllerOutput.y = std::stoi( readBuffer.substr( 4, 5 ) );
+					shared->controllerOutput.z = std::stoi( readBuffer.substr( 7, 8 ) );
+					shared->serialPacket1	   = "A" + PadValues( shared->controllerOutput.x, 2 ) + "B" + PadValues( shared->controllerOutput.y, 2 ) + "C" + PadValues( shared->controllerOutput.z, 2 ) + "\n";
+
+					if ( ( shared->controllerOutput.x + shared->controllerOutput.y + shared->controllerOutput.z ) > 0 ) {
+						shared->controllerActive = true;
+					} else {
+						shared->controllerActive = false;
+					}
+				} catch ( const std::exception& e ) {
+					std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << e.what() << "\n";
+
+					shared->controllerActive = false;
+				}
+
+			} else {
+				std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << "\n";
+				shared->serialPacket1	 = "INVALID!";
+				shared->controllerActive = false;
+			}
+
+
+			// shared->serialPacket1 = readBuffer.substr( 0, newLinePosition );
 			readBuffer.erase( 0, newLinePosition + 1 );
-			shared->angleTheta = std::stof( shared->serialPacket1 );
+			// shared->angleTheta = std::stof( shared->serialPacket1 );
 			// std::cout << "New Packet: " << shared->serialPacket1 << "\n";
 		}
 
@@ -221,3 +252,5 @@ void SerialClass::CheckForPacket() {
 		std::cerr << "SerialClass:  Serial1 read error: " << strerror( errno ) << "\n";
 	}
 }
+
+void SerialClass::ParseIncomingPacket( std::string packet ) { }

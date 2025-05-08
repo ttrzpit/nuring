@@ -106,10 +106,10 @@ void TouchscreenClass::ProcessEvents() {
 				// Optional: update Z state
 				if ( event.xcookie.evtype == XI_TouchBegin ) {	  // Touch begin
 					// shared->touchPosition.z = 1;
-					shared->touchDetected = true ;
+					shared->touchDetected = true;
 				} else if ( event.xcookie.evtype == XI_TouchEnd ) {	   // Touch end
 					// shared->touchPosition.z = 0;
-					shared->touchDetected = false ;
+					shared->touchDetected = false;
 				}
 				// shared->touchPosition.z = ( event.xcookie.evtype == XI_TouchEnd ) ? 0 : 1;
 			}
@@ -117,36 +117,6 @@ void TouchscreenClass::ProcessEvents() {
 		}
 	}
 
-	// Old working version
-	// Process all pending events
-	// while ( XPending( displayHandle ) ) {
-	// 	XEvent event;
-	// 	XNextEvent( displayHandle, &event );
-	// 	switch ( event.type ) {
-	// 	case ButtonPress:
-	// 		// [NEW CODE] Update state for a button press.
-	// 		buttonMask				= event.xbutton.state;
-	// 		buttonPressedNew		= true;
-	// 		shared->touchPosition.z = buttonPressedNew;
-	// 		std::cout << "Press: x" << event.xmotion.x << "   y" << event.xmotion.y << "\n";
-	// 		break;
-	// 	case ButtonRelease:
-	// 		// [NEW CODE] Update state for a button release.
-	// 		buttonMask				= event.xbutton.state;
-	// 		buttonPressedNew		= false;
-	// 		shared->touchPosition.z = buttonPressedNew;
-	// 		break;
-	// 	case MotionNotify:
-	// 		// [NEW CODE] Update pointer position on motion.
-	// 		shared->touchPosition.x = event.xmotion.x;	  // - 3440;
-	// 		shared->touchPosition.y = event.xmotion.y;	  // - 32;
-	// 		std::cout << "Motion: x" << event.xmotion.x << "   y" << event.xmotion.y << "\n";
-
-	// 		break;
-	// 	default:
-	// 		break;
-	// 	}
-	// }
 
 	ParseClick();
 }

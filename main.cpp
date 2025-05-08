@@ -37,10 +37,10 @@ CalibrationClass Calibration( dataHandle );				  // For calibration of user to t
 
 
 // Function prototypes
-void SignalHandler( int signum );
-void TaskCalibrate();
-void TaskFitts();
-
+void		SignalHandler( int signum );
+void		TaskCalibrate();
+void		TaskFitts();
+std::string BuildPacketAngularError();
 
 /**
  * @brief Main program loop
@@ -111,12 +111,16 @@ int main() {
 
 					if ( shared->FLAG_TAG_FOUND ) {
 
-						// Format properly
-						int8_t signX = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.x );
-						int8_t signY = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.y );
+						// Build packet using angular error
+						shared->serialPacket0 = BuildPacketAngularError();
+						// std::cout << shared->serialPacket0 << "\n";
 
-						shared->serialPacket0 = "Ex" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.x * 1.5 ), 3 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.y ), 3 ) + "z"
-							+ Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.z ), 3 ) + "X\n";
+						// // Format properly
+						// int8_t signX = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.x );
+						// int8_t signY = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.y );
+
+						// shared->serialPacket0 = "Ex" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.x ), 3 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.y ), 3 ) + "z"
+						// + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.z ), 3 ) + "X\n";
 					} else {
 						shared->serialPacket0 = "RoX\n";
 					}
@@ -237,6 +241,7 @@ void TaskFitts() {
 		// Customize header
 		shared->loggingHeader1 = "MarkerPresent";
 		shared->loggingHeader2 = "Touched";
+		shared->loggingHeader3 = "Encoder";
 
 		// Initialize and add initial entry
 		Logging.Initialize();
@@ -247,6 +252,7 @@ void TaskFitts() {
 
 		shared->loggingVariable1 = std::to_string( shared->arucoTags[shared->arucoActiveID].present );
 		shared->loggingVariable2 = std::to_string( shared->touchDetected );
+		shared->loggingVariable3 = shared->serialPacket1;
 		Logging.AddEntry();
 	}
 
@@ -255,8 +261,28 @@ void TaskFitts() {
 		shared->TASK_RUNNING  = true;
 		shared->TASK_COMPLETE = false;
 		shared->arucoActiveID = 1;
-		Fitts.StartTest( 'y' );
+		Fitts.StartTest( 'x' );
 	} else {
 		Fitts.Update();
 	}
+}
+
+
+std::string BuildPacketAngularError() {
+
+	// Calculate angular error
+	int8_t angX = std::clamp( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.z ) ), -45, 45 );
+	int8_t angY = std::clamp( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z ) ), -45, 45 );
+
+	// Get boolean for sign
+	int8_t signX = Serial.Sign( angX );
+	int8_t signY = Serial.Sign( angY );
+
+	// Build string
+	std::string output = "Ax" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( angX ), 2 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( angY ), 2 ) + "X";
+
+	return output;
+
+	// shared->serialPacket0 = "Ex" + std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "y"
+	// 	+ std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "X\n";
 }

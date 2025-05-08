@@ -55,7 +55,7 @@ void LoggingClass::Save() {
 
 
 	// Write header
-	std::string headerString = "timestamp,errXmm,errYmm,errZmmm," + shared->loggingHeader1 + "," + shared->loggingHeader2 + "," + shared->loggingHeader3 + "," + shared->loggingHeader4 + "," + shared->loggingHeader5 + "\n";
+	std::string headerString = "timestamp,errXmm,errYmm,errZmm," + shared->loggingHeader1 + "," + shared->loggingHeader2 + "," + shared->loggingHeader3 + "," + shared->loggingHeader4 + "," + shared->loggingHeader5 + "\n";
 	file << headerString;
 
 	// Write file contents

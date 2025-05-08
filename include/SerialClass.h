@@ -50,8 +50,8 @@ private:
 	char		buffer[64];
 	std::string readBuffer = "";
 	
-
-
+	// Private functions
+	void ParseIncomingPacket( std::string packet ) ;  
 
 	// Data manager handle
 	SystemDataManager&			 dataHandle;

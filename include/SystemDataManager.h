@@ -100,7 +100,7 @@ struct ManagedData {
 	float timingTimestep  = 0.0f;
 
 	// Touchscreen variables
-	cv::Point3i touchPosition	   = cv::Point3i( 0, 0, 0 );
+	cv::Point3i touchPosition = cv::Point3i( 0, 0, 0 );
 	bool		touchDetected = false;
 
 	// Serial variables
@@ -125,11 +125,13 @@ struct ManagedData {
 	std::string loggingVariable5 = "0";
 
 	// Controller variables
-	float	controllerK		= 0.010f;	 // N/mm
-	float	controllerB		= 0.000f;	 // N*s/mm
-	float	controllerFx	= 0.00f;	 // N
-	float	controllerFy	= 0.00f;	 // N
-	int16_t controllerCompZ = 0;		 // mm
+	float		controllerK		= 0.010f;	 // N/mm
+	float		controllerB		= 0.000f;	 // N*s/mm
+	float		controllerFx	= 0.00f;	 // N
+	float		controllerFy	= 0.00f;	 // N
+	int16_t		controllerCompZ = 0;		 // mm
+	cv::Point3i controllerOutput = cv::Point3i ( 0, 0, 0 );
+	bool controllerActive = false ;
 
 	// Task variables
 	cv::Point3i fittsErrorPx		= cv::Point3i( 0, 0, 0 );

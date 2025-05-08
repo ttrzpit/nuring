@@ -90,6 +90,13 @@ inline constexpr short CONFIG_MARKER_WIDTH = 20;	// [mm] Marker dimension
 // Unit conversions per touchscreen
 #define MM2PX 3.66142
 #define PX2MM 0.27312
+#define SIN35 0.57358
+#define SIN145 0.57358
+#define SIN270 -1.00000
+#define COS35 0.81915
+#define COS145 -0.81915
+#define COS270 0.00000
+
 
 // Camera properties
 inline constexpr short			CONFIG_CAM_BRIGHTNESS		 = 0;
@@ -128,6 +135,8 @@ inline constexpr unsigned short CONFIG_FITTS_SCREEN_EXCLUSION_ZONE = 93;
 inline constexpr unsigned short CONFIG_FITTS_MARKER_SIZE		   = CONFIG_MARKER_WIDTH;
 inline constexpr unsigned short CONFIG_FITTS_SCREEN_WIDTH		   = 1920;
 inline constexpr unsigned short CONFIG_FITTS_SCREEN_HEIGHT		   = 1080;
+
+
 
 // // Available Resolutions @ 90Hz
 // // Resolution   1920x1080   1920x1200   1600x1200   1280x960    1280x720    1024x768    960x720     800x600

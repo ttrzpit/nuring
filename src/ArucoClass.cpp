@@ -121,7 +121,7 @@ void ArucoClass::FindTags() {
 						shared->arucoTags[index].error3D.z = shared->arucoTags[index].error3D.z + shared->controllerCompZ;
 					} else {
 						shared->arucoTags[index].error3D   = shared->arucoTags[index].kf.getPosition();
-						shared->arucoTags[index].error3D.z = shared->arucoTags[index].error3D.z + shared->controllerCompZ;
+						shared->arucoTags[index].error3D.z = shared->arucoTags[index].error3D.z;
 					}
 
 					// Use filtered data for velocity
