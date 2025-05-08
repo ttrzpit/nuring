@@ -99,6 +99,8 @@ int main() {
 			Serial.CheckForPacket();
 		}
 
+
+
 		// Send serial commands
 		if ( shared->FLAG_SERIAL0_OPEN ) {	  // Check if serial port is open
 
@@ -200,13 +202,6 @@ void TaskCalibrate() {
 		Logging.Initialize();
 		Logging.AddEntry();
 		shared->FLAG_LOGGING_STARTED = true;
-
-	} else if ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) {
-
-		shared->loggingVariable1 = std::to_string( shared->calibrationOffsetMM.x );
-		shared->loggingVariable1 = std::to_string( shared->calibrationOffsetMM.y );
-		shared->loggingVariable1 = std::to_string( shared->calibrationOffsetMM.z );
-		Logging.AddEntry();
 	}
 
 	if ( !shared->TASK_RUNNING ) {
@@ -218,7 +213,15 @@ void TaskCalibrate() {
 		Calibration.InitializeCalibration();
 		Calibration.StartCalibration();
 	} else {
+
+		// Update calibration
 		Calibration.Update();
+
+		// Update
+		shared->loggingVariable1 = std::to_string( shared->calibrationOffsetMM.x );
+		shared->loggingVariable2 = std::to_string( shared->calibrationOffsetMM.y );
+		shared->loggingVariable3 = std::to_string( shared->calibrationOffsetMM.z );
+		Logging.AddEntry();
 	}
 }
 

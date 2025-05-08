@@ -32,7 +32,7 @@ FittsClass::FittsClass( SystemDataManager& ctx, TimingClass& timerHandle, Loggin
  */
 void FittsClass::StartTest( char axis ) {
 
-	
+
 	// Update flag
 	testComplete			= false;
 	shared->fittsActiveAxis = 'x';
@@ -150,9 +150,10 @@ void FittsClass::EndTest() {
 	}
 
 	// Update and remove task
-	shared->TASK_NAME	 = "";
-	shared->TASK_RUNNING = false;
-	shared->TASK_COMPLETE = true ; 
+	shared->TASK_NAME	  = "";
+	shared->TASK_RUNNING  = false;
+	shared->TASK_COMPLETE = true;
+	shared->FLAG_LOGGING_STARTED = false ;
 }
 
 
@@ -162,7 +163,7 @@ void FittsClass::EndTest() {
  */
 void FittsClass::Update() {
 
-	
+
 
 	// Check if fitts test is running
 	if ( shared->TASK_RUNNING == true ) {

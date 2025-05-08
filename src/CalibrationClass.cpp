@@ -27,6 +27,7 @@ void CalibrationClass::StartCalibration() {
 	cv::moveWindow( winCalibration, 3440, 0 );
 
 
+
 	// Clear window
 	matCalibration = CONFIG_colWhite;
 
@@ -75,17 +76,21 @@ void CalibrationClass::Update() {
 				shared->touchDetected		= 0;
 				shared->calibrationComplete = true;
 				FinishCalibration();
+
+				// Update flag
+				shared->TASK_COMPLETE = true;
+
 			} else {
 
-				shared->TASK_RUNNING  = false;
-				shared->TASK_NAME	  = "";
-				shared->arucoActiveID = 0;
-
 				// Check if window is loaded before destroying
-				if ( shared->calibrationLoaded ) {
-					cv::destroyWindow( winCalibration );
-					shared->angleLoaded = false;
-				}
+				cv::imshow( winCalibration, 0 );
+				std::cout << "Closing";
+
+				// Reset flags
+				shared->TASK_RUNNING		 = false;
+				shared->TASK_NAME			 = "";
+				shared->arucoActiveID		 = 0;
+				shared->FLAG_LOGGING_STARTED = false;
 			}
 		}
 	}
@@ -161,6 +166,14 @@ void CalibrationClass::FinishCalibration() {
 
 	// Show updated image
 	cv::imshow( winCalibration, matCalibration );
+
+	// Save image
+	if ( shared->FLAG_LOGGING_ENABLED ) {
+		std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
+		shared->displayString	  = "Saving file " + imageFilename;
+		cv::imwrite( imageFilename, matCalibration );
+		std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
+	}
 
 	// Update and remove task
 	calibrationPoints.clear();

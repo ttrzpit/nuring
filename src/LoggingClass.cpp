@@ -65,6 +65,9 @@ void LoggingClass::Save() {
 
 	// Close file
 	file.close();
+
+	// Update flag
+	shared->FLAG_LOGGING_STARTED = false;
 }
 
 

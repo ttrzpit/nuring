@@ -259,7 +259,7 @@ void DisplayClass::AddText() {
 	DrawCell( std::to_string( shared->timingFrequency ) + " Hz", "AG5", 2, 2, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Logging Block
-	DrawCell( "Logging", "AG7", 2, 1, fontHeader, CONFIG_colWhite, ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) ? CONFIG_colGreDk : CONFIG_colGraBk, true );
+	DrawCell( "Logging", "AG7", 2, 1, fontHeader, CONFIG_colWhite, ( shared->FLAG_LOGGING_STARTED ) ? CONFIG_colGreDk : CONFIG_colGraBk, true );
 	// DrawCell( ( shared->FLAG_LOGGING_ON ? "Logging" : "Offline" ), "AM2", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	// DrawCell( "Filename", "AG6", 8, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( ( ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) ? shared->loggingFilename : "DISABLED" ), "AI7", 6, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );

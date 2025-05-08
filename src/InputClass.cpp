@@ -167,6 +167,9 @@ void InputClass::ParseInput( int key ) {
 			shared->displayString		 = "InputClass: Started logging.";
 			std::cout << "InputClass: Logging started.\n";
 			break;
+		case 113:	 // x
+			cv::destroyAllWindows();
+			break;
 		}
 		// std::cout << "\n";
 	} else {
