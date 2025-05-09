@@ -118,7 +118,8 @@ void ArucoClass::FindTags() {
 					if ( shared->calibrationComplete ) {
 						// shared->arucoTags[index].error3D   = shared->arucoTags[index].kf.getPosition() + cv::Point3f( shared->calibrationOffsetMM.x, shared->calibrationOffsetMM.y, shared->calibrationOffsetMM.z ) ;
 						shared->arucoTags[index].error3D   = shared->arucoTags[index].kf.getPosition();
-						shared->arucoTags[index].error3D.z = shared->arucoTags[index].error3D.z + shared->controllerCompZ;
+						shared->arucoTags[index].error3D.z = shared->arucoTags[index].error3D.z;
+						// shared->arucoTags[index].error3D.z = shared->arucoTags[index].error3D.z + shared->controllerCompZ;
 					} else {
 						shared->arucoTags[index].error3D   = shared->arucoTags[index].kf.getPosition();
 						shared->arucoTags[index].error3D.z = shared->arucoTags[index].error3D.z;
@@ -137,6 +138,11 @@ void ArucoClass::FindTags() {
 					shared->arucoTags[index].velMagnitude = std::sqrt( ( vel.x * vel.x ) + ( vel.y * vel.y ) );
 					shared->arucoTags[index].velHeading	  = atan2( vel.y, vel.x );
 
+					// Measured
+					shared->arucoTags[index].thetaMeasured	  = cv::Point2f( atan2( shared->arucoTags[index].error3D.x, shared->arucoTags[index].error3D.z ), atan2( shared->arucoTags[index].error3D.y, shared->arucoTags[index].error3D.z ) );
+					shared->arucoTags[index].thetaDotMeasured = cv::Point2f( atan2( vel.x, vel.z ), atan2( vel.y, vel.z ) );
+
+
 					// Update other params
 					shared->arucoTags[index].error2D = cv::Point2d( CONFIG_CAM_PRINCIPAL_X - avgX, CONFIG_CAM_PRINCIPAL_Y - avgY );
 					shared->arucoTags[index].theta	 = shared->arucoRotationVector[i][1];
@@ -147,8 +153,8 @@ void ArucoClass::FindTags() {
 					shared->arucoTags[index].errorTheta			  = atan2( shared->arucoTags[index].error2D.y, -shared->arucoTags[index].error2D.x );
 
 					// Calculate controller values
-					shared->controllerFx = ( shared->controllerK * shared->arucoTags[index].error3D.x ) + ( shared->controllerB * shared->arucoTags[index].errorVel3D.x );
-					shared->controllerFy = ( shared->controllerK * shared->arucoTags[index].error3D.y ) + ( shared->controllerB * shared->arucoTags[index].errorVel3D.y );
+					// shared->controllerFx = ( shared->controllerK * shared->arucoTags[index].error3D.x ) + ( shared->controllerB * shared->arucoTags[index].errorVel3D.x );
+					// shared->controllerFy = ( shared->controllerK * shared->arucoTags[index].error3D.y ) + ( shared->controllerB * shared->arucoTags[index].errorVel3D.y );
 
 
 					// Constraint angles to positive values

@@ -111,21 +111,21 @@ void InputClass::ParseInput( int key ) {
 			// 	}
 			// }
 		case 91: {	  // '['
-			shared->controllerK -= 0.001;
-			shared->displayString = "InputClass: Decreasing K to " + std::to_string( shared->controllerK ) + ".";
+			shared->controllerKp.x -= 0.001;
+			shared->displayString = "InputClass: Decreasing K to " + std::to_string( shared->controllerKd.x ) + ".";
 			break;
 		}
 		case 93:	// ']'
-			shared->controllerK += 0.001;
-			shared->displayString = "InputClass: Increasing K to " + std::to_string( shared->controllerK ) + ".";
+			shared->controllerKp.x += 0.001;
+			shared->displayString = "InputClass: Increasing K to " + std::to_string( shared->controllerKd.x ) + ".";
 			break;
 		case 59:	// ';'
-			shared->controllerB -= 0.001;
-			shared->displayString = "InputClass: Decreasing B to " + std::to_string( shared->controllerB ) + ".";
+			shared->controllerKd.x -= 0.001;
+			shared->displayString = "InputClass: Decreasing B to " + std::to_string( shared->controllerKp.x ) + ".";
 			break;
 		case 39:	// '''
-			shared->controllerB += 0.001;
-			shared->displayString = "InputClass: Increasing B to " + std::to_string( shared->controllerB ) + ".";
+			shared->controllerKd.x += 0.001;
+			shared->displayString = "InputClass: Increasing B to " + std::to_string( shared->controllerKp.x ) + ".";
 			break;
 		case 122:	 // 'z'
 			shared->vizClear	  = true;
@@ -145,15 +145,6 @@ void InputClass::ParseInput( int key ) {
 		// 	shared->angleEnabled  = !shared->angleEnabled;
 		// 	shared->displayString = "InputClass: Angle Visualization " + std::string( shared->angleEnabled ? "enabled." : "disabled." );
 		// 	break;
-		case 61:	// '-'
-			shared->controllerCompZ -= 20;
-			shared->displayString = "InputClass: Z-Comp set to " + shared->controllerCompZ;
-			break;
-		case 45:	// '+'
-			shared->controllerCompZ += 20;
-			shared->displayString = "InputClass: Z-Comp set to " + shared->controllerCompZ;
-			break;
-
 		case 102:	 // 'f'
 			// Run fitts-law test
 			shared->TASK_RUNNING = false;
@@ -162,14 +153,14 @@ void InputClass::ParseInput( int key ) {
 			// shared->fittsTestStarted = false;
 			shared->displayString = "InputClass: Starting fitts-law test.";
 			break;
-		case 108:	 // l
-			shared->FLAG_LOGGING_STARTED = !shared->FLAG_LOGGING_STARTED;
-			shared->displayString		 = "InputClass: Started logging.";
-			std::cout << "InputClass: Logging started.\n";
-			break;
-		case 113:	 // x
-			cv::destroyAllWindows();
-			break;
+			// case 108:	 // l
+			// 	shared->FLAG_LOGGING_STARTED = !shared->FLAG_LOGGING_STARTED;
+			// 	shared->displayString		 = "InputClass: Started logging.";
+			// 	std::cout << "InputClass: Logging started.\n";
+			// 	break;
+			// case 113:	 // q
+			// 	cv::destroyAllWindows();
+			// 	break;
 		}
 		// std::cout << "\n";
 	} else {

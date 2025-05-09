@@ -14,6 +14,7 @@ auto shared = dataHandle.getData();
 #include "include/ArucoClass.h"
 #include "include/CalibrationClass.h"
 #include "include/CaptureClass.h"
+#include "include/ControllerClass.h"
 #include "include/DisplayClass.h"
 #include "include/FittsClass.h"
 #include "include/InputClass.h"
@@ -34,6 +35,8 @@ SerialClass		 Serial( dataHandle, 2 );				  // Serial interface
 LoggingClass	 Logging( dataHandle );					  // Logging interface
 FittsClass		 Fitts( dataHandle, Timing, Logging );	  // For fitts-law testing
 CalibrationClass Calibration( dataHandle );				  // For calibration of user to touchscreen
+ControllerClass	 Controller( dataHandle );
+
 
 
 // Function prototypes
@@ -48,8 +51,6 @@ std::string BuildPacketAngularError();
  * @return int 
  */
 int main() {
-
-
 
 	// Settings
 	shared->FLAG_LOGGING_ENABLED = true;
@@ -66,6 +67,9 @@ int main() {
 	// Status update
 	std::cout << "\nMain:         Program running...\n\n";
 
+	// Initialize controller
+	Controller.Initialize( 0.5f );
+
 	// Start timer for measuring loop frequency
 	Timing.StartTimer();
 
@@ -74,6 +78,10 @@ int main() {
 
 	// Main loop
 	while ( shared->FLAG_MAIN_RUNNING ) {
+
+		// Update timer (for measuring loop frequency)
+		Timing.UpdateTimer();
+
 
 		// Task selector
 		if ( shared->TASK_NAME == "FITTS" ) {
@@ -90,6 +98,9 @@ int main() {
 
 		// Detect ArUco tags
 		Aruco.FindTags();
+
+		// Run controller
+		Controller.RunHybridController();
 
 		// Check touchscreen input
 		Touch.GetCursorPosition();
@@ -152,8 +163,6 @@ int main() {
 		// Update display
 		Canvas.Update();
 
-		// Update timer (for measuring loop frequency)
-		Timing.UpdateTimer();
 
 
 		// Save logging file

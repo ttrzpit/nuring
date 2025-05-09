@@ -36,6 +36,8 @@ struct Tags {
 	short		area				 = 0;
 	cv::Vec3d	rotationVector		 = cv::Vec3d( 0, 0, 0 );
 	cv::Vec3d	translationVector	 = cv::Vec3d( 0, 0, 0 );
+	cv::Point2f thetaMeasured		 = cv::Point2f( 0.0f, 0.0f );
+	cv::Point2f thetaDotMeasured	 = cv::Point2f( 0.0f, 0.0f );
 
 	KalmanFilter3D kf;
 };
@@ -125,13 +127,15 @@ struct ManagedData {
 	std::string loggingVariable5 = "0";
 
 	// Controller variables
-	float		controllerK		 = 0.010f;	  // N/mm
-	float		controllerB		 = 0.000f;	  // N*s/mm
-	float		controllerFx	 = 0.00f;	  // N
-	float		controllerFy	 = 0.00f;	  // N
-	int16_t		controllerCompZ	 = 0;		  // mm
-	cv::Point3i controllerOutput = cv::Point3i( 0, 0, 0 );
-	bool		controllerActive = false;
+	bool		FLAG_CONTROLLER_ACTIVE	  = false;
+	cv::Point2i controllerKp			  = cv::Point2i( 100, 100 );
+	cv::Point2i controllerKd			  = cv::Point2i( 0, 0 );
+	cv::Point3i controllerPWM			  = cv::Point3i( 0, 0, 0 );
+	cv::Point3f controllerPercentage	  = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	cv::Point2f controllerThetaDesired	  = cv::Point2f( 0.0f, 0.0f );
+	cv::Point2f controllerThetaDotDesired = cv::Point2f( 0.0f, 0.0f );
+	cv::Point2f controllerForceXY		  = cv::Point2f( 0.0f, 0.0f );
+	cv::Point3f controllerForceABC		  = cv::Point3f( 0.0f, 0.0f, 0.0f );
 
 	// Task variables
 	cv::Point3i fittsErrorPx		= cv::Point3i( 0, 0, 0 );

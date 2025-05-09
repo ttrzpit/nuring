@@ -196,61 +196,62 @@ int8_t SerialClass::Sign( int val ) {
 
 void SerialClass::CheckForPacket() {
 
-	// Pre-allocate memory
-	memset( buffer, 0, sizeof( buffer ) );
+	// // Pre-allocate memory
+	// // memset( buffer, 0, sizeof( buffer ) ); // Unnecessary
 
-	// Read a single byte
-	int16_t bytesRead = read( serialPort1, buffer, sizeof( buffer ) - 1 );
+	// // Read serial bytes
+	// int16_t bytesRead = read( serialPort1, buffer, sizeof( buffer ) - 1 );
 
-	// Check for valid packet
-	if ( bytesRead > 0 ) {
+	// // Check for valid packet
+	// if ( bytesRead > 0 ) {
 
-		// Append
-		readBuffer.append( buffer, bytesRead );
+	// 	// Append
+	// 	readBuffer.append( buffer, bytesRead );
 
-		// Look for new line character
-		int8_t newLinePosition = readBuffer.find( '\n' );
-		if ( newLinePosition != std::string::npos ) {
+	// 	// Look for new line character
+	// 	size_t newLinePosition = readBuffer.find( '\n' );
 
-			// shared->serialPacket1 = readBuffer.substr( 0, newLinePosition );
+	// 	// Read packet if terminator '\n' found
+	// 	if ( newLinePosition != std::string::npos ) {
 
-			// Make sure packet is valid before trying anything
-			if ( readBuffer[0] == 'A' && readBuffer[newLinePosition - 2] == 'X' ) {
+	// 		std::string packet = readBuffer.substr( 0, newLinePosition );
+	// 		std::cout << "Size: " << packet.size() << "   Head: " << packet[0] << "   Term: " << packet[packet.size() - 2] << "   A: " << packet.substr( 1, 2 ) << "   B: " << packet.substr( 4, 2 ) << "   C: " << packet.substr( 7, 2 ) << "\n";
 
-				try {
+	// 		// Make sure packet is valid before trying anything
+	// 		if ( packet.size() >= 10 && packet[0] == 'A' && packet[packet.size() - 2] == 'X' ) {
 
-					shared->controllerOutput.x = std::stoi( readBuffer.substr( 1, 2 ) );
-					shared->controllerOutput.y = std::stoi( readBuffer.substr( 4, 5 ) );
-					shared->controllerOutput.z = std::stoi( readBuffer.substr( 7, 8 ) );
-					shared->serialPacket1	   = "A" + PadValues( shared->controllerOutput.x, 2 ) + "B" + PadValues( shared->controllerOutput.y, 2 ) + "C" + PadValues( shared->controllerOutput.z, 2 ) + "\n";
+	// 			try {
 
-					if ( ( shared->controllerOutput.x + shared->controllerOutput.y + shared->controllerOutput.z ) > 0 ) {
-						shared->controllerActive = true;
-					} else {
-						shared->controllerActive = false;
-					}
-				} catch ( const std::exception& e ) {
-					std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << e.what() << "\n";
+	// 				shared->controllerOutput.x = std::stoi( packet.substr( 1, 2 ) );
+	// 				shared->controllerOutput.y = std::stoi( packet.substr( 4, 2 ) );
+	// 				shared->controllerOutput.z = std::stoi( packet.substr( 7, 2 ) );
+	// 				shared->serialPacket1	   = "A" + PadValues( shared->controllerOutput.x, 2 ) + "B" + PadValues( shared->controllerOutput.y, 2 ) + "C" + PadValues( shared->controllerOutput.z, 2 ) + "\n";
 
-					shared->controllerActive = false;
-				}
+	// 				// Check if commands are empty
+	// 				shared->controllerActive = ( shared->controllerOutput.x + shared->controllerOutput.y + shared->controllerOutput.z > 0 );
 
-			} else {
-				std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << "\n";
-				shared->serialPacket1	 = "INVALID!";
-				shared->controllerActive = false;
-			}
+	// 			} catch ( const std::exception& e ) {
+	// 				std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << e.what() << "\n";
+	// 				shared->controllerActive = false;
+	// 				shared->serialPacket1	 = "INVALID!";
+	// 			}
 
+	// 			// Remove processed packet
+	// 			readBuffer.erase( 0, newLinePosition + 1 );	   // 🟡 spacing cleaned
 
-			// shared->serialPacket1 = readBuffer.substr( 0, newLinePosition );
-			readBuffer.erase( 0, newLinePosition + 1 );
-			// shared->angleTheta = std::stof( shared->serialPacket1 );
-			// std::cout << "New Packet: " << shared->serialPacket1 << "\n";
-		}
+	// 		} else {
+	// 			std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << "\n";
+	// 			shared->serialPacket1	 = "INVALID!";
+	// 			shared->controllerActive = false;
+	// 		}
 
-	} else if ( bytesRead < 0 && errno != EAGAIN ) {
-		std::cerr << "SerialClass:  Serial1 read error: " << strerror( errno ) << "\n";
-	}
+	// 		// Remove processed packet
+	// 		readBuffer.erase( 0, newLinePosition + 1 );
+	// 	}
+
+	// } else if ( bytesRead < 0 && errno != EAGAIN ) {
+	// 	std::cerr << "SerialClass:  Serial1 read error: " << strerror( errno ) << "\n";
+	// }
 }
 
 void SerialClass::ParseIncomingPacket( std::string packet ) { }

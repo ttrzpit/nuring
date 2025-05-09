@@ -16,10 +16,6 @@ class SystemDataManager;
 struct ManagedData;
 
 
-// Constants
-#define RAD2DEG 57.2958
-
-
 
 /** 
  * @brief Display class definition
@@ -61,6 +57,7 @@ private:
 	cv::Point2i ProjectIsometric( const cv::Point3i& p3d );
 	cv::Point2i GetForwardDirectionFromPose( const cv::Vec3d rvec, const cv::Vec3d tvec, const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, float axisLength );
 	void		DrawMotorOutput();
+
 
 	// Window names
 	std::string winAngle	  = "Angle Visualizer";

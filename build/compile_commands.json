@@ -25,6 +25,12 @@
 },
 {
   "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/ControllerClass.cpp.o -c /home/tom/Code/nuring/src/ControllerClass.cpp",
+  "file": "/home/tom/Code/nuring/src/ControllerClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/ControllerClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
   "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/DisplayClass.cpp.o -c /home/tom/Code/nuring/src/DisplayClass.cpp",
   "file": "/home/tom/Code/nuring/src/DisplayClass.cpp",
   "output": "CMakeFiles/NURingIntegratedController.dir/src/DisplayClass.cpp.o"
