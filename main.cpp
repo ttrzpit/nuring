@@ -301,9 +301,15 @@ std::string BuildPacketAngularError() {
 
 	// // shared->serialPacket0 = "Ex" + std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "y"
 	// // 	+ std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "X\n";
+
+	return "" ; 
 }
 
 
+/**
+ * @brief Update system state using kalman filter
+ * 
+ */
 void UpdateState() {
 
 	// Save old data
