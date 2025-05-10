@@ -21,7 +21,7 @@ KalmanClass::KalmanClass( SystemDataManager& ctx )
 	state = cv::Mat::zeros( 6, 1, CV_32F );
 	P	  = cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
 	Q	  = cv::Mat::eye( 6, 6, CV_32F ) * 0.01f;
-	R	  = cv::Mat::eye( 6, 6, CV_32F ) * 10.0f;
+	R	  = cv::Mat::eye( 3, 3, CV_32F ) * 10.0f;
 	H	  = cv::Mat::zeros( 3, 6, CV_32F );
 	I	  = cv::Mat::eye( 6, 6, CV_32F );
 
@@ -69,6 +69,7 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	// Make sure the filter is initialized
 	if ( !isInitialized ) {
 
+
 		// Initialize
 		Initialize( measuredPos, tCurrent );
 
@@ -77,7 +78,7 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	}
 
 	// Update timestep
-	dt		  = tCurrent - tPrevious;
+	dt		  = std::max( tCurrent - tPrevious, 1e-6f );
 	tPrevious = tCurrent;
 
 	// State transition matrix
@@ -94,11 +95,15 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	cv::Mat z = ( cv::Mat_<float>( 3, 1 ) << measuredPos.x, measuredPos.y, measuredPos.z );
 	cv::Mat y = z - H * state;
 	cv::Mat S = H * P * H.t() + R;
-	cv::Mat K = P * H.t() * S.inv();
 
-	// Update
-	state = state + K * y;
-	P	  = ( I - K * H ) * P;
+	// Check if S is invertible before computing K and updating
+	if ( cv::determinant( S ) > 1e-6f ) {
+		cv::Mat K = P * H.t() * S.inv();
+		state	  = state + K * y;
+		P		  = ( I - K * H ) * P;
+	} else {
+		std::cerr << "KalmanClass: S matrix not invertible, skipping update.\n";
+	}
 }
 
 

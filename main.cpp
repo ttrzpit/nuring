@@ -77,6 +77,9 @@ int main() {
 	// Add shortcut panel
 	Canvas.ShowShortcuts();
 
+	// Initialize kalman filter
+	Kalman.Initialize( cv::Point3f( 0.0f, 0.0f, 0.0f ), shared->timingTimestamp );
+
 	// Main loop
 	while ( shared->FLAG_MAIN_RUNNING ) {
 
@@ -312,7 +315,7 @@ void UpdateState() {
 	// Update kalman filter
 	Kalman.Update( shared->targetPosition3dRaw, shared->timingTimestamp );
 
-	// Get updated state values
+	// // Get updated state values
 	shared->targetPosition3dNew		  = Kalman.GetPosition();
 	shared->targetVelocity3dNew		  = Kalman.GetVelocity();
 	shared->targetAngleNew			  = Kalman.GetAngle();
