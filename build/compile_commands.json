@@ -49,6 +49,12 @@
 },
 {
   "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/KalmanClass.cpp.o -c /home/tom/Code/nuring/src/KalmanClass.cpp",
+  "file": "/home/tom/Code/nuring/src/KalmanClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/KalmanClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
   "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/LoggingClass.cpp.o -c /home/tom/Code/nuring/src/LoggingClass.cpp",
   "file": "/home/tom/Code/nuring/src/LoggingClass.cpp",
   "output": "CMakeFiles/NURingIntegratedController.dir/src/LoggingClass.cpp.o"

@@ -22,9 +22,9 @@ LoggingClass::LoggingClass( SystemDataManager& ctx )
 void LoggingClass::AddEntry() {
 
 	newEntry.timestamp = shared->timingTimestamp;
-	newEntry.errXmm	   = shared->arucoTags[shared->arucoActiveID].error3D.x;
-	newEntry.errYmm	   = shared->arucoTags[shared->arucoActiveID].error3D.y;
-	newEntry.errZmm	   = shared->arucoTags[shared->arucoActiveID].error3D.z;
+	newEntry.errXmm	   = shared->targetPosition3dNew.x;
+	newEntry.errYmm	   = shared->targetPosition3dNew.y;
+	newEntry.errZmm	   = shared->targetPosition3dNew.z;
 	newEntry.custom1   = shared->loggingVariable1;
 	newEntry.custom2   = shared->loggingVariable2;
 	newEntry.custom3   = shared->loggingVariable3;

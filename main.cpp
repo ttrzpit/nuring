@@ -18,11 +18,11 @@ auto shared = dataHandle.getData();
 #include "include/DisplayClass.h"
 #include "include/FittsClass.h"
 #include "include/InputClass.h"
+#include "include/KalmanClass.h"
 #include "include/LoggingClass.h"
 #include "include/SerialClass.h"
 #include "include/TimingClass.h"
 #include "include/TouchscreenClass.h"
-
 
 // New class objects
 CaptureClass	 Capture( dataHandle );					  // Camera capture
@@ -35,8 +35,8 @@ SerialClass		 Serial( dataHandle, 2 );				  // Serial interface
 LoggingClass	 Logging( dataHandle );					  // Logging interface
 FittsClass		 Fitts( dataHandle, Timing, Logging );	  // For fitts-law testing
 CalibrationClass Calibration( dataHandle );				  // For calibration of user to touchscreen
-ControllerClass	 Controller( dataHandle );
-
+ControllerClass	 Controller( dataHandle );				  // Controller
+KalmanClass		 Kalman( dataHandle );					  // Kalman filter
 
 
 // Function prototypes
@@ -44,6 +44,7 @@ void		SignalHandler( int signum );
 void		TaskCalibrate();
 void		TaskFitts();
 std::string BuildPacketAngularError();
+void		UpdateState();
 
 /**
  * @brief Main program loop
@@ -68,7 +69,7 @@ int main() {
 	std::cout << "\nMain:         Program running...\n\n";
 
 	// Initialize controller
-	Controller.Initialize( 0.5f );
+	// Controller.Initialize();
 
 	// Start timer for measuring loop frequency
 	Timing.StartTimer();
@@ -82,6 +83,14 @@ int main() {
 		// Update timer (for measuring loop frequency)
 		Timing.UpdateTimer();
 
+		// Capture frame
+		Capture.GetFrame();
+
+		// Detect ArUco tags
+		Aruco.FindTags();
+
+		// Update system state
+		UpdateState();
 
 		// Task selector
 		if ( shared->TASK_NAME == "FITTS" ) {
@@ -93,14 +102,10 @@ int main() {
 		// Parse any input and use OpenCV WaitKey()
 		Input.ParseInput( cv::pollKey() & 0xFF );
 
-		// Capture frame
-		Capture.GetFrame();
-
-		// Detect ArUco tags
-		Aruco.FindTags();
 
 		// Run controller
-		Controller.RunHybridController();
+		// Controller.RunHybridController();
+		// Controller.RunRecedingHorizon();
 
 		// Check touchscreen input
 		Touch.GetCursorPosition();
@@ -118,7 +123,7 @@ int main() {
 			// Check if serial is enabled and amplifiers are enabled
 			if ( shared->FLAG_SERIAL0_ENABLED ) {
 
-				if ( shared->FLAG_AMPLIFIERS_READY && shared->arucoActiveID != 0 ) {
+				if ( shared->FLAG_AMPLIFIERS_READY && shared->targetActiveID != 0 ) {
 
 					if ( shared->FLAG_TAG_FOUND ) {
 
@@ -157,7 +162,6 @@ int main() {
 			shared->serialPacket0 = "DX\n";
 			// shared->FLAG_PACKET_WAITING = true;
 		}
-
 
 
 		// Update display
@@ -222,7 +226,7 @@ void TaskCalibrate() {
 		shared->calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
 		shared->TASK_REP_NUMBER		= 0;
 		shared->TASK_RUNNING		= true;
-		shared->arucoActiveID		= 8;
+		shared->targetActiveID		= 8;
 		Calibration.InitializeCalibration();
 		Calibration.StartCalibration();
 	} else {
@@ -259,7 +263,7 @@ void TaskFitts() {
 
 	} else if ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) {
 
-		shared->loggingVariable1 = std::to_string( shared->arucoTags[shared->arucoActiveID].present );
+		shared->loggingVariable1 = std::to_string( shared->FLAG_TARGET_FOUND );
 		shared->loggingVariable2 = std::to_string( shared->touchDetected );
 		shared->loggingVariable3 = shared->serialPacket1;
 		Logging.AddEntry();
@@ -267,9 +271,9 @@ void TaskFitts() {
 
 	// Run task
 	if ( !shared->TASK_RUNNING ) {
-		shared->TASK_RUNNING  = true;
-		shared->TASK_COMPLETE = false;
-		shared->arucoActiveID = 1;
+		shared->TASK_RUNNING   = true;
+		shared->TASK_COMPLETE  = false;
+		shared->targetActiveID = 1;
 		Fitts.StartTest( 'x' );
 	} else {
 		Fitts.Update();
@@ -280,18 +284,37 @@ void TaskFitts() {
 std::string BuildPacketAngularError() {
 
 	// Calculate angular error
-	int8_t angX = std::clamp( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.z ) ), -45, 45 );
-	int8_t angY = std::clamp( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z ) ), -45, 45 );
+	// int8_t angX = std::clamp( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.z ) ), -45, 45 );
+	// int8_t angY = std::clamp( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z ) ), -45, 45 );
 
-	// Get boolean for sign
-	int8_t signX = Serial.Sign( angX );
-	int8_t signY = Serial.Sign( angY );
+	// // Get boolean for sign
+	// int8_t signX = Serial.Sign( angX );
+	// int8_t signY = Serial.Sign( angY );
 
-	// Build string
-	std::string output = "Ax" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( angX ), 2 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( angY ), 2 ) + "X";
+	// // Build string
+	// std::string output = "Ax" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( angX ), 2 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( angY ), 2 ) + "X";
 
-	return output;
+	// return output;
 
-	// shared->serialPacket0 = "Ex" + std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "y"
-	// 	+ std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "X\n";
+	// // shared->serialPacket0 = "Ex" + std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "y"
+	// // 	+ std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "X\n";
+}
+
+
+void UpdateState() {
+
+	// Save old data
+	shared->targetPosition3dOld		  = shared->targetPosition3dNew;
+	shared->targetVelocity3dOld		  = shared->targetVelocity3dNew;
+	shared->targetAngleOld			  = shared->targetAngleNew;
+	shared->targetAnglularVelocityOld = shared->targetAnglularVelocityNew;
+
+	// Update kalman filter
+	Kalman.Update( shared->targetPosition3dRaw, shared->timingTimestamp );
+
+	// Get updated state values
+	shared->targetPosition3dNew		  = Kalman.GetPosition();
+	shared->targetVelocity3dNew		  = Kalman.GetVelocity();
+	shared->targetAngleNew			  = Kalman.GetAngle();
+	shared->targetAnglularVelocityNew = Kalman.GetAnglularVelocity();
 }

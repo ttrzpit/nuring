@@ -19,28 +19,28 @@
 
 
 // Container for marker information
-struct Tags {
-	short		ID					 = 0;
-	bool		present				 = false;
-	cv::Point3f error3D				 = cv::Point3i( 0, 0, 0 );
-	cv::Point3f errorPrev3D			 = cv::Point3i( 0, 0, 0 );
-	cv::Point3f errorVel3D			 = cv::Point3i( 0, 0, 0 );
-	cv::Point2f error2D				 = cv::Point2i( 0, 0 );
-	float		theta				 = 0.0f;
-	short		errorMagnitude3D	 = 0;
-	short		errorMagnitude2D	 = 0;
-	short		errorMagnitudeNorm2D = 0;
-	float		errorTheta			 = 0.0f;
-	float		velMagnitude		 = 0.0f;
-	float		velHeading			 = 0.0f;
-	short		area				 = 0;
-	cv::Vec3d	rotationVector		 = cv::Vec3d( 0, 0, 0 );
-	cv::Vec3d	translationVector	 = cv::Vec3d( 0, 0, 0 );
-	cv::Point2f thetaMeasured		 = cv::Point2f( 0.0f, 0.0f );
-	cv::Point2f thetaDotMeasured	 = cv::Point2f( 0.0f, 0.0f );
+// struct Tags {
+// 	short		ID					 = 0;
+// 	bool		present				 = false;
+// 	cv::Point3f error3D				 = cv::Point3i( 0, 0, 0 );
+// 	cv::Point3f errorPrev3D			 = cv::Point3i( 0, 0, 0 );
+// 	cv::Point3f errorVel3D			 = cv::Point3i( 0, 0, 0 );
+// 	cv::Point2f error2D				 = cv::Point2i( 0, 0 );
+// 	float		theta				 = 0.0f;
+// 	short		errorMagnitude3D	 = 0;
+// 	short		errorMagnitude2D	 = 0;
+// 	short		errorMagnitudeNorm2D = 0;
+// 	float		errorTheta			 = 0.0f;
+// 	float		velMagnitude		 = 0.0f;
+// 	float		velHeading			 = 0.0f;
+// 	short		area				 = 0;
+// 	cv::Vec3d	rotationVector		 = cv::Vec3d( 0, 0, 0 );
+// 	cv::Vec3d	translationVector	 = cv::Vec3d( 0, 0, 0 );
+// 	cv::Point2f thetaMeasured		 = cv::Point2f( 0.0f, 0.0f );
+// 	cv::Point2f thetaDotMeasured	 = cv::Point2f( 0.0f, 0.0f );
 
-	KalmanFilter3D kf;
-};
+// 	KalmanFilter3D kf;
+// };
 
 // Shared system variable container
 struct ManagedData {
@@ -58,6 +58,32 @@ struct ManagedData {
 	bool FLAG_SERIAL0_ENABLED  = false;
 	bool FLAG_SERIAL1_ENABLED  = false;
 	bool FLAG_SHUTTING_DOWN	   = false;
+
+
+
+	// Target information
+	bool					 FLAG_TARGET_FOUND		   = false;								 // Updated in ArucoClass
+	uint8_t					 targetActiveID			   = 1;									 // ID of target currently being tracked
+	cv::Point2i				 targetScreenPosition	   = cv::Point2i( 0, 0 );				 // Position of target in screen space, ArucoClass
+	float					 targetScreenMagnitude	   = 0.0f;								 // Magnitude of screen error, ArucoClass
+	cv::Point3f				 targetPosition3dRaw	   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // [mm] Raw (unfiltered) position of tag relative to camera
+	cv::Point3f				 targetPosition3dOld	   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // [mm] Old position of tag relative to camera
+	cv::Point3f				 targetPosition3dNew	   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // [mm] New position of tag relative to camera
+	cv::Point3f				 targetVelocity3dOld	   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // [mm] Old position of tag relative to camera
+	cv::Point3f				 targetVelocity3dNew	   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // [mm] New position of tag relative to camera
+	cv::Point2f				 targetAngleOld			   = cv::Point2f( 0.0f, 0.0f );			 // [rad] Old angle
+	cv::Point2f				 targetAngleNew			   = cv::Point2f( 0.0f, 0.0f );			 // [rad] New angle
+	cv::Point2f				 targetAnglularVelocityOld = cv::Point2f( 0.0f, 0.0f );			 // [rad/s] Old angular velocity
+	cv::Point2f				 targetAnglularVelocityNew = cv::Point2f( 0.0f, 0.0f );			 // [rad/s] New angular velocity
+	std::vector<cv::Point2i> targetCorners			   = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };
+	cv::Vec3d				 targetRotationVector, targetTranslationVector;
+
+	// cv::Point3f targetPositionError3dPrev = cv::Point3f( 0.0f, 0.0f, 0.0f );	// [mm] Previous position of tag relative to camera
+	// cv::Point2i targetPositionError2d	  = cv::Point2i( 0, 0 );				// [px] Position of tag relative to camera
+	// cv::Point2f targetThetaErrorNew		  = cv::Point2f( 0.0f, 0.0f );			// [rad] New angle of error relative to camera principal axis
+	// cv::Point2f targetThetaErrorPrev	  = cv::Point2f( 0.0f, 0.0f );			// [rad] Previous angle of error relative to camera principal axis
+	// cv::Point2f targetThetaDotErrorNew	  = cv::Point2f( 0.0f, 0.0f );			// [rad] New angle of error relative to camera principal axis
+	// cv::Point2f targetThetaDotErrorPrev	  = cv::Point2f( 0.0f, 0.0f );			// [rad] Previous angle of error relative to camera principal axis
 
 	// Tasks
 	std::string TASK_NAME		= "";		// String name of task
@@ -82,19 +108,9 @@ struct ManagedData {
 	cv::cuda::GpuMat GpuMatRemap1;
 	cv::cuda::GpuMat GpuMatRemap2;
 
-	// ArUco detector
-	cv::aruco::Dictionary				  arucoDictionary;
-	cv::aruco::DetectorParameters		  arucoDetectorParams;
-	cv::aruco::ArucoDetector			  arucoDetector;
-	std::vector<Tags>					  arucoTags;
-	std::vector<int>					  arucoIDs;
-	std::vector<std::vector<cv::Point2f>> arucoCorners, arucoRejects;
-	std::vector<cv::Vec3d>				  arucoRotationVector, arucoTranslationVector;
-	cv::Mat								  arucoPoints { 4, 1, CV_32FC3 };
-	short								  arucoActiveID		 = 0;
-	std::vector<cv::Point2i>			  arucoActiveCorners = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };
-	short								  arucoMinArea		 = 150;
-	short								  arucoMaxArea		 = 30000;
+
+	short arucoMinArea = 150;
+	short arucoMaxArea = 30000;
 
 	// Timing variables
 	short timingFrequency = 45;
@@ -112,6 +128,7 @@ struct ManagedData {
 
 	// Display variables
 	std::string displayString = "";
+
 
 	// Logging variables
 	std::string loggingFilename	 = "NULL";
@@ -136,6 +153,7 @@ struct ManagedData {
 	cv::Point2f controllerThetaDotDesired = cv::Point2f( 0.0f, 0.0f );
 	cv::Point2f controllerForceXY		  = cv::Point2f( 0.0f, 0.0f );
 	cv::Point3f controllerForceABC		  = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	cv::Point3f controllerCurrent		  = cv::Point3f( 0.0f, 0.0f, 0.0f );
 
 	// Task variables
 	cv::Point3i fittsErrorPx		= cv::Point3i( 0, 0, 0 );
@@ -160,6 +178,14 @@ struct ManagedData {
 	bool		calibrationComplete = false;
 	cv::Point3i calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
 	bool		calibrationLoaded	= false;
+
+	// Helper functions
+	float		GetNorm2D( cv::Point2f pt1 );					   // Calculate magnitude of 2D vector
+	float		GetNorm3D( cv::Point3f pt1 );					   // Calculate magnitude of 3D vector
+	float		GetDist2D( cv::Point2f pt1, cv::Point2f pt2 );	   // Calculate magnitude of 2D distance between 2 points
+	float		GetDist3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate magnitude of 2D distance between 2 points
+	cv::Point2f GetDelta2D( cv::Point2f pt1, cv::Point2f pt2 );	   // Calculate the x,y delta beteen two points
+	cv::Point3f GetDelta3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate the x,y,z delta beteen two points
 };
 
 class SystemDataManager {
@@ -169,6 +195,7 @@ public:
 
 	// Functions
 	std::shared_ptr<ManagedData> getData();
+
 
 private:
 	std::shared_ptr<ManagedData> data;

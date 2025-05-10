@@ -7,9 +7,86 @@ SystemDataManager::SystemDataManager()
 	: data( std::make_shared<ManagedData>() ) { }
 
 
+
 /***
  * @brief Function to return pointer to data
  */
 std::shared_ptr<ManagedData> SystemDataManager::getData() {
 	return data;
+}
+
+
+
+/**
+ * @brief Calculate the norm of a 2D vector
+ * 
+ * @param pt1 2D vector
+ * @return [float] Norm of the 2D vector
+ */
+float ManagedData::GetNorm2D( cv::Point2f pt1 ) {
+	return cv::norm( pt1 );
+}
+
+
+
+/**
+ * @brief Calculate the norm of a 3D vector
+ * 
+ * @param pt1 3D vector
+ * @return [float] Norm of the 3D vector
+ */
+float ManagedData::GetNorm3D( cv::Point3f pt1 ) {
+	return cv::norm( pt1 );
+}
+
+
+
+/**
+ * @brief Calculate the normalized distance between 2 points in 2D
+ * 
+ * @param pt1 First 2D point
+ * @param pt2 Second 2D point
+ * @return [float] Norm of the 2D vector
+ */
+float ManagedData::GetDist2D( cv::Point2f pt1, cv::Point2f pt2 ) {
+	return cv::norm( pt1 - pt2 );
+}
+
+
+
+/**
+ * @brief Calculate the normalized distance between 2 points in 3D
+ * 
+ * @param pt1 First 3D point
+ * @param pt2 Second 3D point
+ * @return [float] Norm of the 3D vector
+ */
+float ManagedData::GetDist3D( cv::Point3f pt1, cv::Point3f pt2 ) {
+	return cv::norm( pt1 - pt2 );
+}
+
+
+
+/**
+ * @brief Calculate the x,y components between two points
+ * 
+ * @param pt1 
+ * @param pt2 
+ * @return cv::Point2f 
+ */
+cv::Point2f ManagedData::GetDelta2D( cv::Point2f pt1, cv::Point2f pt2 ) {
+	return ( pt1 - pt2 );
+}
+
+
+
+/**
+ * @brief Calculate the x,y components between two points
+ * 
+ * @param pt1 
+ * @param pt2 
+ * @return cv::Point2f 
+ */
+cv::Point3f ManagedData::GetDelta3D( cv::Point3f pt1, cv::Point3f pt2 ) {
+	return ( pt1 - pt2 );
 }

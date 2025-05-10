@@ -44,32 +44,32 @@ void InputClass::ParseInput( int key ) {
 			break;
 		// case 177:	 // Numpad 1
 		case '1':	 // 1
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->arucoActiveID == 1 ? "0." : "1." );
-			( shared->arucoActiveID == 1 ? shared->arucoActiveID = 0 : shared->arucoActiveID = 1 );
+			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 1 ? "0." : "1." );
+			( shared->targetActiveID == 1 ? shared->targetActiveID = 0 : shared->targetActiveID = 1 );
 			break;
 		// case 178:	 // Numpad 2
 		case '2':	 // 2
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->arucoActiveID == 2 ? "0." : "2." );
-			( shared->arucoActiveID == 2 ? shared->arucoActiveID = 0 : shared->arucoActiveID = 2 );
+			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 2 ? "0." : "2." );
+			( shared->targetActiveID == 2 ? shared->targetActiveID = 0 : shared->targetActiveID = 2 );
 			break;
 		// case 179:	 // Numpad 3
 		case '3':	 // 3
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->arucoActiveID == 3 ? "0." : "3." );
-			( shared->arucoActiveID == 3 ? shared->arucoActiveID = 0 : shared->arucoActiveID = 3 );
+			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 3 ? "0." : "3." );
+			( shared->targetActiveID == 3 ? shared->targetActiveID = 0 : shared->targetActiveID = 3 );
 			break;
 		// case 180:	 // Numpad 4
 		case '4':	 // 4
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->arucoActiveID == 4 ? "0." : "4." );
-			( shared->arucoActiveID == 4 ? shared->arucoActiveID = 0 : shared->arucoActiveID = 4 );
+			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 4 ? "0." : "4." );
+			( shared->targetActiveID == 4 ? shared->targetActiveID = 0 : shared->targetActiveID = 4 );
 			break;
 		// case 181:	 // Numpad 5
 		case '5':	 // 5
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->arucoActiveID == 5 ? "0." : "5." );
-			( shared->arucoActiveID == 5 ? shared->arucoActiveID = 0 : shared->arucoActiveID = 5 );
+			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID== 5 ? "0." : "5." );
+			( shared->targetActiveID == 5 ? shared->targetActiveID = 0 : shared->targetActiveID = 5 );
 			break;
 		case '`':	 // ` (tilde)
 			shared->displayString = "InputClass: Disabling all active markers.";
-			shared->arucoActiveID = 0;
+			shared->targetActiveID = 0;
 			break;
 		case 'e':	 // E
 			shared->FLAG_AMPLIFIERS_READY = !shared->FLAG_AMPLIFIERS_READY;

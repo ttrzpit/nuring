@@ -41,6 +41,7 @@ inline constexpr unsigned short CONFIG_CAM_HEIGHT	   = 1200;
 inline constexpr unsigned short CONFIG_CAM_FRAMERATE   = 90;
 inline constexpr unsigned short CONFIG_CAM_PRINCIPAL_X = 801;
 inline constexpr unsigned short CONFIG_CAM_PRINCIPAL_Y = 536;
+inline const cv::Point2i		CONFIG_CAM_CENTER	   = cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y );
 
 // Detection parameters
 inline constexpr unsigned short CONFIG_DET_RADIUS = 500;

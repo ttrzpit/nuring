@@ -63,7 +63,7 @@ void CalibrationClass::Update() {
 		if ( shared->touchDetected == 1 ) {
 			shared->TASK_REP_NUMBER++;
 			calibrationPoints.push_back( shared->touchPosition - cv::Point3i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2, 0 ) );
-			calibrationZPoints.push_back( shared->arucoTags[shared->arucoActiveID].error3D.z );
+			calibrationZPoints.push_back( shared->targetPosition3dNew.z );
 
 
 			std::cout << "X: " << shared->touchPosition.x << " Y: " << shared->touchPosition.y << "\n";
@@ -89,7 +89,7 @@ void CalibrationClass::Update() {
 				// Reset flags
 				shared->TASK_RUNNING		 = false;
 				shared->TASK_NAME			 = "";
-				shared->arucoActiveID		 = 0;
+				shared->targetActiveID		 = 0;
 				shared->FLAG_LOGGING_STARTED = false;
 			}
 		}

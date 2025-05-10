@@ -17,7 +17,6 @@ struct ManagedData;
 
 
 
-
 /** 
  * @brief Display class definition
  */
@@ -38,80 +37,26 @@ private:
 	// Data manager handle
 	SystemDataManager&			 dataHandle;
 	std::shared_ptr<ManagedData> shared;
-};
 
-class KalmanFilter3D {
-
-public:
-	cv::KalmanFilter kf;
-	cv::Mat			 state;
-	cv::Mat			 measurement;
-	bool			 initialized = false;
-
-	KalmanFilter3D() {
-		kf.init( 6, 3, 0 );	   // 6 state vars: x, y, z, vx, vy, vz — 3 measurements: x, y, z
-
-		// Initialize transition matrix (dt terms will be filled in during update)
-		kf.transitionMatrix = ( cv::Mat_<float>( 6, 6 ) << 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1 );
-
-		// Measurement matrix — maps state [x, y, z, vx, vy, vz] to measured [x, y, z]
-		cv::setIdentity( kf.measurementMatrix );
-
-		// Tuning process noise: allow more uncertainty in velocity than position
-		kf.processNoiseCov					 = cv::Mat::eye( 6, 6, CV_32F );
-		kf.processNoiseCov.at<float>( 0, 0 ) = 1e-4;	// x
-		kf.processNoiseCov.at<float>( 1, 1 ) = 1e-4;	// y
-		kf.processNoiseCov.at<float>( 2, 2 ) = 1e-4;	// z
-		kf.processNoiseCov.at<float>( 3, 3 ) = 1e-3;	// vx
-		kf.processNoiseCov.at<float>( 4, 4 ) = 1e-3;	// vy
-		kf.processNoiseCov.at<float>( 5, 5 ) = 1e-3;	// vz
-
-		// Measurement noise — trust measurements fairly well
-		cv::setIdentity( kf.measurementNoiseCov, cv::Scalar::all( 1e-3 ) );	   // 1e-2 trust less to smooth, 1e-3 trust more
-
-		// Post-update error covariance
-		cv::setIdentity( kf.errorCovPost, cv::Scalar::all( 1 ) );
-
-		// Init state & measurement
-		state		= cv::Mat::zeros( 6, 1, CV_32F );
-		measurement = cv::Mat::zeros( 3, 1, CV_32F );
-	}
+	// Private variables
 
 
-	void reset( const cv::Point3f& initial ) {
-		state.at<float>( 0 ) = initial.x;
-		state.at<float>( 1 ) = initial.y;
-		state.at<float>( 2 ) = initial.z;
-		state.at<float>( 3 ) = 0;
-		state.at<float>( 4 ) = 0;
-		state.at<float>( 5 ) = 0;
-		kf.statePost		 = state.clone();
-		initialized			 = true;
-	}
+	// ArUco detector
+	cv::aruco::Dictionary		  arucoDictionary;
+	cv::aruco::DetectorParameters arucoDetectorParams;
+	cv::aruco::ArucoDetector	  arucoDetector;
 
-	void update( const cv::Point3f& pos, float dt ) {
-		if ( !initialized )
-			reset( pos );
-
-		// Update dynamic transition matrix
-		kf.transitionMatrix.at<float>( 0, 3 ) = dt;
-		kf.transitionMatrix.at<float>( 1, 4 ) = dt;
-		kf.transitionMatrix.at<float>( 2, 5 ) = dt;
-
-		measurement.at<float>( 0 ) = pos.x;
-		measurement.at<float>( 1 ) = pos.y;
-		measurement.at<float>( 2 ) = pos.z;
-
-		kf.predict();
-		kf.correct( measurement );
-		state = kf.statePost;
-	}
-
-
-	cv::Point3f getPosition() const {
-		return { state.at<float>( 0 ), -1 * state.at<float>( 1 ), state.at<float>( 2 ) };
-	}
-	cv::Point3f getVelocity() const {
-		return { state.at<float>( 3 ), -1 * state.at<float>( 4 ), state.at<float>( 5 ) };
-	}
+	// Aruco variables
+	std::vector<bool>					  arucoTagsPresent;												// Is a given tag present?
+	std::vector<int>					  arucoDetectedIDs;												// Collection of IDs detected
+	// cv::Vec3d							  arucoRotationVector	  = cv::Vec3d( 0, 0, 0 );				// Rotation vector
+	// cv::Vec3d							  arucoTranslationVector  = cv::Vec3d( 0, 0, 0 );				// Translation vector
+	bool								  arucoDetected			  = false;								// Is there a tag detected
+	uint8_t								  arucoActiveID			  = 0;									// ID of desired tag
+	cv::Point3f							  arucoPositionError3dNew = cv::Point3f( 0.0f, 0.0f, 0.0f );	// [mm] New raw position of tag relative to camera
+	cv::Point2i							  arucoPositionError2d	  = cv::Point2i( 0, 0 );				// [px] Position of tag relative to camera
+	std::vector<std::vector<cv::Point2f>> arucoCorners, arucoRejects;
+	std::vector<cv::Vec3d>				  arucoRotationVector, arucoTranslationVector;
+	cv::Mat								  arucoPoints { 4, 1, CV_32FC3 };
+	std::vector<cv::Point2i>			  arucoActiveCorners = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };
 };
