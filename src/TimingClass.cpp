@@ -78,3 +78,24 @@ void TimingClass::TaskTimerEnd() {
 	// Update flag
 	TASK_TIMER_STARTED = false;
 }
+
+
+/**
+ * @brief Add a string of the current date and time
+ * 
+ * @return std::string MMDDYYHHMM
+ */
+void TimingClass::GetTimestamp() {
+
+	// Get current time
+	std::time_t t	= std::time( nullptr );
+	std::tm*	now = std::localtime( &t );
+
+	// Format time
+	std::ostringstream ssTime;
+	ssTime << "_d" << std::put_time( now, "%m%d" ) << "_h" << std::put_time( now, "%H%M%S" );
+
+	// Output
+	std::cout << "Timestamp generated: " << ssTime.str() << "\n";
+	shared->loggingTimestamp = ssTime.str();
+}

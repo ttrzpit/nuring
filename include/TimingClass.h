@@ -2,8 +2,10 @@
 
 // Chrono for benchmarking time
 #include <chrono>
+#include <ctime>
+#include <iomanip>
 #include <memory>
-
+#include <sstream>
 
 
 // Forward declarations
@@ -22,10 +24,11 @@ public:
 	TimingClass( SystemDataManager& dataHandle );
 
 	// Public functions
-	void StartTimer();
-	void UpdateTimer();
-	void TaskTimerStart();
-	void TaskTimerEnd();
+	void		StartTimer();
+	void		UpdateTimer();
+	void		TaskTimerStart();
+	void		TaskTimerEnd();
+	void GetTimestamp();
 
 
 private:

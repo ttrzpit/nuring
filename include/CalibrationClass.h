@@ -29,9 +29,10 @@ public:
 	CalibrationClass( SystemDataManager& dataHandle );
 
 	// Public class functions
-	void InitializeCalibration();
-	void StartCalibration();
+	void Initialize();
 	void Update();
+	void End();
+	void Close();
 
 private:
 	// Data manager handle
@@ -54,7 +55,9 @@ private:
 	// ArUco tag
 	cv::Mat matAruco = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-08-20mm-scaled.png" );
 
-
+	// Placeholder for average
+	cv::Point3f runningAverage = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	bool		outputCreated  = false;
 
 	// Calibration screen
 	cv::Mat matCalibration = cv::Mat( CONFIG_FITTS_SCREEN_HEIGHT, CONFIG_FITTS_SCREEN_WIDTH, CV_8UC3 );

@@ -90,7 +90,7 @@ struct ManagedData {
 	// Tasks
 	std::string TASK_NAME		= "";		// String name of task
 	uint8_t		TASK_USER_ID	= 000;		// Participant ID
-	char		TASK_REP_NUMBER = 0;		// Task rep number
+	int			TASK_REP_NUMBER = 0;		// Task rep number
 	char		TASK_COMMAND	= 0;		// Command
 	bool		TASK_RUNNING	= false;	// Is the task running
 	bool		TASK_COMPLETE	= false;	// Trip when task is complete
@@ -152,6 +152,7 @@ struct ManagedData {
 	std::string loggingVariable3 = "0";
 	std::string loggingVariable4 = "0";
 	std::string loggingVariable5 = "0";
+	std::string loggingTimestamp = "";
 
 	// Controller variables
 	bool		FLAG_CONTROLLER_ACTIVE	 = false;
@@ -188,6 +189,7 @@ struct ManagedData {
 	// Calibration
 	bool		calibrationComplete = false;
 	cv::Point3i calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
+	cv::Point3i calibrationOffsetPX = cv::Point3i( 0, 0, 0 );
 	bool		calibrationLoaded	= false;
 
 	// Kalman filter
@@ -202,7 +204,7 @@ struct ManagedData {
 	float		GetDist3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate magnitude of 2D distance between 2 points
 	cv::Point2f GetDelta2D( cv::Point2f pt1, cv::Point2f pt2 );	   // Calculate the x,y delta beteen two points
 	cv::Point3f GetDelta3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate the x,y,z delta beteen two points
-	std::string FormatDecimal( float x, uint8_t d );						   // Formats a float to xx.xxx
+	std::string FormatDecimal( float x, uint8_t d );			   // Formats a float to xx.xxx
 };
 
 class SystemDataManager {

@@ -11,31 +11,37 @@
 CalibrationClass::CalibrationClass( SystemDataManager& ctx )
 	: dataHandle( ctx )
 	, shared( ctx.getData() ) {
-
-
 	// Stuff
 }
 
+void CalibrationClass::Close() {
 
-/**
- * @brief Calibrate the camera and user finger
- */
-void CalibrationClass::StartCalibration() {
-
-	// Configure interface
-	cv::namedWindow( winCalibration, cv::WINDOW_AUTOSIZE );
-	cv::moveWindow( winCalibration, 3440, 0 );
+	// Load window first time
+	if ( shared->calibrationLoaded ) {
+		cv::imshow( winCalibration, 0 );
+	}
+}
 
 
+
+void CalibrationClass::Initialize() {
+
+	// Load window first time
+	if ( !shared->calibrationLoaded ) {
+
+		// Configure interface
+		cv::namedWindow( winCalibration, cv::WINDOW_AUTOSIZE );
+		cv::moveWindow( winCalibration, 3440, 0 );
+		shared->calibrationLoaded = true;
+		shared->TASK_REP_NUMBER	  = 0;
+		
+	}
 
 	// Clear window
 	matCalibration = CONFIG_colWhite;
 
 	// Draw aruco target
 	matAruco.copyTo( matCalibration( cv::Rect( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) - ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) - ( matAruco.rows / 2 ), matAruco.cols, matAruco.rows ) ) );
-
-	// Draw target on touchscreen
-	// cv::circle( matCalibration, cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2 ), 2.5 * MM2PX, CONFIG_colGreDk, -1 );
 
 	// Add instructional text
 	std::string line0 = "Please touch the screen while keeping the center of the camera aligned with the dot below. ";
@@ -46,146 +52,129 @@ void CalibrationClass::StartCalibration() {
 
 	// Show calibration screen
 	cv::imshow( winCalibration, matCalibration );
-	shared->calibrationLoaded = true;
 }
 
 
-/**
- * @brief Calibration update
- */
+
 void CalibrationClass::Update() {
 
+	// Check if touch detected
+	if ( shared->touchDetected ) {
 
-	// Check if calibration complete
-	if ( shared->TASK_RUNNING == true ) {
+		calibrationPoints.push_back( shared->touchPosition - cv::Point3i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2, 0 ) );
+		calibrationZPoints.push_back( shared->targetPosition3dNew.z );
 
-		// Check if touchscreen pressed
-		if ( shared->touchDetected == 1 ) {
-			shared->TASK_REP_NUMBER++;
-			calibrationPoints.push_back( shared->touchPosition - cv::Point3i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2, 0 ) );
-			calibrationZPoints.push_back( shared->targetPosition3dNew.z );
+		// Debug output
+		std::cout << "Rep: " << shared->TASK_REP_NUMBER << " X: " << shared->touchPosition.x << " Y: " << shared->touchPosition.y << " Z: " << shared->touchPosition.z << "\n";
+
+		// Increment
+		shared->TASK_REP_NUMBER++;
+
+		// Reset touch flag
+		shared->touchDetected = false;
+
+		// Re-initialize
+		Initialize();
+	}
+}
 
 
-			std::cout << "X: " << shared->touchPosition.x << " Y: " << shared->touchPosition.y << "\n";
+void CalibrationClass::End() {
 
-			// Check if calibration complete
-			if ( shared->TASK_REP_NUMBER <= 4 ) {
-				shared->touchDetected = 0;
-				StartCalibration();
-			} else if ( shared->TASK_REP_NUMBER == 5 ) {
-				shared->touchDetected		= 0;
-				shared->calibrationComplete = true;
-				FinishCalibration();
+	if ( !outputCreated ) {
 
-				// Update flag
-				shared->TASK_COMPLETE = true;
+		std::cout << shared->TASK_REP_NUMBER << "!!!/n";
+		// Update console
+		shared->displayString = "CalibrationClass: Calibration complete!";
 
-			} else {
+		// Clear matc
+		matCalibration = CONFIG_colWhite;
 
-				// Check if window is loaded before destroying
-				cv::imshow( winCalibration, 0 );
-				std::cout << "Closing";
+		// Copy to target window
+		cv::rectangle( matCalibration, cv::Point2i( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) - ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) - ( matAruco.rows / 2 ) ),
+					   cv::Point2i( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) + ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) + ( matAruco.rows / 2 ) ), CONFIG_colGreMd, 4 );
+		matAruco.copyTo( matCalibration( cv::Rect( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) - ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) - ( matAruco.rows / 2 ), matAruco.cols, matAruco.rows ) ) );
 
-				// Reset flags
-				shared->TASK_RUNNING		 = false;
-				shared->TASK_NAME			 = "";
-				shared->targetActiveID		 = 0;
-				shared->FLAG_LOGGING_STARTED = false;
+		// Only attempt if enough data points were collected
+		if ( calibrationPoints.size() == 5 ) {
+
+			// Iterate over points
+			for ( int i = 0; i < calibrationPoints.size(); i++ ) {
+
+				// Extract point
+				cv::Point3i touchPoint = calibrationPoints[i] + cv::Point3i( CONFIG_TOUCHSCREEN_CENTER.x, CONFIG_TOUCHSCREEN_CENTER.y, 0 );
+
+				// Draw marker at touched point
+				cv::circle( matCalibration, cv::Point2i( touchPoint.x, touchPoint.y ), 10, CONFIG_colBluLt, -1 );
+
+				// Add to running average
+				// shared->calibrationOffsetPX = shared->calibrationOffsetPX + calibrationPoints[i];
+				runningAverage += cv::Point3f( touchPoint );
 			}
+
+			// Calc average
+			cv::Point3f avg = runningAverage / static_cast<float>( calibrationPoints.size() );
+
+			// Calculate average
+			shared->calibrationOffsetPX	  = avg;
+			shared->calibrationOffsetMM	  = cv::Point3i( shared->calibrationOffsetPX.x - CONFIG_TOUCHSCREEN_CENTER.x, shared->calibrationOffsetPX.y - CONFIG_TOUCHSCREEN_CENTER.y, 0 ) * PX2MM;
+			shared->calibrationOffsetMM.z = int ( std::accumulate( calibrationZPoints.begin(), calibrationZPoints.end(), 0 ) / 5.0f);
+			shared->calibrationOffsetPX.z = shared->calibrationOffsetMM.z * MM2PX;
+
+			// Draw lines to touch point
+			cv::line( matCalibration, CONFIG_TOUCHSCREEN_CENTER, cv::Point2i( shared->calibrationOffsetPX.x, shared->calibrationOffsetPX.y ), CONFIG_colVioLt, 2 );
+			cv::line( matCalibration, CONFIG_TOUCHSCREEN_CENTER, cv::Point2i( shared->calibrationOffsetPX.x, ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) ), CONFIG_colRedMd, 2 );
+			cv::line( matCalibration, cv::Point2i( shared->calibrationOffsetPX.x, ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) ), cv::Point2i( shared->calibrationOffsetPX.x, shared->calibrationOffsetPX.y ), CONFIG_colGreMd, 2 );
+
+			// Draw circle at offset
+			cv::circle( matCalibration, cv::Point2i( shared->calibrationOffsetPX.x , shared->calibrationOffsetPX.y ), 20, CONFIG_colBluMd, 2 );
+
+			// Debug
+			// std::cout << "Avg: " << std::to_string( shared->calibrationOffsetMM.x ) << " , " << std::to_string( shared->calibrationOffsetMM.y ) << std::to_string( shared->calibrationOffsetMM.z ) << "\n";
+
+			// Completion text
+			std::string line0 = "Calibration complete!";
+			std::string line1 = "Averaged Error [px] X: " + std::to_string( int( shared->calibrationOffsetMM.x * MM2PX ) ) + "px   Y: " + std::to_string( int( shared->calibrationOffsetMM.y * MM2PX ) ) + "px   Z: " + std::to_string( int( shared->calibrationOffsetMM.z * MM2PX ) )
+				+ "px   |R|: " + std::to_string( int( cv::norm( shared->calibrationOffsetMM ) * MM2PX ) ) + "px ";
+			;
+			std::string line2 = "Averaged Error [mm] X: " + std::to_string( int( shared->calibrationOffsetMM.x ) ) + "mm   Y: " + std::to_string( int( shared->calibrationOffsetMM.y ) ) + "mm   Z: " + std::to_string( int( shared->calibrationOffsetMM.z ) )
+				+ "mm   |R|: " + std::to_string( int( cv::norm( shared->calibrationOffsetMM ) ) ) + "mm";
+			std::string line3 = "Calibration values saved! Touch screen again to close calibration.";
+			cv::putText( matCalibration, line0, cv::Point( 10, 30 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
+			cv::putText( matCalibration, line1, cv::Point( 10, 60 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
+			cv::putText( matCalibration, line2, cv::Point( 10, 90 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
+			cv::putText( matCalibration, line3, cv::Point( 10, 120 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colRedMd, 2 );
+
+			// Show updated image
+			cv::imshow( winCalibration, matCalibration );
+
+			if ( !shared->calibrationComplete ) {
+				// Save image
+				std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
+				shared->displayString	  = "Saving file " + imageFilename;
+				cv::imwrite( imageFilename, matCalibration );
+				std::cout << "CalibrationClass:  Image saved at " << imageFilename << "\n";
+
+				shared->calibrationComplete = true;
+			}
+
+
+			// Save data to logging variables
+			shared->loggingVariable1 = std::to_string( shared->calibrationOffsetMM.x );
+			shared->loggingVariable2 = std::to_string( shared->calibrationOffsetMM.y );
+			shared->loggingVariable3 = std::to_string( shared->calibrationOffsetMM.z );
+
+
+
+			// Update flag
+			outputCreated = true;
+
+			// Run again to wait for touch and close
+			// Update();
+
+
+			// shared->TASK_RUNNING = false;
+			// shared->TASK_NAME	 = "";
 		}
 	}
-}
-
-
-
-/**
- * @brief Finish calibration
- */
-void CalibrationClass::FinishCalibration() {
-
-	// Update console
-	shared->displayString = "CalibrationClass: Calibration complete!";
-
-	// Clear matc
-	matCalibration = CONFIG_colWhite;
-
-	// Copy to target window
-	cv::rectangle( matCalibration, cv::Point2i( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) - ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) - ( matAruco.rows / 2 ) ), cv::Point2i( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) + ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) + ( matAruco.rows / 2 ) ),
-				   CONFIG_colGreMd, 4 );
-	matAruco.copyTo( matCalibration( cv::Rect( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) - ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) - ( matAruco.rows / 2 ), matAruco.cols, matAruco.rows ) ) );
-
-
-	// Draw target on touchscreen
-	// cv::circle( matCalibration, cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2 ), 2.5 * MM2PX, CONFIG_colGreMd, -1 );
-
-
-	// Loop over touched points
-	for ( int i = 0; i < calibrationPoints.size(); i++ ) {
-
-		// Extract point
-		cv::Point3i touchPoint = calibrationPoints[i] + cv::Point3i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2, 0 );
-
-		// Draw circle at touch point
-		cv::circle( matCalibration, cv::Point2i( touchPoint.x, touchPoint.y ), 10, CONFIG_colBluLt, -1 );
-
-		// Add to running average
-		shared->calibrationOffsetMM = shared->calibrationOffsetMM + ( calibrationPoints[i] * PX2MM );
-
-		// Debug
-		std::cout << i << ": " << calibrationPoints[i].x << " , " << calibrationPoints[i].y << " , " << calibrationZPoints[i] << "\n";
-	}
-
-	// Calculate average
-	shared->calibrationOffsetMM	  = ( shared->calibrationOffsetMM / 5.0f );
-	shared->calibrationOffsetMM.z = std::accumulate( calibrationZPoints.begin(), calibrationZPoints.end(), 0 ) / 5.0f;
-
-
-	// Draw lines to touch point
-	cv::line( matCalibration, cv::Point2i( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) ), cv::Point2i( shared->calibrationOffsetMM.x * MM2PX + ( CONFIG_TOUCHSCREEN_WIDTH / 2 ), shared->calibrationOffsetMM.y * MM2PX + ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) ), CONFIG_colVioLt, 2 );
-	cv::line( matCalibration, cv::Point2i( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) ), cv::Point2i( shared->calibrationOffsetMM.x * MM2PX + ( CONFIG_TOUCHSCREEN_WIDTH / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) ), CONFIG_colRedMd, 2 );
-	cv::line( matCalibration, cv::Point2i( shared->calibrationOffsetMM.x * MM2PX + ( CONFIG_TOUCHSCREEN_WIDTH / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) ),
-			  cv::Point2i( shared->calibrationOffsetMM.x * MM2PX + ( CONFIG_TOUCHSCREEN_WIDTH / 2 ), shared->calibrationOffsetMM.y * MM2PX + ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) ), CONFIG_colGreMd, 2 );
-
-	// Draw circle at offset
-	cv::circle( matCalibration, cv::Point2i( shared->calibrationOffsetMM.x * MM2PX + ( CONFIG_TOUCHSCREEN_WIDTH / 2 ), shared->calibrationOffsetMM.y * MM2PX + ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) ), 20, CONFIG_colBluMd, 2 );
-
-	std::cout << "Avg: " << std::to_string( shared->calibrationOffsetMM.x ) << " , " << std::to_string( shared->calibrationOffsetMM.y ) << std::to_string( shared->calibrationOffsetMM.z ) << "\n";
-
-	// Completion text
-	std::string line0 = "Calibration complete!";
-	std::string line1 = "Averaged Error [px] X: " + std::to_string( int( shared->calibrationOffsetMM.x * MM2PX ) ) + "px   Y: " + std::to_string( int( shared->calibrationOffsetMM.y * MM2PX ) ) + "px   Z: " + std::to_string( int( shared->calibrationOffsetMM.z * MM2PX ) )
-		+ "px   |R|: " + std::to_string( int( cv::norm( shared->calibrationOffsetMM ) * MM2PX ) ) + "px ";
-	;
-	std::string line2 = "Averaged Error [mm] X: " + std::to_string( int( shared->calibrationOffsetMM.x ) ) + "mm   Y: " + std::to_string( int( shared->calibrationOffsetMM.y ) ) + "mm   Z: " + std::to_string( int( shared->calibrationOffsetMM.z ) )
-		+ "mm   |R|: " + std::to_string( int( cv::norm( shared->calibrationOffsetMM ) ) ) + "mm";
-	std::string line3 = "Calibration values saved! Touch screen again to close calibration.";
-	cv::putText( matCalibration, line0, cv::Point( 10, 30 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
-	cv::putText( matCalibration, line1, cv::Point( 10, 60 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
-	cv::putText( matCalibration, line2, cv::Point( 10, 90 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
-	cv::putText( matCalibration, line3, cv::Point( 10, 120 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colRedMd, 2 );
-
-	// Show updated image
-	cv::imshow( winCalibration, matCalibration );
-
-	// Save image
-	if ( shared->FLAG_LOGGING_ENABLED ) {
-		std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
-		shared->displayString	  = "Saving file " + imageFilename;
-		cv::imwrite( imageFilename, matCalibration );
-		std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
-	}
-
-	// Update and remove task
-	calibrationPoints.clear();
-	calibrationZPoints.clear();
-}
-
-
-void CalibrationClass::InitializeCalibration() {
-
-
-	cv::resizeWindow( "Calibration Window", CONFIG_TOUCHSCREEN_WIDTH, CONFIG_TOUCHSCREEN_HEIGHT );
-	// cv::setWindowProperty( "Calibration Window", cv::WindowPropertyFlags::WND_PROP_TOPMOST, 1.0 );
-	cv::moveWindow( "Calibration Window", 3440, 0 );
-	// cv::setWindowProperty( "Calibration Window", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN );
 }

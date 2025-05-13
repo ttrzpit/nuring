@@ -67,7 +67,7 @@ void LoggingClass::Save() {
 	file.close();
 
 	// Update flag
-	shared->FLAG_LOGGING_STARTED = false;
+	// shared->FLAG_LOGGING_STARTED = false;
 }
 
 
@@ -78,8 +78,8 @@ void LoggingClass::Initialize() {
 	logFile.clear();
 
 	// Update new file name
-	shared->loggingFilename = "p" + PadValues( shared->TASK_USER_ID, 3 ) + "_t" + shared->TASK_NAME + "_r" + std::to_string( shared->TASK_REP_NUMBER );
-	shared->displayString	= "LoggingClass: Filename initialized as " + shared->loggingFilename;
+	shared->loggingFilename = "p" + PadValues( shared->TASK_USER_ID, 3 ) + "_t" + shared->TASK_NAME + "_r" + std::to_string( shared->TASK_REP_NUMBER ) + shared->loggingTimestamp;
+	shared->displayString	= "LoggingClass: Filename = " + shared->loggingFilename;
 }
 
 

@@ -47,6 +47,9 @@ std::string BuildPacketAngularError();
 void		UpdateState();
 void		SendSerialPacket();
 void		BuildSerialPacket();
+
+
+
 /**
  * @brief Main program loop
  * 
@@ -55,7 +58,7 @@ void		BuildSerialPacket();
 int main() {
 
 	// Settings
-	shared->FLAG_LOGGING_ENABLED = false;
+	shared->FLAG_LOGGING_ENABLED = true;
 	shared->TASK_USER_ID		 = 000;
 	shared->targetActiveID		 = 1;
 
@@ -69,9 +72,6 @@ int main() {
 
 	// Status update
 	std::cout << "\nMain:         Program running...\n\n";
-
-	// Initialize controller
-	// Controller.Initialize();
 
 	// Start timer for measuring loop frequency
 	Timing.StartTimer();
@@ -97,17 +97,19 @@ int main() {
 		// Detect ArUco tags
 		Aruco.FindTags();
 
+		// Task selector
+		if ( shared->TASK_NAME == "FITTS" ) {
+			TaskFitts();
+		} else if ( shared->TASK_NAME == "CALIB" ) {
+			TaskCalibrate();
+		}
+
+
 		// Update system state
 		if ( shared->FLAG_TARGET_FOUND ) {
 			UpdateState();
 		}
 
-		// Task selector
-		if ( shared->TASK_NAME == "FITTS" ) {
-			TaskFitts();
-		} else if ( shared->TASK_NAME == "CALIBRATE" ) {
-			TaskCalibrate();
-		}
 
 		// Update controller
 		Controller.Update();
@@ -121,7 +123,7 @@ int main() {
 		// Build serial packet
 		BuildSerialPacket();
 
-		// Send serial packet
+		// Send outgoing serial packet
 		if ( shared->FLAG_SERIAL0_OPEN && shared->FLAG_SERIAL0_ENABLED ) {
 			Serial.Send( shared->serialPacket0 );
 			// std::cout << shared->serialPacket0 << "\n";
@@ -142,13 +144,12 @@ int main() {
 			shared->TASK_COMPLETE = false;
 		}
 
+		// Update shutdown flags for clean shutdown
 		if ( shared->FLAG_SHUTTING_DOWN ) {
 			shared->serialPacket0		= "DX\n";
 			shared->FLAG_PACKET_WAITING = true;
 			shared->FLAG_MAIN_RUNNING	= false;
 		}
-
-		// std::cout << shared->touchPosition.x << " , " << shared->touchPosition.y << " | " << shared->touchPosition.z << "\n";
 	}
 	cv::destroyAllWindows();
 	return 0;
@@ -171,40 +172,113 @@ void SignalHandler( int signum ) {
  */
 void TaskCalibrate() {
 
-
-	// Initialize logging file and update entries
-	if ( shared->FLAG_LOGGING_ENABLED && !shared->FLAG_LOGGING_STARTED && shared->TASK_RUNNING ) {
-
-		// Customize header
-		shared->loggingHeader1 = "UserOffsetX";
-		shared->loggingHeader2 = "UserOffsetY";
-		shared->loggingHeader3 = "UserOffsetZ";
-
-		// Initialize and add initial entry
-		Logging.Initialize();
-		Logging.AddEntry();
-		shared->FLAG_LOGGING_STARTED = true;
-	}
-
+	// Task hasn't been started yet
 	if ( !shared->TASK_RUNNING ) {
-		shared->calibrationComplete = false;
-		shared->calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
-		shared->TASK_REP_NUMBER		= 0;
-		shared->TASK_RUNNING		= true;
-		shared->targetActiveID		= 8;
-		Calibration.InitializeCalibration();
-		Calibration.StartCalibration();
-	} else {
 
-		// Update calibration
-		Calibration.Update();
+		// Initialize prior to starting logging
+		if ( !shared->FLAG_LOGGING_STARTED ) {
 
-		// Update
-		shared->loggingVariable1 = std::to_string( shared->calibrationOffsetMM.x );
-		shared->loggingVariable2 = std::to_string( shared->calibrationOffsetMM.y );
-		shared->loggingVariable3 = std::to_string( shared->calibrationOffsetMM.z );
-		Logging.AddEntry();
+			// Disable amplifiers for safety
+			shared->FLAG_AMPLIFIERS_ENABLED = false;
+
+			shared->targetActiveID = 8;
+
+			// Customize logging header
+			shared->loggingHeader1 = "UserOffsetX";
+			shared->loggingHeader2 = "UserOffsetY";
+			shared->loggingHeader3 = "UserOffsetZ";
+
+			// Initialize needed items before starting task
+			Timing.GetTimestamp();
+			Logging.Initialize();
+
+			// Update logging flag
+			shared->FLAG_LOGGING_STARTED = true;
+
+
+
+		} else {	// Logging started
+
+			// Clear values
+			shared->TASK_REP_NUMBER		= 0;
+			shared->calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
+
+			// Initialize task
+			Calibration.Initialize();
+
+			// Update
+			shared->TASK_RUNNING = true;
+		}
+
+	} else {	// Task running
+
+		// Run task if not complete
+		if ( shared->TASK_REP_NUMBER < 5 ) {
+
+			Calibration.Update();
+
+		} else if ( shared->TASK_REP_NUMBER == 5 ) {	// Task complete
+
+			// End calibration and dave data
+			Calibration.End();
+			Calibration.Update();
+
+		} else {
+
+			Logging.AddEntry();
+			Logging.Save();
+			shared->TASK_NAME			 = "";
+			shared->FLAG_LOGGING_STARTED = false;
+			shared->TASK_RUNNING		 = false;
+			shared->calibrationComplete	 = true;
+			Calibration.Close();
+		}
 	}
+
+
+
+	// // Initialize logging file and update entries
+	// if ( shared->FLAG_LOGGING_ENABLED && !shared->FLAG_LOGGING_STARTED && shared->TASK_RUNNING ) {
+
+	// 	// Customize header
+	// 	shared->loggingHeader1 = "UserOffsetX";
+	// 	shared->loggingHeader2 = "UserOffsetY";
+	// 	shared->loggingHeader3 = "UserOffsetZ";
+
+	// 	// Disable output for safety
+	// 	shared->FLAG_AMPLIFIERS_ENABLED = false;
+	// 	// shared->FLAG_SERIAL0_ENABLED	= false;
+	// 	// shared->FLAG_SERIAL1_ENABLED	= false;
+
+	// 	// Initialize and add initial entry
+	// 	Timing.GetTimestamp();
+	// 	Logging.Initialize();
+	// 	shared->FLAG_LOGGING_STARTED = true;
+
+	// } else if ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) {
+	// 	Logging.AddEntry();
+	// }
+
+	// if ( !shared->TASK_RUNNING ) {
+
+	// 	shared->calibrationComplete = false;
+	// 	shared->calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
+	// 	shared->TASK_REP_NUMBER		= 0;
+	// 	shared->TASK_RUNNING		= true;
+	// 	shared->targetActiveID		= 8;
+	// 	Calibration.InitializeCalibration();
+	// 	Calibration.StartCalibration();
+	// } else {
+
+	// 	// Update calibration
+	// 	Calibration.Update();
+
+	// 	// Update
+	// 	// shared->loggingVariable1 = std::to_string( shared->calibrationOffsetMM.x );
+	// 	// shared->loggingVariable2 = std::to_string( shared->calibrationOffsetMM.y );
+	// 	// shared->loggingVariable3 = std::to_string( shared->calibrationOffsetMM.z );
+	// 	// Logging.AddEntry();
+	// }
 }
 
 
@@ -222,6 +296,7 @@ void TaskFitts() {
 		shared->loggingHeader3 = "Encoder";
 
 		// Initialize and add initial entry
+		Timing.GetTimestamp();
 		Logging.Initialize();
 		Logging.AddEntry();
 		shared->FLAG_LOGGING_STARTED = true;
@@ -236,11 +311,13 @@ void TaskFitts() {
 
 	// Run task
 	if ( !shared->TASK_RUNNING ) {
+
 		shared->TASK_RUNNING   = true;
 		shared->TASK_COMPLETE  = false;
 		shared->targetActiveID = 1;
 		Fitts.StartTest( 'x' );
 	} else {
+
 		Fitts.Update();
 	}
 }

@@ -33,7 +33,7 @@ inline constexpr unsigned short CONFIG_DIS_ANGLE_WIDTH	   = 820;	  // 20
 inline constexpr unsigned short CONFIG_DIS_ANGLE_HEIGHT	   = 1125;	  // 20
 inline constexpr unsigned short CONFIG_FIELD_WIDTH_PX	   = 802;	  // 20
 inline constexpr unsigned short CONFIG_FIELD_LENGTH_PX	   = 510;	  // 1110
-
+inline const cv::Point2i		CONFIG_TOUCHSCREEN_CENTER  = cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2 );
 // Camera intrinsic parameters
 inline constexpr unsigned short CONFIG_CAM_WIDTH	   = 1600;
 inline constexpr unsigned short CONFIG_CAM_HEIGHT	   = 1200;

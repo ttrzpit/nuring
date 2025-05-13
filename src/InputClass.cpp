@@ -194,7 +194,9 @@ void InputClass::ParseInput( int key ) {
 			shared->displayString = "InputClass: Resetting visualization trails.";
 			break;
 		case 99:	// 'c'
-			shared->TASK_NAME = "CALIBRATE";
+			// shared->targetActiveID = 8;
+			shared->TASK_NAME = "CALIB";
+
 			// shared->TASK_RUNNING  = true;
 			shared->calibrationComplete = false;
 			shared->displayString		= "InputClass: Starting calibration.";

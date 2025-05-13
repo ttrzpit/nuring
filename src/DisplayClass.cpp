@@ -270,6 +270,11 @@ void DisplayClass::AddText() {
 	DrawCell( std::to_string( int( shared->controllerPWM.y ) ), "AC5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( int( shared->controllerPWM.z ) ), "AC6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
+	// Teensy
+	DrawCell( "Teensy Status", "V7", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( ( shared->FLAG_SERIAL0_ENABLED && shared->teensySerialResponding ) ? "Serial Connected" : "Serial Disconnected", "Y7", 3, 1, fontBody, CONFIG_colWhite, ( ( shared->FLAG_SERIAL0_ENABLED && shared->teensySerialResponding ) ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
+	DrawCell( ( shared->teensyAmplifierEnabled ? "Amplifiers On" : "Amplifiers Off" ), "AB7", 3, 1, fontBody, CONFIG_colWhite, ( shared->teensyAmplifierEnabled ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
+
 	// Motor Output Block
 	cv::Point2i center( 960 + 64, 1221 + 66 );
 	cv::rectangle( shared->matFrameOverlay, cv::Rect2i( cv::Point2i( 960, 1221 ), cv::Point2i( 1089, 1354 ) ), CONFIG_colWhite, 1 );
@@ -296,15 +301,19 @@ void DisplayClass::AddText() {
 	cv::circle( shared->matFrameOverlay, center, 60, ( shared->FLAG_AMPLIFIERS_ENABLED ? CONFIG_colGreDk : CONFIG_colGraDk ), 1 );
 	cv::circle( shared->matFrameOverlay, center, ( shared->FLAG_AMPLIFIERS_ENABLED ? 6 : 2 ), ( shared->FLAG_AMPLIFIERS_ENABLED ? CONFIG_colGreDk : CONFIG_colGraDk ), -1 );
 
-	// // Status block
-	DrawCell( "System Status", "AI5", 12, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( shared->displayString, "AI6", 12, 2, fontBody * 2, CONFIG_colWhite, CONFIG_colBlack, true );
+	// Calibration Block
+	DrawCell( "Calibration", "AI1", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawCell( "X [mm]", "AI2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( int( shared->calibrationOffsetMM.x ) ), "AK2", 1, 1, fontBody, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
+	DrawCell( "Y [mm]", "AI3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( int( shared->calibrationOffsetMM.y ) ), "AK3", 1, 1, fontBody, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
+	DrawCell( "Z [mm]", "AI4", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( int( shared->calibrationOffsetMM.z ) ), "AK4", 1, 1, fontBody, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
 
-	DrawCell( "Teensy Status", "AU5", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( "Serial", "AU6", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( shared->FLAG_SERIAL0_ENABLED && shared->teensySerialResponding ) ? "Connected" : "Disabled", "AU7", 2, 1, fontHeader, CONFIG_colWhite, ( ( shared->FLAG_SERIAL0_ENABLED && shared->teensySerialResponding ) ? CONFIG_colGreDk : CONFIG_colRedDk ), true );
-	DrawCell( "Amplifiers", "AW6", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( shared->teensyAmplifierEnabled ? "Enabled" : "Disabled" ), "AW7", 2, 1, fontHeader, CONFIG_colWhite, ( shared->teensyAmplifierEnabled ? CONFIG_colGreDk : CONFIG_colRedDk ), true );
+
+	// // Status block
+	DrawCell( "System Status", "AI5", 16, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawCell( shared->displayString, "AI6", 16, 2, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, true );
 }
 
 /**
