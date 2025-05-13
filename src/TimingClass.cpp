@@ -37,12 +37,13 @@ void TimingClass::UpdateTimer() {
 	currentTime = std::chrono::steady_clock::now();
 
 	// Get elapsed time
-	elapsedTime = currentTime - previousTime;
+	elapsedTime				= currentTime - previousTime;
+	shared->timingTimestamp = elapsedTime.count();
 
-	if ( TASK_TIMER_STARTED ) {
-		taskTimeElapsed			= currentTime - taskTimeStart;
-		shared->timingTimestamp = taskTimeElapsed.count();
-	}
+	// if ( TASK_TIMER_STARTED ) {
+	// taskTimeElapsed			= currentTime - taskTimeStart;
+
+	// }
 
 	// Check if 1 second has passed
 	if ( elapsedTime.count() >= 1.0 ) {

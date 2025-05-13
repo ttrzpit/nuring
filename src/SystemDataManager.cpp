@@ -90,3 +90,22 @@ cv::Point2f ManagedData::GetDelta2D( cv::Point2f pt1, cv::Point2f pt2 ) {
 cv::Point3f ManagedData::GetDelta3D( cv::Point3f pt1, cv::Point3f pt2 ) {
 	return ( pt1 - pt2 );
 }
+
+
+
+/**
+ * @brief Formats a float and returns it as xx.yyy in string format
+ * 
+ * @param x Input float
+ * @return std::string Formatted text string
+ */
+std::string ManagedData::FormatDecimal( float x, uint8_t d ) {
+
+	// Build new string
+	std::ostringstream oss;
+
+	// Format string
+	oss << std::setfill( '0' ) << std::setw( 5 ) << std::fixed << std::setprecision( d ) << x;
+
+	return oss.str();
+}

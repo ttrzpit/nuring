@@ -21,7 +21,7 @@ inline constexpr unsigned short CONFIG_DIS_WIDTH		   = 1600;
 inline constexpr unsigned short CONFIG_DIS_HEIGHT		   = 1360;
 inline constexpr unsigned short CONFIG_DIS_KEY_WIDTH	   = 301;
 inline constexpr unsigned short CONFIG_DIS_KEY_HEIGHT	   = 1360;
-inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH	   = 40;
+inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH	   = 32;
 inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT	   = 22;	  // 20
 inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 50;	  // 20
 inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 30;	  // 20
@@ -33,7 +33,6 @@ inline constexpr unsigned short CONFIG_DIS_ANGLE_WIDTH	   = 820;	  // 20
 inline constexpr unsigned short CONFIG_DIS_ANGLE_HEIGHT	   = 1125;	  // 20
 inline constexpr unsigned short CONFIG_FIELD_WIDTH_PX	   = 802;	  // 20
 inline constexpr unsigned short CONFIG_FIELD_LENGTH_PX	   = 510;	  // 1110
-
 
 // Camera intrinsic parameters
 inline constexpr unsigned short CONFIG_CAM_WIDTH	   = 1600;
@@ -137,7 +136,8 @@ inline constexpr unsigned short CONFIG_FITTS_MARKER_SIZE		   = CONFIG_MARKER_WID
 inline constexpr unsigned short CONFIG_FITTS_SCREEN_WIDTH		   = 1920;
 inline constexpr unsigned short CONFIG_FITTS_SCREEN_HEIGHT		   = 1080;
 
-
+// Pulley
+inline constexpr unsigned short CONFIG_PULLEY_RADIUS = 2.5;	   // [mm]
 
 // // Available Resolutions @ 90Hz
 // // Resolution   1920x1080   1920x1200   1600x1200   1280x960    1280x720    1024x768    960x720     800x600

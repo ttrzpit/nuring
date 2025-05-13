@@ -51,8 +51,8 @@ private:
 	std::vector<int>					  arucoDetectedIDs;												// Collection of IDs detected
 	// cv::Vec3d							  arucoRotationVector	  = cv::Vec3d( 0, 0, 0 );				// Rotation vector
 	// cv::Vec3d							  arucoTranslationVector  = cv::Vec3d( 0, 0, 0 );				// Translation vector
-	bool								  arucoDetected			  = false;								// Is there a tag detected
-	uint8_t								  arucoActiveID			  = 0;									// ID of desired tag
+	// bool								  arucoDetected			  = false;								// Is there a tag detected
+	// uint8_t								  arucoActiveID			  = 0;									// ID of desired tag
 	cv::Point3f							  arucoPositionError3dNew = cv::Point3f( 0.0f, 0.0f, 0.0f );	// [mm] New raw position of tag relative to camera
 	cv::Point2i							  arucoPositionError2d	  = cv::Point2i( 0, 0 );				// [px] Position of tag relative to camera
 	std::vector<std::vector<cv::Point2f>> arucoCorners, arucoRejects;

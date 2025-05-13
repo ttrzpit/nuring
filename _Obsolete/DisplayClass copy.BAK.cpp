@@ -254,7 +254,7 @@ void DisplayClass::AddText() {
 
 	// Status blocks
 	DrawCell( "Amplifiers", "AG1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( shared->FLAG_AMPLIFIERS_READY ? "Online" : "Offline" ), "AG2", 2, 2, fontBody, CONFIG_colWhite, ( shared->FLAG_AMPLIFIERS_READY ? CONFIG_colGreDk : CONFIG_colRedBk ), true );
+	DrawCell( ( shared->FLAG_AMPLIFIERS_ENABLED ? "Online" : "Offline" ), "AG2", 2, 2, fontBody, CONFIG_colWhite, ( shared->FLAG_AMPLIFIERS_ENABLED ? CONFIG_colGreDk : CONFIG_colRedBk ), true );
 	DrawCell( "Frequency", "AG4", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( shared->timingFrequency ) + " Hz", "AG5", 2, 2, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, true );
 

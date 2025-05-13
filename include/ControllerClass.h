@@ -11,6 +11,7 @@ class ControllerClass {
 public:
 	ControllerClass( SystemDataManager& ctx );
 
+	void Update() ; 
 	// void Initialize();
 	// void RunRecedingHorizon();
 
@@ -25,9 +26,9 @@ private:
 	// cv::Point2f thetaDesired;
 	// cv::Point2f thetaDotDesired;
 
-	// float		radius				= 0.005f;							  // Pulley radius in [m]
-	// float		torqueConstant		= 14.4f;							  // Motor torque constant [nM*m/A]
-	// float		nominalCurrent		= 1.89f;							  // Motor nominal current
+	float		radius				= 0.005f;							  // Pulley radius in [m]
+	float		torqueConstant		= 14.4f;							  // Motor torque constant [nM*m/A]
+	float		nominalCurrent		= 1.89f;							  // Motor nominal current
 	// cv::Point3f commandedCurrent	= cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Commanded current
 	// cv::Point3i commandedPWM		= cv::Point3i( 0, 0, 0 );			  // Commanded PWM values
 	// cv::Point3f commandedPercentage = cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Commanded percentage values

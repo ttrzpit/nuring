@@ -32,7 +32,8 @@ public:
 	cv::Point3f GetPosition() const;											// Get filtered position
 	cv::Point3f GetVelocity() const;											// Get filtered velocity
 	cv::Point2f GetAngle() const;												// Get filtered angle
-	cv::Point2f GetAnglularVelocity() const;										// Get filtered angular velocity
+	cv::Point2f GetAnglularVelocity() const;									// Get filtered angular velocity
+	
 
 private:
 	// Data manager handle

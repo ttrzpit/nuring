@@ -8,6 +8,28 @@ ControllerClass::ControllerClass( SystemDataManager& ctx )
 }
 
 
+void ControllerClass::Update() {
+
+	// Calculate controller values based on error & gains
+	shared->controllerXYProportional = cv::Point2f( shared->controllerKp.x * ( shared->targetAngleNew.x ), shared->controllerKp.y * ( shared->targetAngleNew.y ) );
+	shared->controllerXYDerivative	 = cv::Point2f( shared->controllerKd.x * ( shared->targetAnglularVelocityNew.x ), shared->controllerKd.y * ( shared->targetAnglularVelocityNew.y ) );
+	shared->controllerXYTotal		 = shared->controllerXYProportional + shared->controllerXYDerivative;
+
+	// Map to motor values
+	shared->controllerTorqueABC.x = std::max( ( shared->controllerXYTotal.x * COS35 ) + ( shared->controllerXYTotal.y * SIN35 ), 0.0 );
+	shared->controllerTorqueABC.y = std::max( ( shared->controllerXYTotal.x * COS145 ) + ( shared->controllerXYTotal.y * SIN145 ), 0.0 );
+	shared->controllerTorqueABC.z = std::max( ( shared->controllerXYTotal.y * SIN270 ), 0.0 );
+
+	// Add tension component and map to current
+	shared->controllerCurrent	 = ( shared->controllerTension + shared->controllerTorqueABC ) / 14.4;
+	shared->controllerPercentage = shared->controllerCurrent / nominalCurrent;
+
+	// Map to PWM
+	shared->controllerPWM.x = std::clamp( 2048 - int( ( shared->controllerCurrent.x / nominalCurrent ) * 2047 ), 1, 2048 );
+	shared->controllerPWM.y = std::clamp( 2048 - int( ( shared->controllerCurrent.y / nominalCurrent ) * 2047 ), 1, 2048 );
+	shared->controllerPWM.z = std::clamp( 2048 - int( ( shared->controllerCurrent.z / nominalCurrent ) * 2047 ), 1, 2048 );
+}
+
 // void ControllerClass::Initialize() {
 // 	timeLastUpdate = shared->timingTimestamp;
 // 	UpdateThetaPlan();

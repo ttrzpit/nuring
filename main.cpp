@@ -45,7 +45,8 @@ void		TaskCalibrate();
 void		TaskFitts();
 std::string BuildPacketAngularError();
 void		UpdateState();
-
+void		SendSerialPacket();
+void		BuildSerialPacket();
 /**
  * @brief Main program loop
  * 
@@ -54,8 +55,9 @@ void		UpdateState();
 int main() {
 
 	// Settings
-	shared->FLAG_LOGGING_ENABLED = true;
+	shared->FLAG_LOGGING_ENABLED = false;
 	shared->TASK_USER_ID		 = 000;
+	shared->targetActiveID		 = 1;
 
 	// Optimization for C/C++ data types
 	std::ios_base::sync_with_stdio( false );
@@ -77,6 +79,9 @@ int main() {
 	// Add shortcut panel
 	Canvas.ShowShortcuts();
 
+	// Send initial command
+	Serial.Send( "E0A2048B2048C2048X" );
+
 	// Initialize kalman filter
 	Kalman.Initialize( cv::Point3f( 0.0f, 0.0f, 0.0f ), shared->timingTimestamp );
 
@@ -93,7 +98,9 @@ int main() {
 		Aruco.FindTags();
 
 		// Update system state
-		UpdateState();
+		if ( shared->FLAG_TARGET_FOUND ) {
+			UpdateState();
+		}
 
 		// Task selector
 		if ( shared->TASK_NAME == "FITTS" ) {
@@ -102,75 +109,31 @@ int main() {
 			TaskCalibrate();
 		}
 
+		// Update controller
+		Controller.Update();
+
 		// Parse any input and use OpenCV WaitKey()
 		Input.ParseInput( cv::pollKey() & 0xFF );
-
-
-		// Run controller
-		// Controller.RunHybridController();
-		// Controller.RunRecedingHorizon();
 
 		// Check touchscreen input
 		Touch.GetCursorPosition();
 
+		// Build serial packet
+		BuildSerialPacket();
+
+		// Send serial packet
+		if ( shared->FLAG_SERIAL0_OPEN && shared->FLAG_SERIAL0_ENABLED ) {
+			Serial.Send( shared->serialPacket0 );
+			// std::cout << shared->serialPacket0 << "\n";
+		}
+
 		// Check for new incoming serial packet
-		if ( shared->FLAG_SERIAL1_OPEN ) {
+		if ( shared->FLAG_SERIAL1_OPEN && shared->FLAG_SERIAL1_ENABLED ) {
 			Serial.CheckForPacket();
 		}
 
-
-
-		// Send serial commands
-		if ( shared->FLAG_SERIAL0_OPEN ) {	  // Check if serial port is open
-
-			// Check if serial is enabled and amplifiers are enabled
-			if ( shared->FLAG_SERIAL0_ENABLED ) {
-
-				if ( shared->FLAG_AMPLIFIERS_READY && shared->targetActiveID != 0 ) {
-
-					if ( shared->FLAG_TAG_FOUND ) {
-
-						// Build packet using angular error
-						shared->serialPacket0 = BuildPacketAngularError();
-						// std::cout << shared->serialPacket0 << "\n";
-
-						// // Format properly
-						// int8_t signX = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.x );
-						// int8_t signY = Serial.Sign( shared->arucoTags[shared->arucoActiveID].error3D.y );
-
-						// shared->serialPacket0 = "Ex" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.x ), 3 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.y ), 3 ) + "z"
-						// + Serial.PadValues( abs( shared->arucoTags[shared->arucoActiveID].error3D.z ), 3 ) + "X\n";
-					} else {
-						shared->serialPacket0 = "RoX\n";
-					}
-
-					// shared->serialPacket = "Ex" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.x, 3 ) + "y" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.y, 3 ) + "z" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].error3D.z, 3 ) + "X\n";
-
-					// shared->serialPacket = "EM" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorMagnitudeNorm2D, 3 ) + "H" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].errorTheta * RAD2DEG, 3 ) + "m"
-					// 	+ Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velMagnitude, 3 ) + "h" + Serial.PadValues( shared->arucoTags[shared->arucoActiveID].velHeading * RAD2DEG, 3 ) + "X\n";
-					shared->FLAG_PACKET_WAITING = true;
-				} else {
-					shared->serialPacket0		= "DX\n";
-					shared->FLAG_PACKET_WAITING = true;
-				}
-
-			} else {
-
-				shared->serialPacket0		= "DX\n";
-				shared->FLAG_PACKET_WAITING = true;
-			}
-
-			Serial.Monitor();
-		} else {
-			shared->serialPacket0 = "DX\n";
-			// shared->FLAG_PACKET_WAITING = true;
-		}
-
-
 		// Update display
 		Canvas.Update();
-
-
 
 		// Save logging file
 		if ( shared->TASK_COMPLETE ) {
@@ -178,7 +141,6 @@ int main() {
 			std::cout << "File saved!\n";
 			shared->TASK_COMPLETE = false;
 		}
-
 
 		if ( shared->FLAG_SHUTTING_DOWN ) {
 			shared->serialPacket0		= "DX\n";
@@ -302,7 +264,7 @@ std::string BuildPacketAngularError() {
 	// // shared->serialPacket0 = "Ex" + std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "y"
 	// // 	+ std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "X\n";
 
-	return "" ; 
+	return "";
 }
 
 
@@ -326,4 +288,12 @@ void UpdateState() {
 	shared->targetVelocity3dNew		  = Kalman.GetVelocity();
 	shared->targetAngleNew			  = Kalman.GetAngle();
 	shared->targetAnglularVelocityNew = Kalman.GetAnglularVelocity();
+}
+
+
+
+void BuildSerialPacket() {
+
+	// Build string
+	shared->serialPacket0 = std::string( "E" ) + ( shared->FLAG_AMPLIFIERS_ENABLED ? "1" : "0" ) + "A" + Serial.PadValues( shared->controllerPWM.x, 4 ) + "B" + Serial.PadValues( shared->controllerPWM.y, 4 ) + "C" + Serial.PadValues( shared->controllerPWM.z, 4 ) + "X";
 }

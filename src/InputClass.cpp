@@ -27,13 +27,13 @@ void InputClass::ParseInput( int key ) {
 
 		switch ( key ) {
 		case 27:	// ESC key 1048603
-			shared->FLAG_SERIAL0_ENABLED  = false;
-			shared->FLAG_AMPLIFIERS_READY = false;
-			shared->serialPacket0		  = "DX\n";
-			shared->FLAG_PACKET_WAITING	  = true;
-			shared->displayString		  = "InputClass: Shutting down...";
-			shared->FLAG_SERIAL0_ENABLED  = false;
-			shared->FLAG_SERIAL0_OPEN	  = false;
+			shared->FLAG_SERIAL0_ENABLED	= false;
+			shared->FLAG_AMPLIFIERS_ENABLED = false;
+			shared->serialPacket0			= "DX\n";
+			shared->FLAG_PACKET_WAITING		= true;
+			shared->displayString			= "InputClass: Shutting down...";
+			shared->FLAG_SERIAL0_ENABLED	= false;
+			shared->FLAG_SERIAL0_OPEN		= false;
 
 			shared->displayString = "InputClass: Stop key pressed, exiting.";
 			cv::destroyAllWindows();
@@ -44,36 +44,41 @@ void InputClass::ParseInput( int key ) {
 			break;
 		// case 177:	 // Numpad 1
 		case '1':	 // 1
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 1 ? "0." : "1." );
-			( shared->targetActiveID == 1 ? shared->targetActiveID = 0 : shared->targetActiveID = 1 );
+					 // shared->FLAG_TARGET_FOUND = false ;
+			shared->targetActiveID = 1;
+
+			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 1 ? "1." : "0." );
 			break;
 		// case 178:	 // Numpad 2
 		case '2':	 // 2
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 2 ? "0." : "2." );
-			( shared->targetActiveID == 2 ? shared->targetActiveID = 0 : shared->targetActiveID = 2 );
+			shared->targetActiveID = 2;
+			shared->displayString  = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 2 ? "2." : "0." );
 			break;
 		// case 179:	 // Numpad 3
 		case '3':	 // 3
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 3 ? "0." : "3." );
-			( shared->targetActiveID == 3 ? shared->targetActiveID = 0 : shared->targetActiveID = 3 );
+			shared->targetActiveID = 3;
+			shared->displayString  = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 3 ? "3." : "0." );
 			break;
 		// case 180:	 // Numpad 4
 		case '4':	 // 4
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 4 ? "0." : "4." );
-			( shared->targetActiveID == 4 ? shared->targetActiveID = 0 : shared->targetActiveID = 4 );
+			shared->targetActiveID = 4;
+			shared->displayString  = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 4 ? "4." : "0." );
 			break;
 		// case 181:	 // Numpad 5
 		case '5':	 // 5
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID== 5 ? "0." : "5." );
-			( shared->targetActiveID == 5 ? shared->targetActiveID = 0 : shared->targetActiveID = 5 );
+					 // shared->FLAG_TARGET_FOUND = false ;
+			shared->targetActiveID = 5;
+			shared->displayString  = "InputClass: Updated active marker to #" + std::string( shared->targetActiveID == 5 ? "5." : "0." );
+
 			break;
+
 		case '`':	 // ` (tilde)
-			shared->displayString = "InputClass: Disabling all active markers.";
+			shared->displayString  = "InputClass: Disabling all active markers.";
 			shared->targetActiveID = 0;
 			break;
-		case 'e':	 // E
-			shared->FLAG_AMPLIFIERS_READY = !shared->FLAG_AMPLIFIERS_READY;
-			if ( shared->FLAG_AMPLIFIERS_READY ) {
+		case 'a':	 // E
+			shared->FLAG_AMPLIFIERS_ENABLED = !shared->FLAG_AMPLIFIERS_ENABLED;
+			if ( shared->FLAG_AMPLIFIERS_ENABLED ) {
 				// shared->serialPacket		= "e\n";
 				// shared->FLAG_PACKET_WAITING = true;
 				shared->displayString = "InputClass: Amplifiers enabled.";
@@ -83,50 +88,107 @@ void InputClass::ParseInput( int key ) {
 				shared->displayString		= "InputClass: Amplifiers disabled.";
 			}
 			break;
-		case 's':	 // S
+		case 's': {	   // s
+			// Toggle serial flags
 			shared->FLAG_SERIAL0_ENABLED = !shared->FLAG_SERIAL0_ENABLED;
+			shared->FLAG_SERIAL1_ENABLED = !shared->FLAG_SERIAL1_ENABLED;
 			if ( shared->FLAG_SERIAL0_ENABLED ) {
-				shared->displayString		 = "InputClass: Enabling serial output.";
-				shared->FLAG_SERIAL0_ENABLED = true;
+				shared->displayString		   = "InputClass: Enabling serial IO.";
+				shared->FLAG_SERIAL0_ENABLED   = true;
+				shared->FLAG_SERIAL1_ENABLED   = true;
+				shared->teensyAmplifierEnabled = false;
 			} else {
-				shared->serialPacket0		 = "DX\n";
-				shared->FLAG_PACKET_WAITING	 = true;
-				shared->FLAG_SERIAL0_ENABLED = false;
-				shared->displayString		 = "InputClass: Disabling serial output.";
+				// shared->serialPacket0		 = "DX\n";
+				shared->FLAG_PACKET_WAITING	   = true;
+				shared->FLAG_SERIAL0_ENABLED   = false;
+				shared->FLAG_SERIAL1_ENABLED   = false;
+				shared->teensyAmplifierEnabled = false;
+				shared->displayString		   = "InputClass: Disabling serial IO.";
 			}
 			break;
+		}
 		case 'x':	 // X
 			shared->displayString = "InputClass: Software E-Stop Triggered. Amplifiers and serial output disabled.";
 			if ( shared->FLAG_SERIAL0_OPEN ) {
 				shared->serialPacket0		= "DX\n";
 				shared->FLAG_PACKET_WAITING = true;
 			}
-			shared->FLAG_AMPLIFIERS_READY = false;
+			shared->FLAG_AMPLIFIERS_ENABLED = false;
 			break;
 		case 'r':
-			// shared->fittsTestStarted = false;
-			// Fitts.StartTest();
-			// OutputDisplay.setStatusString( "Randomizing Fitts Test Marker." );
-			// 		}
-			// 	}
-			// }
+		// shared->fittsTestStarted = false;
+		// Fitts.StartTest();
+		// OutputDisplay.setStatusString( "Randomizing Fitts Test Marker." );
+		// 		}
+		// 	}
+		// }
+		case 111: {	   // 'o'
+			shared->controllerKp.x -= 2.0f;
+			shared->displayString = "InputClass: Decreasing Kp(x) to " + std::to_string( shared->controllerKp.x ) + ".";
+			break;
+		}
+		case 112:	 // 'p'
+			shared->controllerKp.x += 2.0f;
+			shared->displayString = "InputClass: Increasing Kp(x) to " + std::to_string( shared->controllerKp.x ) + ".";
+			break;
 		case 91: {	  // '['
-			shared->controllerKp.x -= 0.001;
-			shared->displayString = "InputClass: Decreasing K to " + std::to_string( shared->controllerKd.x ) + ".";
+			shared->controllerKp.y -= 2.0f;
+			shared->displayString = "InputClass: Decreasing Kp(y) to " + std::to_string( shared->controllerKp.y ) + ".";
 			break;
 		}
 		case 93:	// ']'
-			shared->controllerKp.x += 0.001;
-			shared->displayString = "InputClass: Increasing K to " + std::to_string( shared->controllerKd.x ) + ".";
+			shared->controllerKp.y += 2.0f;
+			shared->displayString = "InputClass: Increasing Kp(y) to " + std::to_string( shared->controllerKp.y ) + ".";
 			break;
+		case 109:	 // 'k'
+			shared->controllerKd.x -= 0.01;
+			shared->displayString = "InputClass: Decreasing Kd(x) to " + std::to_string( shared->controllerKd.x ) + ".";
+			break;
+		case 108:	 // 'l'
+			shared->controllerKd.x += 0.01;
+			shared->displayString = "InputClass: Increasing Kd(x) to " + std::to_string( shared->controllerKd.x ) + ".";
+			break;
+
 		case 59:	// ';'
-			shared->controllerKd.x -= 0.001;
-			shared->displayString = "InputClass: Decreasing B to " + std::to_string( shared->controllerKp.x ) + ".";
+			shared->controllerKd.y -= 0.01;
+			shared->displayString = "InputClass: Decreasing Kd(y) to " + std::to_string( shared->controllerKp.y ) + ".";
 			break;
 		case 39:	// '''
-			shared->controllerKd.x += 0.001;
-			shared->displayString = "InputClass: Increasing B to " + std::to_string( shared->controllerKp.x ) + ".";
+			shared->controllerKd.y += 0.01;
+			shared->displayString = "InputClass: Increasing Kd(y) to " + std::to_string( shared->controllerKp.y ) + ".";
 			break;
+
+		case 183:	 // numpad 7
+			shared->controllerTension.x += 0.2f;
+			shared->displayString = "InputClass: Increasing Tension A to " + shared->FormatDecimal( shared->controllerTension.x, 2 ) + ".";
+			break;
+		case 180:	 // numpad 4
+			if ( shared->controllerTension.x > 0.2 ) {
+				shared->controllerTension.x -= 0.2f;
+				shared->displayString = "InputClass: Decreasing Tension A to " + shared->FormatDecimal( shared->controllerTension.x, 2 ) + ".";
+			}
+			break;
+		case 184:	 // numpad 8
+			shared->controllerTension.y += 0.2f;
+			shared->displayString = "InputClass: Increasing Tension B to " + shared->FormatDecimal( shared->controllerTension.y, 2 ) + ".";
+			break;
+		case 181:	 // numpad 5
+			if ( shared->controllerTension.y > 0.2 ) {
+				shared->controllerTension.y -= 0.2f;
+				shared->displayString = "InputClass: Decreasing Tension B to " + shared->FormatDecimal( shared->controllerTension.y, 2 ) + ".";
+			}
+			break;
+		case 185:	 // numpad 9
+			shared->controllerTension.z += 0.2f;
+			shared->displayString = "InputClass: Increasing Tension C to " + shared->FormatDecimal( shared->controllerTension.z, 2 ) + ".";
+			break;
+		case 182:	 // numpad 6
+			if ( shared->controllerTension.z > 0.2 ) {
+				shared->controllerTension.z -= 0.2f;
+				shared->displayString = "InputClass: Decreasing Tension C to " + shared->FormatDecimal( shared->controllerTension.z, 2 ) + ".";
+			}
+			break;
+
 		case 122:	 // 'z'
 			shared->vizClear	  = true;
 			shared->displayString = "InputClass: Resetting visualization trails.";
