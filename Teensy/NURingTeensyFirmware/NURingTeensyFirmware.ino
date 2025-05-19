@@ -33,7 +33,7 @@ IntervalTimer IT_SERIAL;
 // Interval timer frequencies
 uint16_t FREQ_IT_AMPLIFIER = 1000;
 uint16_t FREQ_IT_ENCODER = 60;
-uint16_t FREQ_IT_SERIAL = 30;
+uint16_t FREQ_IT_SERIAL = 60;
 
 // System state identifier
 String SYSTEM_STATE = "WAITING";
@@ -146,9 +146,19 @@ void ParseSerialPacket(String newPacket) {
       case 'A':
         {
           // Parse motor PWM substring
-          Serial.print("Parse ");
+          // Serial.print("Parse ");
           ParseAngularError(newPacket);
           // serialPacketOut = newPacket;
+          break;
+        }
+      case 'R':
+        {
+          // Parse motor PWM substring
+          // Serial.print("Parse ");
+          Encoder.Reset();
+          LEDs.ToggleBuiltInLED() ;
+          // serialPacketOut = newPacket;
+          break;
         }
     }
   } else {
@@ -211,7 +221,12 @@ void BuildOutgoingString() {
   int A = map(pwmNewA, 1, 2048, 9, 0);
   int B = map(pwmNewB, 1, 2048, 9, 0);
   int C = map(pwmNewC, 1, 2048, 9, 0);
+  int deg = constrain(int(Encoder.angleDeg), -99, 99);
+  int negative = (deg < 0) ? 1 : 0;
 
-  serialPacketOut = String("TE") + (Amplifiers.ENABLED ? "1" : "0") + "A" + String(A) + "B" + String(B) + "C" + String(C) + "X";
+  char buffer[3];
+  sprintf(buffer, "%02d", abs(deg));
+
+  serialPacketOut = String("TE") + (Amplifiers.ENABLED ? "1" : "0") + "A" + String(A) + "B" + String(B) + "C" + String(C) + "D" + String(negative) + String(buffer) + "X";
   Serial.println(serialPacketOut);
 }

@@ -50,9 +50,9 @@ void DisplayClass::Update() {
 	/** Draw GUI elements **/
 
 	// Draw detector crosshairs, changing colors based on if the target is present
-	cv::circle( shared->matFrameOverlay, CONFIG_CAM_CENTER, CONFIG_DET_RADIUS, ( shared->FLAG_TARGET_FOUND ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
-	cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_HEIGHT ), ( shared->FLAG_TARGET_FOUND ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
-	cv::line( shared->matFrameOverlay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_WIDTH, CONFIG_CAM_PRINCIPAL_Y ), ( shared->FLAG_TARGET_FOUND ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
+	cv::circle( shared->matFrameOverlay, CONFIG_CAM_CENTER, CONFIG_DET_RADIUS, ( shared->FLAG_TARGET_MARKER_FOUND ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
+	cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_HEIGHT ), ( shared->FLAG_TARGET_MARKER_FOUND ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
+	cv::line( shared->matFrameOverlay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_WIDTH, CONFIG_CAM_PRINCIPAL_Y ), ( shared->FLAG_TARGET_MARKER_FOUND ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
 
 	// Draw motor axis
 	cv::line( shared->matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS35 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN35 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
@@ -60,88 +60,38 @@ void DisplayClass::Update() {
 	cv::line( shared->matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS270 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN270 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
 
 
-	// std::cout << "D:" << shared->targetPresent[shared->targetActiveID] << "\n";
 
-	// Draw relevant information if target found
-	if ( shared->FLAG_TARGET_FOUND ) {
+	// Draw information for finger marker if present
+	if ( shared->FLAG_FINGER_MARKER_FOUND ) {
 
-		//Draw vector to center of target
-		cv::line( shared->matFrameOverlay, CONFIG_CAM_CENTER, shared->targetScreenPosition, CONFIG_colCyaMd, 2 );
-
-		// Draw border on target
-		cv::polylines( shared->matFrameOverlay, shared->targetCorners, true, CONFIG_colCyaMd, 2 );
-
-		// Draw 3D axes
-		cv::drawFrameAxes( shared->matFrameUndistorted, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, shared->targetRotationVector, shared->targetTranslationVector, CONFIG_MARKER_WIDTH, 2 );
-
-		// Draw velocity
-		cv::line( shared->matFrameOverlay, shared->targetScreenPosition, cv::Point2i( shared->targetScreenPosition.x + shared->targetVelocity3dNew.x * MM2PX, shared->targetScreenPosition.y - shared->targetVelocity3dNew.y * MM2PX ), CONFIG_colMagLt, 2 );
+		// Draw border and axis elements of finger marker
+		cv::polylines( shared->matFrameOverlay, shared->fingerMarkerCorners, true, CONFIG_colCyaMd, 2 );
+		// cv::drawFrameAxes( shared->matFrameUndistorted, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, shared->fingerMarkerRotationVector, shared->fingerMarkerTranslationVector, CONFIG_MEDIUM_MARKER_WIDTH, 2 );
 	}
 
-	// Draw green outline and crosshairs if marker found
-	// if ( shared->FLAG_TAG_FOUND ) {
+	// Draw information for target marker if present
+	if ( shared->FLAG_TARGET_MARKER_FOUND ) {
 
-	// Draw circle
-	// cv::circle( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_DET_RADIUS, CONFIG_colGreMd, 2 );
-	// cv::rectangle( matDisplay, cv::Point2i( 1, 1 ), cv::Point2i( frame.cols - 2, frame.rows - 3 ), CONFIG_colGreMd, 3 );
-	// cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_HEIGHT ), CONFIG_colGreMd, 1 );
-	// cv::line( shared->matFrameOverlay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_WIDTH, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_colGreMd, 1 );
+		//Draw vector to center of target
+		cv::line( shared->matFrameOverlay, CONFIG_CAM_CENTER, shared->targetMarkerScreenPosition, CONFIG_colCyaMd, 2 );
 
-	// Draw vector to center of marker
-	// if ( shared->arucoTags[shared->arucoActiveID].errorMagnitude2D > CONFIG_DET_RADIUS ) {
-	// 	cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ),
-	// 			  cv::Point2i( CONFIG_CAM_PRINCIPAL_X + shared->arucoTags[shared->arucoActiveID].errorMagnitude2D * cos( shared->arucoTags[shared->arucoActiveID].errorTheta ),
-	// 						   CONFIG_CAM_PRINCIPAL_Y - shared->arucoTags[shared->arucoActiveID].errorMagnitude2D * sin( shared->arucoTags[shared->arucoActiveID].errorTheta ) ),
-	// 			  CONFIG_colCyaDk, 1 );
-	// }
-	// cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X - shared->arucoTags[shared->arucoActiveID].error2D.x, CONFIG_CAM_PRINCIPAL_Y - shared->arucoTags[shared->arucoActiveID].error2D.y ), CONFIG_colCyaMd, 2 );
+		// Draw border and axis elements of target marker
+		cv::polylines( shared->matFrameOverlay, shared->targetMarkerCorners, true, CONFIG_colGreMd, 3 );
+		// cv::drawFrameAxes( shared->matFrameUndistorted, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, shared->targetMarkerRotationVector, shared->targetMarkerTranslationVector, CONFIG_LARGE_MARKER_WIDTH, 15 );
 
-	// Draw rectangle if in calibration mode
-	// if ( shared->TASK_NAME == "CALIBRATE" ) {
-	// 	uint8_t side = 40;
-	// 	cv::rectangle( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X - side, CONFIG_CAM_PRINCIPAL_Y - side ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X + side, CONFIG_CAM_PRINCIPAL_Y + side ), CONFIG_colBluMd, 2 );
-	// }
-
-	// if ( shared->calibrationComplete ) {
-	// 	cv::Point2i offsetCenter = cv::Point2i( CONFIG_CAM_PRINCIPAL_X + shared->calibrationOffsetMM.x * MM2PX, CONFIG_CAM_PRINCIPAL_Y + shared->calibrationOffsetMM.y * MM2PX );
-	// 	cv::circle( shared->matFrameOverlay, offsetCenter, 10, CONFIG_colGreMd, 2 );
-	// 	cv::line( shared->matFrameOverlay, offsetCenter - cv::Point2i( 20, 0 ), offsetCenter + cv::Point2i( 20, 0 ), CONFIG_colGreLt, 2 );
-	// 	cv::line( shared->matFrameOverlay, offsetCenter - cv::Point2i( 0, 20 ), offsetCenter + cv::Point2i( 0, 20 ), CONFIG_colGreLt, 2 );
-	// }
-
-	// Draw velocity on marker
-	// cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X - shared->arucoTags[shared->arucoActiveID].error2D.x, CONFIG_CAM_PRINCIPAL_Y - shared->arucoTags[shared->arucoActiveID].error2D.y ),
-	// 		  cv::Point2i( CONFIG_CAM_PRINCIPAL_X - shared->arucoTags[shared->arucoActiveID].error2D.x + shared->arucoTags[shared->arucoActiveID].errorVel3D.x * 1,
-	// 					   CONFIG_CAM_PRINCIPAL_Y - shared->arucoTags[shared->arucoActiveID].error2D.y + shared->arucoTags[shared->arucoActiveID].errorVel3D.y * -1 ),
-	// 		  CONFIG_colMagMd, 2 );
-
-	// Draw velocity on center
-	// cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X - shared->arucoTags[shared->arucoActiveID].errorVel3D.x * 1, CONFIG_CAM_PRINCIPAL_Y - shared->arucoTags[shared->arucoActiveID].errorVel3D.y * -1 ),
-	// 		  CONFIG_colMagLt, 2 );
-
-	// Draw border on active tag
-	// if ( shared->FLAG_TAG_FOUND && shared->arucoTags[shared->arucoActiveID].present ) {
-	// 	cv::polylines( shared->matFrameOverlay, shared->arucoActiveCorners, true, CONFIG_colCyaMd, 2 );
-	// } else {
-	// 	cv::polylines( shared->matFrameOverlay, shared->arucoActiveCorners, true, CONFIG_colCyaDk, 2 );
-	// }
+		// Draw velocity
+		cv::line( shared->matFrameOverlay, shared->targetMarkerScreenPosition, cv::Point2i( shared->targetMarkerScreenPosition.x + shared->targetMarkerVelocity3dNew.x * MM2PX, shared->targetMarkerScreenPosition.y - shared->targetMarkerVelocity3dNew.y * MM2PX ), CONFIG_colMagLt, 2 );
+	}
 
 
-	// //
-	// }
-	// else {
-	// 	// cv::rectangle( matDisplay, cv::Point2i( 1, 1 ), cv::Point2i( frame.cols - 2, frame.rows - 3 ), CONFIG_colRedDk, 3 );
-	// 	cv::circle( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_DET_RADIUS, CONFIG_colRedDk, 1 );
-	// 	cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_HEIGHT ), CONFIG_colRedDk, 1 );
-	// 	cv::line( shared->matFrameOverlay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_WIDTH, CONFIG_CAM_PRINCIPAL_Y ), CONFIG_colRedDk, 1 );
-	// }
 
-
-	// // Draw motor axis
-	// cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS35 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN35 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
-	// cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS145 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN145 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
-	// cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS270 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN270 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
-
+	// Draw calibrated marker
+	if ( shared->calibrationComplete ) {
+		// int newX = shared->calibrationOffsetPX.x - CONFIG_TOUCHSCREEN_CENTER.x + CONFIG_CAM_PRINCIPAL_X;
+		// int newY = shared->calibrationOffsetPX.y - CONFIG_TOUCHSCREEN_CENTER.y + CONFIG_CAM_PRINCIPAL_Y - 20 * MM2PX;
+		// cv::circle( shared->matFrameOverlay, cv::Point2i( newX, newY ), 10 * MM2PX, CONFIG_colGreLt, 2 );
+		// cv::circle( shared->matFrameOverlay, shared->, 10 * MM2PX, CONFIG_colGreLt, 2 );
+	}
 
 	// Add text
 	AddText();
@@ -181,36 +131,37 @@ void DisplayClass::AddText() {
 	// Telemetry
 	// Position
 	DrawCell( "Telemetry", "A1", 9, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( std::to_string( shared->targetActiveID ), "A2", 1, 2, fontBody * 3, CONFIG_colWhite, ( shared->FLAG_TARGET_FOUND ? CONFIG_colGreBk : CONFIG_colBlack ), true );
+	DrawCell( std::to_string( shared->targetMarkerActiveID ), "A2", 1, 1, fontBody * 3, CONFIG_colWhite, ( shared->FLAG_TARGET_MARKER_FOUND ? CONFIG_colGreBk : CONFIG_colBlack ), true );
+	DrawCell( "0", "A3", 1, 1, fontBody * 3, CONFIG_colWhite, ( shared->FLAG_FINGER_MARKER_FOUND ? CONFIG_colGreBk : CONFIG_colBlack ), true );
 	DrawCell( "x", "A4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "y", "A5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "z", "A6", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "R", "A7", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "Position", "B2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[mm]", "B3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->targetPosition3dNew.x ) ), "B4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->targetPosition3dNew.y ) ), "B5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->targetPosition3dNew.z ) ), "B6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->GetNorm3D( shared->targetPosition3dNew ) ) ), "B7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->targetMarkerPosition3dNew.x ) ), "B4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->targetMarkerPosition3dNew.y ) ), "B5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->targetMarkerPosition3dNew.z ) ), "B6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->GetNorm3D( shared->targetMarkerPosition3dNew ) ) ), "B7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	// Velocity
 	DrawCell( "Velocity", "D2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[mm/s]", "D3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->targetVelocity3dNew.x ) ), "D4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->targetVelocity3dNew.y ) ), "D5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->targetVelocity3dNew.z ) ), "D6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->GetNorm3D( shared->targetVelocity3dNew ) ) ), "D7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->targetMarkerVelocity3dNew.x ) ), "D4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->targetMarkerVelocity3dNew.y ) ), "D5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->targetMarkerVelocity3dNew.z ) ), "D6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->GetNorm3D( shared->targetMarkerVelocity3dNew ) ) ), "D7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	// Angle
 	DrawCell( "Theta E", "F2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[deg]", "F3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->targetAngleNew.x * RAD2DEG ) ), "F4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->targetAngleNew.y * RAD2DEG ) ), "F5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->targetMarkerAngleNew.x * RAD2DEG ) ), "F4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->targetMarkerAngleNew.y * RAD2DEG ) ), "F5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "Theta dE", "H2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[deg/s]", "H3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->targetAnglularVelocityNew.x * RAD2DEG ) ), "H4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->targetAnglularVelocityNew.y * RAD2DEG ) ), "H5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->targetMarkerAnglularVelocityNew.x * RAD2DEG ) ), "H4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->targetMarkerAnglularVelocityNew.y * RAD2DEG ) ), "H5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	// Frequency
 	DrawCell( "Frequency [Hz]", "F6", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( std::to_string( int( shared->timingFrequency ) ), "F7", 4, 1, fontBody, CONFIG_colWhite, ( shared->timingFrequency > 60 ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
+	DrawCell( std::to_string( int( shared->timingFrequency ) ), "F7", 4, 1, fontBody * 1.5, CONFIG_colWhite, ( shared->timingFrequency > 60 ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
 
 	// Controller
 	DrawCell( "Controller", "J1", 12, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
@@ -761,6 +712,9 @@ void DisplayClass::ShowVisualizer() {
 	for ( const auto& pt : cubeCorners ) {
 		ProjectedCorners.push_back( ProjectIsometric( cv::Point3f( pt.z, pt.y, pt.x ) ) );	  // Swap x <-> z
 	}
+	// for ( const auto& pt : cubeCorners ) {
+	// 	ProjectedCorners.push_back( ProjectIsometric( cv::Point3f( pt.z, pt.y, pt.x ) ) );	  // Swap x <-> z
+	// }
 
 	// Create window
 	cv::namedWindow( winVisualizer, cv::WINDOW_AUTOSIZE );
@@ -769,103 +723,170 @@ void DisplayClass::ShowVisualizer() {
 }
 
 
+// Working visualizer
 void DisplayClass::UpdateVisualizer() {
 
 
-	// // Check if trail should be cleared
-	// if ( shared->vizClear ) {
-	// 	trailPoints.clear();
-	// 	shared->vizClear = false;
-	// }
+	// Check if trail should be cleared
+	if ( shared->vizClear ) {
+		trailPoints.clear();
+		shared->vizClear = false;
+	}
 
-	// // Clear canvas
-	// matVisualizer = CONFIG_colWhite;
-
-
-	// // Draw cube
-	// for ( const auto& edge : edges ) {
-	// 	cv::line( matVisualizer, ProjectedCorners[edge.first], ProjectedCorners[edge.second], CONFIG_colGraLt, 1 );
-	// }
-
-	// uint8_t markerSize = 20;
-	// // Draw target square
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, -markerSize ) ), CONFIG_colGraLt, 1 );
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, -markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
-
-	// // X axis
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( 0, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( vizLimZ, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( 1000, -vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
-
-	// // Y axis
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, -vizLimXY ) ), ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), ProjectIsometric( cv::Point3i( 1000, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
-
-	// // Calculate camera + marker positions
-	// cv::Point3i p3D		= cv::Point3i( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z - zOffset );
-	// cv::Point3i p3DInv	= cv::Point3i( shared->arucoTags[shared->arucoActiveID].error3D.z - zOffset, shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.x * -1 );
-	// int			ptSizeX = int( float( ( 1000.0 - ( p3D.x + vizLimXY ) ) / 1000.0 ) * 10.0 );
-	// int			ptSizeY = int( float( ( 1000.0 - ( -1 * p3D.y + vizLimXY ) ) / 1000.0 ) * 10.0 );
-	// int			ptSizeZ = int( float( ( 1000.0 - p3D.z ) / 1000.0 ) * 10.0 );
-
-	// // Line from marker to target
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, 0 ) ), ProjectIsometric( p3DInv ), CONFIG_colCyaMd, 2 );
-
-	// // Moving local axis
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, p3D.y, vizLimXY ) ), ProjectIsometric( p3DInv ), CONFIG_colGreMd, 1 );
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, vizLimXY, p3DInv.z ) ), ProjectIsometric( p3DInv ), CONFIG_colRedMd, 1 );
-	// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, p3DInv.y, p3DInv.z ) ), ProjectIsometric( p3DInv ), CONFIG_colBluMd, 1 );
+	// Clear canvas
+	matVisualizer = CONFIG_colWhite;
 
 
+	// Draw cube
+	for ( const auto& edge : edges ) {
+		cv::line( matVisualizer, ProjectedCorners[edge.first], ProjectedCorners[edge.second], CONFIG_colGraLt, 1 );
+	}
 
-	// // Create color gradient
-	// float zClamped = std::clamp( shared->arucoTags[shared->arucoActiveID].error3D.z - zOffset, 0.0f, 1000.0f );
-	// // float intensity = 128.0f * ( zClamped / 1000.0f );
+	uint8_t markerSize = 20;
+	// Draw target square
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, -markerSize ) ), CONFIG_colGraLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, -markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
 
-	// // Add current point to trail
-	// if ( trailCounter++ >= trailInterval ) {
-	// 	trailPoints.push_back( p3DInv );
-	// 	// trailColor.push_back( ( int )intensity );
-	// 	trailCounter = 0;
+	// X axis
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( 0, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( vizLimZ, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( 1000, -vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
 
-	// 	// Limit trail length
-	// 	if ( trailPoints.size() > trailLimit ) {
-	// 		trailPoints.erase( trailPoints.begin() );
-	// 		// trailColor.erase( trailColor.begin() );
-	// 	}
-	// }
+	// Y axis
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, -vizLimXY ) ), ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), ProjectIsometric( cv::Point3i( 1000, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
 
-	// // Draw trail points
-	// for ( int i = 0; i < trailPoints.size(); i++ ) {
+	// Calculate camera + marker positions
+	cv::Point3i p3D		= cv::Point3i( shared->targetMarkerPosition3dNew.x, shared->targetMarkerPosition3dNew.y, shared->targetMarkerPosition3dNew.z );
+	cv::Point3i p3DInv	= cv::Point3i( shared->targetMarkerPosition3dNew.z, -shared->targetMarkerPosition3dNew.y, shared->targetMarkerPosition3dNew.x );
+	int			ptSizeX = int( float( ( 1000.0 - ( p3D.x + vizLimXY ) ) / 1000.0 ) * 10.0 );
+	int			ptSizeY = int( float( ( 1000.0 - ( -1 * p3D.y + vizLimXY ) ) / 1000.0 ) * 10.0 );
+	int			ptSizeZ = int( float( ( 1000.0 - p3D.z ) / 1000.0 ) * 10.0 );
 
-	// 	float ratio		= static_cast<float>( i ) / static_cast<float>( trailPoints.size() );
-	// 	int	  intensity = static_cast<int>( 191 * ( 1.0f - ratio ) );
+	// Line from marker to target
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, 0 ) ), ProjectIsometric( p3DInv ), CONFIG_colCyaMd, 2 );
 
-	// 	// Z trail
-	// 	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( 0, trailPoints.at( i ).y, trailPoints.at( i ).z ) ), 2, cv::Scalar( 255, 64 + intensity, 64 + intensity ), -1 );
-
-	// 	// Y trail
-	// 	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( trailPoints.at( i ).x, trailPoints.at( i ).y, vizLimXY ) ), 2, cv::Scalar( 64 + intensity, 255, 64 + intensity ), -1 );
-
-	// 	// X trail
-	// 	cv::circle( matVisualizer, ProjectIsometric( cv::Point3f( trailPoints.at( i ).x, vizLimXY, trailPoints.at( i ).z ) ), 2, cv::Scalar( 64 + intensity, 64 + intensity, 255 ), -1 );
-	// }
-
-	// // Shadow on wall
-	// cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, p3D.y, vizLimXY ) ), ptSizeX, CONFIG_colGreLt, -1 );	   // Shadow on YZ axis (right)
-	// cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( 0, p3D.y, p3DInv.z ) ), ptSizeZ, CONFIG_colBluWt, -1 );			   // Shadow on XY plane (bottom)
-	// cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, vizLimXY, p3DInv.z ) ), ptSizeY, CONFIG_colRedLt, -1 );	   // Shadow on XZ (screen)
-
-	// // // Draw marker (last to place over other elements)
-	// cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 10, CONFIG_colWhite, -1 );
-	// cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 10, CONFIG_colBlack, 1 );
+	// Moving local axis
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, p3DInv.y, vizLimXY ) ), ProjectIsometric( p3DInv ), CONFIG_colGreMd, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, vizLimXY, p3DInv.z ) ), ProjectIsometric( p3DInv ), CONFIG_colRedMd, 1 );
+	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, p3DInv.y, p3DInv.z ) ), ProjectIsometric( p3DInv ), CONFIG_colBluMd, 1 );
 
 
 
-	// // Show
-	// cv::imshow( "3D Visualizer", matVisualizer );
+	// Create color gradient
+	float zClamped = std::clamp( shared->targetMarkerPosition3dNew.z, 0.0f, 1000.0f );
+	// float intensity = 128.0f * ( zClamped / 1000.0f );
+
+	// Add current point to trail
+	if ( trailCounter++ >= trailInterval ) {
+		trailPoints.push_back( p3DInv );
+		// trailColor.push_back( ( int )intensity );
+		trailCounter = 0;
+
+		// Limit trail length
+		if ( trailPoints.size() > trailLimit ) {
+			trailPoints.erase( trailPoints.begin() );
+			// trailColor.erase( trailColor.begin() );
+		}
+	}
+
+	// Draw trail points
+	for ( int i = 0; i < trailPoints.size(); i++ ) {
+
+		float ratio		= static_cast<float>( i ) / static_cast<float>( trailPoints.size() );
+		int	  intensity = static_cast<int>( 191 * ( 1.0f - ratio ) );
+
+		// Z trail
+		cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( 0, trailPoints.at( i ).y, trailPoints.at( i ).z ) ), 2, cv::Scalar( 255, 64 + intensity, 64 + intensity ), -1 );
+
+		// Y trail
+		cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( trailPoints.at( i ).x, trailPoints.at( i ).y, vizLimXY ) ), 2, cv::Scalar( 64 + intensity, 255, 64 + intensity ), -1 );
+
+		// X trail
+		cv::circle( matVisualizer, ProjectIsometric( cv::Point3f( trailPoints.at( i ).x, vizLimXY, trailPoints.at( i ).z ) ), 2, cv::Scalar( 64 + intensity, 64 + intensity, 255 ), -1 );
+	}
+
+	// Shadow on wall
+	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, p3DInv.y, vizLimXY ) ), ptSizeX, CONFIG_colGreLt, -1 );	   // Shadow on YZ axis (right)
+	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( 0, p3DInv.y, p3DInv.z ) ), ptSizeZ, CONFIG_colBluWt, -1 );		   // Shadow on XY plane (bottom)
+	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, vizLimXY, p3DInv.z ) ), ptSizeY, CONFIG_colRedLt, -1 );	   // Shadow on XZ (screen)
+
+	// // Draw marker (last to place over other elements)
+	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 10, CONFIG_colWhite, -1 );
+	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 10, CONFIG_colBlack, 1 );
+
+	if ( shared->FLAG_FINGER_MARKER_FOUND ) {
+		// Calculate finger marker position
+		cv::Point3i p3DFinger	 = cv::Point3i( shared->fingerMarkerPosition3DNew.x, shared->fingerMarkerPosition3DNew.y, shared->fingerMarkerPosition3DNew.z );
+		cv::Point3i p3DFingerInv = cv::Point3i( shared->fingerMarkerPosition3DNew.z, -shared->fingerMarkerPosition3DNew.y, shared->fingerMarkerPosition3DNew.x );
+
+		// Line from marker to target
+		// cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, 0 ) ), ProjectIsometric( p3DFingerInv ), CONFIG_colCyaMd, 2 );
+
+		// Moving local axis
+		cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DFingerInv.x, p3DFingerInv.y, vizLimXY ) ), ProjectIsometric( p3DFingerInv ), CONFIG_colGreMd, 1 );
+		cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DFingerInv.x, vizLimXY, p3DFingerInv.z ) ), ProjectIsometric( p3DFingerInv ), CONFIG_colRedMd, 1 );
+		cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, p3DFingerInv.y, p3DFingerInv.z ) ), ProjectIsometric( p3DFingerInv ), CONFIG_colBluMd, 1 );
+
+		// // Draw finger
+		cv::circle( matVisualizer, ProjectIsometric( p3DFingerInv ), 5, CONFIG_colBluLt, -1 );
+		cv::circle( matVisualizer, ProjectIsometric( p3DFingerInv ), 5, CONFIG_colBlack, 1 );
+
+		// Offset vector
+		cv::Vec3f v( 10.0f, 0.0f, +35.0f );
+
+		// Rotation angle
+		// float		angleRad = CV_PI / 4.0f;
+		// cv::Matx33f Rx( 1, 0, 0, 0, cos( angleRad ), -sin( angleRad ), 0, sin( angleRad ), cos( angleRad ) );
+
+		cv::Matx33d R;
+		cv::Rodrigues( shared->fingerMarkerRotationVector, R );
+
+		// Apply rotation
+		cv::Vec3f	rotated = R * v;
+		cv::Point3f F		= shared->fingerMarkerPosition3DNew + cv::Point3i( rotated );
+
+		cv::Point3i p3DTip	  = cv::Point3i( F.x, F.y, F.z );
+		cv::Point3i p3DTipInv = cv::Point3i( F.z, -F.y, F.x );
+
+		// // Draw fingertip
+		cv::circle( matVisualizer, ProjectIsometric( p3DTipInv ), 5, CONFIG_colRedMd, -1 );
+		cv::circle( matVisualizer, ProjectIsometric( p3DTipInv ), 5, CONFIG_colBlack, 1 );
+
+		// Draw line
+		cv::line( matVisualizer, ProjectIsometric( p3DFingerInv ), ProjectIsometric( p3DTipInv ), CONFIG_colOraMd, 2 );
+
+		// --- Draw marker frame around ring marker --- //
+		float markerHalf = CONFIG_MEDIUM_MARKER_WIDTH * MM2PX;
+
+		// Define marker corners in local frame (Z points forward from marker, Y up)
+		std::vector<cv::Vec3f> localCorners = {
+			cv::Vec3f( -markerHalf, markerHalf, 0 ),	// top-left
+			cv::Vec3f( markerHalf, markerHalf, 0 ),		// top-right
+			cv::Vec3f( markerHalf, -markerHalf, 0 ),	// bottom-right
+			cv::Vec3f( -markerHalf, -markerHalf, 0 )	// bottom-left
+		};
+
+		// Transform each corner to world coordinates
+		std::vector<cv::Point3i> worldCorners;
+		for ( const auto& c : localCorners ) {
+			cv::Vec3f	rotated = R * c;
+			cv::Point3f world	= shared->fingerMarkerPosition3DNew + cv::Point3i( rotated );
+			worldCorners.push_back( cv::Point3i( world.z, -world.y, world.x ) );	// apply same flip as used in p3DFingerInv
+		}
+
+		// Draw square
+		for ( size_t i = 0; i < 4; i++ ) {
+			cv::Point2i pt1 = ProjectIsometric( worldCorners[i] );
+			cv::Point2i pt2 = ProjectIsometric( worldCorners[( i + 1 ) % 4] );
+			cv::line( matVisualizer, pt1, pt2, CONFIG_colBluMd, 1 );
+		}
+	}
+
+	// Show
+	cv::imshow( "3D Visualizer", matVisualizer );
 }
 
 
@@ -923,51 +944,67 @@ cv::Point2i DisplayClass::GetForwardDirectionFromPose( const cv::Vec3d rvec, con
 
 
 
-// void DisplayClass::ShowAngle() {
+void DisplayClass::ShowAngle() {
+
+	// Create window
+	cv::namedWindow( winAngle, cv::WINDOW_AUTOSIZE );
+	cv::moveWindow( winAngle, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_VIZ_WIDTH - 6 - CONFIG_DIS_KEY_WIDTH, 0 );
+	cv::imshow( winAngle, matAngles );
+}
 
 
-// 	// Create window
-// 	cv::namedWindow( winAngle, cv::WINDOW_AUTOSIZE );
-// 	cv::moveWindow( winAngle, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_VIZ_WIDTH - 6 - CONFIG_DIS_KEY_WIDTH, 0 );
-// 	cv::imshow( winAngle, matAngles );
-// }
+void DisplayClass::UpdateAngle() {
+
+	matAngles = CONFIG_colWhite;
+
+	// Centerpoint
+	cv::Point2i midPt = cv::Point2i( CONFIG_DIS_ANGLE_WIDTH / 2, CONFIG_DIS_ANGLE_HEIGHT / 2 + 200 );
+
+	// Draw middle line
+	cv::line( matAngles, cv::Point2i( 0, midPt.y ), cv::Point2i( CONFIG_DIS_ANGLE_WIDTH, midPt.y ), CONFIG_colGraLt, 2 );
+	// Draw circle
+	cv::ellipse( matAngles, midPt, cv::Size( 400, 400 ), 0, 180, 360, CONFIG_colGraLt, 2 );
+
+	// Radius
+	int radius = 400;
+
+	// Target line
+	cv::Point2i endPtDesired( int( cos( ( shared->angleDesired + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleDesired + 270 ) * DEG2RAD ) * radius ) );
+	cv::line( matAngles, midPt, midPt + endPtDesired, CONFIG_colGreWt, 10 );
+
+	// Velocity Line
+	cv::Point2i endPtVel( int( cos( ( shared->angleFiltered + shared->angleVelocity + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleFiltered + shared->angleVelocity + 270 ) * DEG2RAD ) * radius ) );
+	cv::line( matAngles, midPt, midPt + endPtVel, CONFIG_colBluWt, 2 );
 
 
-// void DisplayClass::UpdateAngle() {
+	// Measured angle
+	cv::Point2i endPt( int( cos( ( shared->angleFiltered + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleFiltered + 270 ) * DEG2RAD ) * radius ) );
+	cv::line( matAngles, midPt, midPt + endPt, CONFIG_colBluLt, 3 );
 
-// 	matAngles = CONFIG_colWhite;
+	// Encoder center
+	cv::circle( matAngles, midPt, 10, CONFIG_colGraDk, -1 );
 
-// 	uint16_t midX = CONFIG_DIS_ANGLE_WIDTH / 2;
+	// Text
+	cv::putText( matAngles, "Desired [deg]: ", cv::Point2i( 20, 40 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+	cv::putText( matAngles, shared->FormatDecimal( shared->angleDesired, 2 ), cv::Point2i( 300, 40 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+	cv::putText( matAngles, "Measured [deg]: ", cv::Point2i( 20, 80 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+	cv::putText( matAngles, shared->FormatDecimal( shared->angleFiltered, 2 ), cv::Point2i( 300, 80 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+	cv::putText( matAngles, "Error [deg]: ", cv::Point2i( 20, 120 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+	cv::putText( matAngles, shared->FormatDecimal( shared->angleFiltered - shared->angleDesired, 2 ), cv::Point2i( 300, 120 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
 
+	if ( shared->touchDetected == 1 ) {
 
-// 	// Draw middle line
-// 	cv::line( matAngles, cv::Point2i( midX, 10 ), cv::Point2i( midX, CONFIG_FIELD_LENGTH_PX ), CONFIG_colGraLt, 2 );
+		// Save image
+		if ( shared->FLAG_LOGGING_ENABLED ) {
+			std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
+			shared->displayString	  = "Saving file " + imageFilename;
+			cv::imwrite( imageFilename, matAngles );
+			std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
+		}
+	}
 
-// 	// Draw "screen" at top
-// 	cv::line( matAngles, cv::Point2i( midX - ( CONFIG_FIELD_WIDTH_PX / 2 ), 10 ), cv::Point2i( midX + ( CONFIG_FIELD_WIDTH_PX / 2 ), 10 ), CONFIG_colGreLt, 10 );
-
-// 	// Draw test platform axis
-// 	cv::line( matAngles, cv::Point2i( midX - ( CONFIG_FIELD_WIDTH_PX / 2 ), CONFIG_FIELD_LENGTH_PX ), cv::Point2i( midX + ( CONFIG_FIELD_WIDTH_PX / 2 ), CONFIG_FIELD_LENGTH_PX ), CONFIG_colBluWt, 10 );
-
-// 	// Draw encoder elements
-// 	int16_t endX = std::clamp( int( cos( ( shared->angleTheta * 3.0f + 90.0f ) * DEG2RAD ) * 1000 ), -int( CONFIG_DIS_ANGLE_WIDTH ), int( CONFIG_DIS_ANGLE_WIDTH ) );
-// 	int16_t endY = std::clamp( int( sin( ( shared->angleTheta * 3.0f + 90.0f ) * DEG2RAD ) * 2000 ), 0, int( CONFIG_DIS_ANGLE_HEIGHT ) );
-// 	cv::circle( matAngles, cv::Point2i( midX, CONFIG_FIELD_LENGTH_PX ), 10, CONFIG_colBluLt, -1 );
-// 	cv::line( matAngles, cv::Point2i( midX, CONFIG_FIELD_LENGTH_PX ), cv::Point2i( midX + endX, CONFIG_FIELD_LENGTH_PX - endY ), CONFIG_colBluMd, 2 );
-
-
-// 	// Draw marker
-// 	int16_t markerX = ( ( shared->fittsMarkerPosition.x ) / 1662.0f ) * 1340.0f;
-// 	// std::cout << markerX;
-// 	cv::circle( matAngles, cv::Point2i( markerX + CONFIG_MARKER_WIDTH, 50 ), 10, CONFIG_colGreMd, -1 );
-
-// 	// // Draw "encoder"
-// 	// int16_t endX = std::clamp( int( cos( ( shared->angleTheta + 90.0f ) * DEG2RAD ) * 1000 ), -int( CONFIG_DIS_VIZ_WIDTH ), int( CONFIG_DIS_VIZ_WIDTH ) );
-// 	// int16_t endY = std::clamp( int( sin( ( shared->angleTheta + 90.0f ) * DEG2RAD ) * 2000 ), 0, int( CONFIG_DIS_VIZ_HEIGHT ) );
-// 	// cv::circle( matAngles, cv::Point2i( CONFIG_DIS_VIZ_WIDTH / 2, CONFIG_DIS_VIZ_HEIGHT - 100 ), 20, CONFIG_colBluMd, 2 );
-
-// 	cv::imshow( winAngle, matAngles );
-// }
+	cv::imshow( winAngle, matAngles );
+}
 
 
 void DisplayClass::CheckOptions() {
@@ -992,24 +1029,24 @@ void DisplayClass::CheckOptions() {
 		}
 	}
 
-	// // Launch angle if requested
-	// if ( shared->angleEnabled ) {
+	// Launch angle if requested
+	if ( shared->angleEnabled ) {
 
-	// 	// Check if window loaded
-	// 	if ( shared->angleLoaded ) {
-	// 		UpdateAngle();
-	// 	} else {
-	// 		ShowAngle();
-	// 		shared->angleLoaded = true;
-	// 	}
-	// } else {
+		// Check if window loaded
+		if ( shared->angleLoaded ) {
+			UpdateAngle();
+		} else {
+			ShowAngle();
+			shared->angleLoaded = true;
+		}
+	} else {
 
-	// 	// Check if window is loaded before destroying
-	// 	if ( shared->angleLoaded ) {
-	// 		cv::destroyWindow( winAngle );
-	// 		shared->angleLoaded = false;
-	// 	}
-	// }
+		// // Check if window is loaded before destroying
+		// if ( shared->angleLoaded ) {
+		// 	cv::destroyWindow( winAngle );
+		// 	shared->angleLoaded = false;
+		// }
+	}
 }
 
 void DrawMotorOutput() { }

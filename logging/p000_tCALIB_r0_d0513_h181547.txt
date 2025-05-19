@@ -1,2 +1,0 @@
-timestamp,errXmm,errYmm,errZmm,UserOffsetX,UserOffsetY,UserOffsetZ,Heading4,Heading5
-1.00545,-91,17,124,-39,54,124,0,0

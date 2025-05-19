@@ -27,6 +27,7 @@ public:
   // Public functions
   void ReadEncoders();
   void Begin();
+  void Reset();
 
 
 private:
@@ -48,6 +49,14 @@ void EncoderClass::ReadEncoders() {
 
 
 void EncoderClass::Begin() {
+
+  // Reset encoder values
+  rawCount = 0;
+  encoder.write(0);
+}
+
+
+void EncoderClass::Reset() {
 
   // Reset encoder values
   rawCount = 0;
