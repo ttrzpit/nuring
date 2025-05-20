@@ -133,7 +133,7 @@ struct ManagedData {
 
 	// Controller variables
 	bool		FLAG_CONTROLLER_ACTIVE	 = false;
-	cv::Point2f controllerKp			 = cv::Point2f( 1.0f, 1.0f );
+	cv::Point2f controllerKp			 = cv::Point2f( 0.0f, 0.0f );
 	cv::Point2f controllerKd			 = cv::Point2f( 0.0f, .0f );
 	cv::Point3i controllerPWM			 = cv::Point3i( 0, 0, 0 );
 	cv::Point3f controllerPercentage	 = cv::Point3f( 0.0f, 0.0f, 0.0f );
