@@ -130,21 +130,21 @@ void InputClass::ParseInput( int key ) {
 		// 	}
 		// }
 		case 111: {	   // 'o'
-			shared->controllerKp.x -= 2.0f;
+			shared->controllerKp.x -= 0.20f;
 			shared->displayString = "InputClass: Decreasing Kp(x) to " + std::to_string( shared->controllerKp.x ) + ".";
 			break;
 		}
 		case 112:	 // 'p'
-			shared->controllerKp.x += 2.0f;
+			shared->controllerKp.x += 0.20f;
 			shared->displayString = "InputClass: Increasing Kp(x) to " + std::to_string( shared->controllerKp.x ) + ".";
 			break;
 		case 91: {	  // '['
-			shared->controllerKp.y -= 2.0f;
+			shared->controllerKp.y -= 0.20f;
 			shared->displayString = "InputClass: Decreasing Kp(y) to " + std::to_string( shared->controllerKp.y ) + ".";
 			break;
 		}
 		case 93:	// ']'
-			shared->controllerKp.y += 2.0f;
+			shared->controllerKp.y += 0.20f;
 			shared->displayString = "InputClass: Increasing Kp(y) to " + std::to_string( shared->controllerKp.y ) + ".";
 			break;
 		case 107:	 // 'k'
@@ -220,6 +220,7 @@ void InputClass::ParseInput( int key ) {
 			// Run fitts-law test
 			shared->TASK_RUNNING = false;
 			shared->TASK_NAME	 = "FITTS";
+			shared->TASK_REP_NUMBER++ ;
 			// shared->TASK_RUNNING = true;
 			// shared->fittsTestStarted = false;
 			shared->displayString = "InputClass: Starting fitts-law test.";

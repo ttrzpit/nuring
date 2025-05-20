@@ -12,24 +12,186 @@ void ControllerClass::Update() {
 
 	if ( shared->TASK_NAME == "FITTS_ANGLE" ) {
 
-		float eTheta = shared->angleDesired - shared->angleFiltered;
-		// Calculate controller values based on error & gains
-		shared->controllerXYProportional = cv::Point2f( shared->controllerKp.x * -0.1f * ( eTheta ), shared->controllerKp.y * 0.1f * 0 );
-		shared->controllerXYDerivative	 = cv::Point2f( shared->controllerKd.x * 10.0f * ( shared->angleVelocity ), 0 );
-		shared->controllerXYTotal		 = shared->controllerXYProportional + shared->controllerXYDerivative;
 
-		// Assuming unit vectors for each motor direction
-		const cv::Point2f uA = cv::Point2f( COS35, SIN35 );
-		const cv::Point2f uB = cv::Point2f( COS145, SIN145 );
-		const cv::Point2f uC = cv::Point2f( COS270, SIN270 );
+		// Motor vectors
+		cv::Point2f motorA( COS35, SIN35 );
+		cv::Point2f motorB( COS145, SIN145 );
+		cv::Point2f motorC( COS270, SIN270 );
 
-		// Desired XY torque
-		cv::Point2f F_des = shared->controllerXYTotal;	  // e.g., from PID
+		// Calculate error angle for motor selection
+		float angle = shared->angleDesired - shared->angleFiltered;
+		float r		= 100.0f;
+		float rMax	= 0.0f;
+		float thA	= 35.0f * DEG2RAD;
+		float thB	= 145.0f * DEG2RAD;
+		float thC	= 270.0f * DEG2RAD;
+		float thAT	= 0.0f;
+		float thBT	= 0.0f;
+		float thCT	= 0.0f;
+		float thAB	= 110.0f * DEG2RAD;
+		float thBC	= 125.0f * DEG2RAD;
+		float thAC	= 125.0f * DEG2RAD;
 
-		// Project desired torque onto each motor direction
-		shared->controllerTorqueABC.x = F_des.dot( uA );
-		shared->controllerTorqueABC.y = F_des.dot( uB );
-		shared->controllerTorqueABC.z = F_des.dot( uC );
+		cv::Point3f contribution( 0, 0, 0 );
+
+
+		std::cout << "eTheta: " << shared->FormatDecimal( angle, 2 ) << "\n";
+
+		// OLD
+		// float eTheta = shared->angleDesired - shared->angleFiltered;
+		// // Calculate controller values based on error & gains
+		// // shared->controllerXYProportional = cv::Point2f( shared->controllerKp.x * -0.1f * ( eTheta ), shared->controllerKp.y * 0.1f * 0 );
+		// // shared->controllerXYDerivative	 = cv::Point2f( shared->controllerKd.x * 10.0f * ( shared->angleVelocity ), 0 );
+		// // shared->controllerXYTotal		 = shared->controllerXYProportional + shared->controllerXYDerivative;
+
+		// // Assuming unit vectors for each motor direction
+		// const cv::Point2f uA = cv::Point2f( COS35, SIN35 );
+		// const cv::Point2f uB = cv::Point2f( COS145, SIN145 );
+		// const cv::Point2f uC = cv::Point2f( COS270, SIN270 );
+
+		// // Desired XY torque
+		// cv::Point2f F_des = shared->controllerXYTotal;	  // e.g., from PID
+
+		// // Project desired torque onto each motor direction
+		// shared->controllerTorqueABC.x = F_des.dot( uA );
+		// shared->controllerTorqueABC.y = F_des.dot( uB );
+		// shared->controllerTorqueABC.z = abs( F_des.dot( uC ) ) * -1.0f;
+
+		// // // Map to motor values
+		// // shared->controllerTorqueABC.x = std::max( ( shared->controllerXYTotal.x * COS35 ) + ( shared->controllerXYTotal.y * SIN35 ), 0.0 );
+		// // shared->controllerTorqueABC.y = std::max( ( shared->controllerXYTotal.x * COS145 ) + ( shared->controllerXYTotal.y * SIN145 ), 0.0 );
+		// // shared->controllerTorqueABC.z = std::max( ( shared->controllerXYTotal.y * SIN270 ), 0.0 );
+
+		// // // Add tension component and map to current
+		// shared->controllerCurrent	 = ( shared->controllerTension + shared->controllerTorqueABC ) / 14.4;
+		// shared->controllerPercentage = shared->controllerCurrent / nominalCurrent;
+
+		// // Map to PWM
+		// shared->controllerPWM.x = std::clamp( 2048 - int( ( shared->controllerCurrent.x / nominalCurrent ) * 2047 ), 1, 2048 );
+		// shared->controllerPWM.y = std::clamp( 2048 - int( ( shared->controllerCurrent.y / nominalCurrent ) * 2047 ), 1, 2048 );
+		// shared->controllerPWM.z = std::clamp( 2048 - int( ( shared->controllerCurrent.z / nominalCurrent ) * 2047 ), 1, 2048 );
+	} else {
+
+		// Motor vectors
+		cv::Point2f motorA( COS35, SIN35 );
+		cv::Point2f motorB( COS145, SIN145 );
+		cv::Point2f motorC( COS270, SIN270 );
+
+		// Calculate error angle for motor selection
+		float angle = std::atan2( shared->targetMarkerPosition3dNew.y, shared->targetMarkerPosition3dNew.x );
+		float r		= cv::norm( cv::Vec2f( shared->targetMarkerPosition3dNew.x, shared->targetMarkerPosition3dNew.y ) );
+		float rMax	= 0.0f;
+		float thA	= 35.0f * DEG2RAD;
+		float thB	= 145.0f * DEG2RAD;
+		float thC	= 270.0f * DEG2RAD;
+		float thAT	= 0.0f;
+		float thBT	= 0.0f;
+		float thCT	= 0.0f;
+		float thAB	= 110.0f * DEG2RAD;
+		float thBC	= 125.0f * DEG2RAD;
+		float thAC	= 125.0f * DEG2RAD;
+
+		cv::Point3f contribution( 0, 0, 0 );
+
+		// Wrap angle within 0-360 deg
+		if ( angle < 0 ) {
+			angle += ( 360.0f * DEG2RAD );
+		}
+
+		// Calculate max radius
+		rMax = std::clamp( float( std::atan2( r, shared->targetMarkerPosition3dNew.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD ) * shared->controllerKp.x;
+
+		// Determine angle and solve
+		if ( angle >= ( 270 * DEG2RAD ) || angle < ( 35 * DEG2RAD ) ) {
+
+			// Wrap-around for 360/0 deg, calculate angles AC
+			if ( angle < thA ) {
+				thAT = thA - angle;
+				thCT = thAC - thAT;
+			}
+			if ( angle > thC ) {
+				thCT = angle - thC;
+				thAT = thAC - thCT;
+			}
+
+			// rMax		   = rMax * RAD2DEG;
+			contribution.x = ( 1.0f - ( thAT / thAC ) ) * rMax;
+			contribution.z = ( 1.0f - ( thCT / thAC ) ) * rMax;
+
+			// Debug
+			std::cout << "|A+C| Angle: " << shared->FormatDecimal( angle * RAD2DEG, 2 ) << "   Contrib: A: " << shared->FormatDecimal( contribution.x, 2 ) << " , C: " << shared->FormatDecimal( contribution.z, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
+
+		} else if ( angle >= ( 35 * DEG2RAD ) && angle < ( 145 * DEG2RAD ) ) {
+
+			// Calculate angles AB
+			thAT = angle - thA;
+			thBT = thAB - thAT;
+
+			contribution.x = ( 1.0f - ( thAT / thAB ) ) * rMax;
+			contribution.y = ( 1.0f - ( thBT / thAB ) ) * rMax;
+
+			std::cout << "|A+B| Angle: " << shared->FormatDecimal( angle * RAD2DEG, 2 ) << "   Contrib: A: " << shared->FormatDecimal( contribution.x, 2 ) << " , B: " << shared->FormatDecimal( contribution.y, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
+
+		} else if ( angle >= ( 145 * DEG2RAD ) && angle < ( 270 * DEG2RAD ) ) {
+
+			// Calculate angles BC
+			thBT = angle - thB;
+			thCT = thBC - thBT;
+
+			contribution.y = ( 1.0f - ( thBT / thBC ) ) * rMax;
+			contribution.z = ( 1.0f - ( thCT / thBC ) ) * rMax;
+
+			std::cout << "|B+C| Angle: " << shared->FormatDecimal( angle * RAD2DEG, 2 ) << "   Contrib: B: " << shared->FormatDecimal( contribution.y, 2 ) << " , C: " << shared->FormatDecimal( contribution.z, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
+		}
+
+		// Multiply with gains
+		shared->controllerPercentage = cv::Point3f( contribution );
+
+		// std::cout << "MotorA: " << shared->controllerPercentage.x << "  MotorB: " << shared->controllerPercentage.y << "  MotorC: " << shared->controllerPercentage.z << "\n";
+
+		// Motor force vector
+		// cv::Vec3f F;
+
+		// // Compute pseudo-inverse
+		// cv::Mat pinvM;
+		// cv::invert( M, pinvM, cv::DECOMP_SVD );	   // pinvM is 3x2
+
+		// // Compute solution
+		// cv::Mat Fmat = pinvM * f;
+
+		// // Convert to motor force vector
+		// cv::Vec3f F( Fmat );
+
+		// // Solve for F
+		// // cv::solve( M, f, F, cv::DECOMP_SVD );
+
+		// // Share to torque
+		// shared->controllerTorqueABC = cv::Point3f( F( 0 ), F( 1 ), F( 2 ) );
+
+		// No tension
+		// shared->controllerCurrent	 = ( shared->controllerTorqueABC ) / 14.4;
+		// shared->controllerPercentage = shared->controllerCurrent / nominalCurrent;
+
+		// Map to PWM
+		shared->controllerPWM.x = std::clamp( 2048 - int( ( shared->controllerPercentage.x ) * 2047 ), 1, 2048 );
+		shared->controllerPWM.y = std::clamp( 2048 - int( ( shared->controllerPercentage.y ) * 2047 ), 1, 2048 );
+		shared->controllerPWM.z = std::clamp( 2048 - int( ( shared->controllerPercentage.z ) * 2047 ), 1, 2048 );
+
+		// std::cout << "MotorA: " << shared->controllerTorqueABC.x << "  MotorB: " << shared->controllerTorqueABC.y << "  MotorC: " << shared->controllerTorqueABC.z << "\n";
+
+
+
+		// // Old
+		// // Calculate controller values based on error & gains
+		// shared->controllerXYProportional = cv::Point2f( shared->controllerKp.x * ( shared->targetMarkerAngleNew.x ), shared->controllerKp.y * ( shared->targetMarkerAngleNew.y ) );
+		// shared->controllerXYDerivative	 = cv::Point2f( shared->controllerKd.x * ( shared->targetMarkerAnglularVelocityNew.x ), shared->controllerKd.y * ( shared->targetMarkerAnglularVelocityNew.y ) );
+		// shared->controllerXYTotal		 = shared->controllerXYProportional + shared->controllerXYDerivative;
+
+
+		// shared->controllerXYProportional = cv::Point2f( shared->controllerKp.x * ( shared->targetMarkerAngleNew.x ), shared->controllerKp.y * ( shared->targetMarkerAngleNew.y ) );
+		// shared->controllerXYDerivative	 = cv::Point2f( shared->controllerKd.x * ( shared->targetMarkerAnglularVelocityNew.x ), shared->controllerKd.y * ( shared->targetMarkerAnglularVelocityNew.y ) );
+		// shared->controllerXYTotal		 = shared->controllerXYProportional + shared->controllerXYDerivative;
+
 
 		// // Map to motor values
 		// shared->controllerTorqueABC.x = std::max( ( shared->controllerXYTotal.x * COS35 ) + ( shared->controllerXYTotal.y * SIN35 ), 0.0 );
@@ -37,32 +199,14 @@ void ControllerClass::Update() {
 		// shared->controllerTorqueABC.z = std::max( ( shared->controllerXYTotal.y * SIN270 ), 0.0 );
 
 		// // Add tension component and map to current
-		shared->controllerCurrent	 = ( shared->controllerTension + shared->controllerTorqueABC ) / 14.4;
-		shared->controllerPercentage = shared->controllerCurrent / nominalCurrent;
+		// shared->controllerCurrent	 = ( shared->controllerTension + shared->controllerTorqueABC ) / 14.4;
+		// shared->controllerCurrent	 = ( shared->controllerTension + shared->controllerTorqueABC ) / 14.4;
+		// shared->controllerPercentage = shared->controllerCurrent / nominalCurrent;
 
-		// Map to PWM
-		shared->controllerPWM.x = std::clamp( 2048 - int( ( shared->controllerCurrent.x / nominalCurrent ) * 2047 ), 1, 2048 );
-		shared->controllerPWM.y = std::clamp( 2048 - int( ( shared->controllerCurrent.y / nominalCurrent ) * 2047 ), 1, 2048 );
-		shared->controllerPWM.z = std::clamp( 2048 - int( ( shared->controllerCurrent.z / nominalCurrent ) * 2047 ), 1, 2048 );
-	} else {
-		// Calculate controller values based on error & gains
-		shared->controllerXYProportional = cv::Point2f( shared->controllerKp.x * ( shared->targetMarkerAngleNew.x ), shared->controllerKp.y * ( shared->targetMarkerAngleNew.y ) );
-		shared->controllerXYDerivative	 = cv::Point2f( shared->controllerKd.x * ( shared->targetMarkerAnglularVelocityNew.x ), shared->controllerKd.y * ( shared->targetMarkerAnglularVelocityNew.y ) );
-		shared->controllerXYTotal		 = shared->controllerXYProportional + shared->controllerXYDerivative;
-
-		// Map to motor values
-		shared->controllerTorqueABC.x = std::max( ( shared->controllerXYTotal.x * COS35 ) + ( shared->controllerXYTotal.y * SIN35 ), 0.0 );
-		shared->controllerTorqueABC.y = std::max( ( shared->controllerXYTotal.x * COS145 ) + ( shared->controllerXYTotal.y * SIN145 ), 0.0 );
-		shared->controllerTorqueABC.z = std::max( ( shared->controllerXYTotal.y * SIN270 ), 0.0 );
-
-		// Add tension component and map to current
-		shared->controllerCurrent	 = ( shared->controllerTension + shared->controllerTorqueABC ) / 14.4;
-		shared->controllerPercentage = shared->controllerCurrent / nominalCurrent;
-
-		// Map to PWM
-		shared->controllerPWM.x = std::clamp( 2048 - int( ( shared->controllerCurrent.x / nominalCurrent ) * 2047 ), 1, 2048 );
-		shared->controllerPWM.y = std::clamp( 2048 - int( ( shared->controllerCurrent.y / nominalCurrent ) * 2047 ), 1, 2048 );
-		shared->controllerPWM.z = std::clamp( 2048 - int( ( shared->controllerCurrent.z / nominalCurrent ) * 2047 ), 1, 2048 );
+		// // // Map to PWM
+		// shared->controllerPWM.x = std::clamp( 2048 - int( ( shared->controllerCurrent.x / nominalCurrent ) * 2047 ), 1, 2048 );
+		// shared->controllerPWM.y = std::clamp( 2048 - int( ( shared->controllerCurrent.y / nominalCurrent ) * 2047 ), 1, 2048 );
+		// shared->controllerPWM.z = std::clamp( 2048 - int( ( shared->controllerCurrent.z / nominalCurrent ) * 2047 ), 1, 2048 );
 	}
 }
 

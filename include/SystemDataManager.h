@@ -19,31 +19,6 @@
 #define RAD2DEG 57.2958
 #define DEG2RAD 0.01745
 
-
-// Container for marker information
-// struct Tags {
-// 	short		ID					 = 0;
-// 	bool		present				 = false;
-// 	cv::Point3f error3D				 = cv::Point3i( 0, 0, 0 );
-// 	cv::Point3f errorPrev3D			 = cv::Point3i( 0, 0, 0 );
-// 	cv::Point3f errorVel3D			 = cv::Point3i( 0, 0, 0 );
-// 	cv::Point2f error2D				 = cv::Point2i( 0, 0 );
-// 	float		theta				 = 0.0f;
-// 	short		errorMagnitude3D	 = 0;
-// 	short		errorMagnitude2D	 = 0;
-// 	short		errorMagnitudeNorm2D = 0;
-// 	float		errorTheta			 = 0.0f;
-// 	float		velMagnitude		 = 0.0f;
-// 	float		velHeading			 = 0.0f;
-// 	short		area				 = 0;
-// 	cv::Vec3d	rotationVector		 = cv::Vec3d( 0, 0, 0 );
-// 	cv::Vec3d	translationVector	 = cv::Vec3d( 0, 0, 0 );
-// 	cv::Point2f thetaMeasured		 = cv::Point2f( 0.0f, 0.0f );
-// 	cv::Point2f thetaDotMeasured	 = cv::Point2f( 0.0f, 0.0f );
-
-// 	KalmanFilter3D kf;
-// };
-
 // Shared system variable container
 struct ManagedData {
 
@@ -88,13 +63,6 @@ struct ManagedData {
 	cv::Vec3d				 fingerMarkerRotationVector, fingerMarkerTranslationVector;																// Rotation and translation vectors for active marker
 	cv::Point2i				 fingerMarkerScreenPosition = cv::Point2i( 0, 0 );																		// Position of target in screen space, ArucoClass
 	cv::Point2f				 fingerMarkerAngleNew		= cv::Point2f( 0.0f, 0.0f );																// [rad] New angle
-
-	// cv::Point3f targetPositionError3dPrev = cv::Point3f( 0.0f, 0.0f, 0.0f );	// [mm] Previous position of tag relative to camera
-	// cv::Point2i targetPositionError2d	  = cv::Point2i( 0, 0 );				// [px] Position of tag relative to camera
-	// cv::Point2f targetThetaErrorNew		  = cv::Point2f( 0.0f, 0.0f );			// [rad] New angle of error relative to camera principal axis
-	// cv::Point2f targetThetaErrorPrev	  = cv::Point2f( 0.0f, 0.0f );			// [rad] Previous angle of error relative to camera principal axis
-	// cv::Point2f targetThetaDotErrorNew	  = cv::Point2f( 0.0f, 0.0f );			// [rad] New angle of error relative to camera principal axis
-	// cv::Point2f targetThetaDotErrorPrev	  = cv::Point2f( 0.0f, 0.0f );			// [rad] Previous angle of error relative to camera principal axis
 
 	// Tasks
 	std::string TASK_NAME		= "";		// String name of task
@@ -165,7 +133,7 @@ struct ManagedData {
 
 	// Controller variables
 	bool		FLAG_CONTROLLER_ACTIVE	 = false;
-	cv::Point2f controllerKp			 = cv::Point2f( 10.0f, 10.0f );
+	cv::Point2f controllerKp			 = cv::Point2f( 1.0f, 1.0f );
 	cv::Point2f controllerKd			 = cv::Point2f( 0.0f, .0f );
 	cv::Point3i controllerPWM			 = cv::Point3i( 0, 0, 0 );
 	cv::Point3f controllerPercentage	 = cv::Point3f( 0.0f, 0.0f, 0.0f );

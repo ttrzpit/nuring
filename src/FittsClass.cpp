@@ -39,9 +39,9 @@ void FittsClass::StartAngleTest() {
 
 	int minTheta = -45;
 	int maxTheta = 45;
-	
+
 	// Generate theta
-	shared->angleDesired = minTheta + ( rand() % (maxTheta - minTheta + 1) );
+	shared->angleDesired = minTheta + ( rand() % ( maxTheta - minTheta + 1 ) );
 
 	// Output position for debugging
 	std::cout << "Rand angle: " << shared->angleDesired << "\n";
@@ -102,7 +102,6 @@ void FittsClass::EndAngleTest() {
 
 
 
-
 /**
  * @brief Start the Fitts Law trial
  * @param axis Which axis to run test on ('x', 'y', 'z' (both) )
@@ -112,10 +111,10 @@ void FittsClass::StartTest( char axis ) {
 
 	// Update flag
 	testComplete			= false;
-	shared->fittsActiveAxis = 'x';
+	shared->fittsActiveAxis = axis;
 
 	// Update test number
-	shared->TASK_REP_NUMBER++;
+	// shared->TASK_REP_NUMBER++;
 
 	// Clear the screen
 	matBackground = CONFIG_colWhite;
@@ -143,6 +142,91 @@ void FittsClass::StartTest( char axis ) {
 
 		// Generate vertical bar
 		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+
+	} else if ( axis == 't' ) {
+
+		std::cout << "Rep: " << shared->TASK_REP_NUMBER << "\n";
+
+		if ( shared->TASK_REP_NUMBER == 1 ) {
+
+			// Dead center
+			shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 );
+			shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows );
+
+			// Generate vertical bar
+			cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+
+		} else if ( shared->TASK_REP_NUMBER == 2 ) {
+
+			// Dead center
+			shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) + ( 240 * MM2PX );
+			shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows );
+
+			// Generate vertical bar
+			cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+
+		} else if ( shared->TASK_REP_NUMBER == 3 ) {
+
+			// Dead center
+			shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) + ( 100 * MM2PX );
+			shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) + ( 100 * MM2PX );
+
+			// Generate vertical bar
+			cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		} else if ( shared->TASK_REP_NUMBER == 4 ) {
+
+			// Dead center
+			shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 );
+			shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) + ( 100 * MM2PX );
+
+			// Generate vertical bar
+			cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		} else if ( shared->TASK_REP_NUMBER == 5 ) {
+
+			// Dead center
+			shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) - ( 100 * MM2PX );
+			shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) + ( 100 * MM2PX );
+
+			// Generate vertical bar
+			cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		} else if ( shared->TASK_REP_NUMBER == 6 ) {
+
+			// Dead center
+			shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) - ( 240 * MM2PX );
+			shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows );
+
+			// Generate vertical bar
+			cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		} else if ( shared->TASK_REP_NUMBER == 7 ) {
+
+			// Dead center
+			shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) - ( 100 * MM2PX );
+			shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) - ( 100 * MM2PX );
+
+			// Generate vertical bar
+			cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		} else if ( shared->TASK_REP_NUMBER == 8 ) {
+
+			// Dead center
+			shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 );
+			shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) - ( 100 * MM2PX );
+
+			// Generate vertical bar
+			cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		} else if ( shared->TASK_REP_NUMBER == 9 ) {
+
+			// Dead center
+			shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) + ( 100 * MM2PX );
+			shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) - ( 100 * MM2PX );
+
+			// Generate vertical bar
+			cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		} else {
+
+			shared->TASK_REP_NUMBER = 0;
+		}
+
+
 
 	} else {
 		shared->fittsMarkerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) ) - matAruco01.cols / 2;

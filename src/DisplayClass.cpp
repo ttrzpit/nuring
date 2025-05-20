@@ -26,7 +26,7 @@ DisplayClass::DisplayClass( SystemDataManager& ctx )
 		key_fontBody   = 0.55f;
 	} else if ( CONFIG_TYPE == "HighResolution" ) {
 		fontHeader	   = 0.35f;
-		fontBody	   = 0.3f;
+		fontBody	   = 0.35f;
 		key_fontHeader = 0.45f;
 		key_fontBody   = 0.4f;
 	}
@@ -240,9 +240,9 @@ void DisplayClass::AddText() {
 		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( ( shared->teensyABC.z / 10.0 ) * 60.0f ) ), CONFIG_colRedLt, 8 );
 	}
 	// Active lines
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS35 * ( shared->controllerPercentage.x * 60.0f ), center.y - SIN35 * ( shared->controllerPercentage.x * 60.0f ) ), CONFIG_colRedMd, 2 );
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS145 * ( shared->controllerPercentage.y * 60.0f ), center.y - SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), CONFIG_colRedMd, 2 );
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 2 );
+	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + std::clamp( float( COS35 * ( shared->controllerPercentage.x * 60.0f ) ), 0.0f, 60.0f ), center.y - std::clamp( float( SIN35 * ( shared->controllerPercentage.x * 60.0f ) ), 0.0f, 60.0f ) ), CONFIG_colRedMd, 2 );
+	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + std::clamp( float( COS145 * ( shared->controllerPercentage.y * 60.0f ) ), -60.0f, 0.0f ), center.y - std::clamp( float( SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), 0.0f, 60.0f ) ), CONFIG_colGreMd, 2 );
+	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colBluLt, 2 );
 	/// Lines connecting motor pairs
 	cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->controllerPercentage.x * 60.0f ), center.y - SIN35 * ( shared->controllerPercentage.x * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 1 );
 	cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS145 * ( shared->controllerPercentage.y * 60.0f ), center.y - SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 1 );

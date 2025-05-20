@@ -1,3 +1,4 @@
+
 // Library for managing interrupt signals
 #include <csignal>
 
@@ -23,6 +24,7 @@ auto shared = dataHandle.getData();
 #include "include/SerialClass.h"
 #include "include/TimingClass.h"
 #include "include/TouchscreenClass.h"
+#include "include/TasksClass.h"
 
 // New class objects
 CaptureClass	 Capture( dataHandle );					  // Camera capture
@@ -49,8 +51,6 @@ std::string BuildPacketAngularError();
 void		UpdateState();
 void		SendSerialPacket();
 void		BuildSerialPacket();
-
-
 
 /**
  * @brief Main program loop
@@ -319,7 +319,7 @@ void TaskFitts() {
 		shared->TASK_COMPLETE		 = false;
 		shared->targetMarkerActiveID = 1;
 		Fitts.Initialize();
-		Fitts.StartTest( 'x' );
+		Fitts.StartTest( 't' );
 	} else {
 
 		Fitts.Update();

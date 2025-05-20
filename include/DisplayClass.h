@@ -11,6 +11,9 @@
 // Configuration
 #include <config.h>
 
+// For std::clamp
+#include <cmath>
+
 // Forward declarations
 class SystemDataManager;
 struct ManagedData;

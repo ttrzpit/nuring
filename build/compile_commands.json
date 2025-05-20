@@ -73,6 +73,12 @@
 },
 {
   "directory": "/home/tom/Code/nuring/build",
+  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/TasksClass.cpp.o -c /home/tom/Code/nuring/src/TasksClass.cpp",
+  "file": "/home/tom/Code/nuring/src/TasksClass.cpp",
+  "output": "CMakeFiles/NURingIntegratedController.dir/src/TasksClass.cpp.o"
+},
+{
+  "directory": "/home/tom/Code/nuring/build",
   "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/TimingClass.cpp.o -c /home/tom/Code/nuring/src/TimingClass.cpp",
   "file": "/home/tom/Code/nuring/src/TimingClass.cpp",
   "output": "CMakeFiles/NURingIntegratedController.dir/src/TimingClass.cpp.o"
