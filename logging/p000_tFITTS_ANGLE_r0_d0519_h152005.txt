@@ -1,2 +1,0 @@
-timestamp,errXmm,errYmm,errZmm,ThetaDesired,ThetaMeasured,Heading3,Heading4,Heading5
-0.778337,0,0,0,-34.000000,-32.000000,0,0,0

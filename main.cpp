@@ -22,9 +22,9 @@ auto shared = dataHandle.getData();
 #include "include/KalmanClass.h"
 #include "include/LoggingClass.h"
 #include "include/SerialClass.h"
+#include "include/TasksClass.h"
 #include "include/TimingClass.h"
 #include "include/TouchscreenClass.h"
-#include "include/TasksClass.h"
 
 // New class objects
 CaptureClass	 Capture( dataHandle );					  // Camera capture
@@ -39,8 +39,8 @@ FittsClass		 Fitts( dataHandle, Timing, Logging );	  // For fitts-law testing
 CalibrationClass Calibration( dataHandle );				  // For calibration of user to touchscreen
 ControllerClass	 Controller( dataHandle );				  // Controller
 KalmanClass		 KalmanTarget( dataHandle );			  // Kalman filter for target
-KalmanClass		 KalmanFinger( dataHandle );			  // Kalman filter
-KalmanClass		 KalmanAngle( dataHandle );
+// KalmanClass		 KalmanFinger( dataHandle );			  // Kalman filter
+// KalmanClass		 KalmanAngle( dataHandle );
 
 // Function prototypes
 void		SignalHandler( int signum );
@@ -319,7 +319,7 @@ void TaskFitts() {
 		shared->TASK_COMPLETE		 = false;
 		shared->targetMarkerActiveID = 1;
 		Fitts.Initialize();
-		Fitts.StartTest( 't' );
+		Fitts.StartTest( 'z' );
 	} else {
 
 		Fitts.Update();
@@ -397,16 +397,7 @@ std::string BuildPacketAngularError() {
  */
 void UpdateState() {
 
-	if ( shared->TASK_NAME == "FITTS_ANGLE" ) {
-
-		// Update filter
-		KalmanAngle.UpdateAngle( shared->angleTheta, shared->timingTimestamp );
-
-		// Get updated values
-		shared->angleFiltered = KalmanAngle.GetFilteredAngle();
-		shared->angleVelocity = KalmanAngle.GetFilteredAngularVelocity();
-
-	} else if ( shared->FLAG_TARGET_MARKER_FOUND && shared->FLAG_FRAME_READY ) {
+	if ( shared->FLAG_TARGET_MARKER_FOUND && shared->FLAG_FRAME_READY ) {
 
 		// Save old data
 		shared->targetMarkerPosition3dOld		= shared->targetMarkerPosition3dNew;
@@ -428,16 +419,16 @@ void UpdateState() {
 		shared->targetMarkerAnglularVelocityNew = KalmanTarget.GetAnglularVelocity();
 
 
-		// Check if finger tag present
-		if ( shared->FLAG_FINGER_MARKER_FOUND ) {
+		// // Check if finger tag present
+		// if ( shared->FLAG_FINGER_MARKER_FOUND ) {
 
-			// Update filter
-			KalmanFinger.Update( shared->fingerMarkerPosition3DRaw, shared->timingTimestamp );
+		// 	// Update filter
+		// 	KalmanFinger.Update( shared->fingerMarkerPosition3DRaw, shared->timingTimestamp );
 
-			// Get updated values
-			shared->fingerMarkerPosition3DNew = KalmanFinger.GetPosition();
-			shared->fingerMarkerAngleNew	  = KalmanFinger.GetAngle();
-		}
+		// 	// Get updated values
+		// 	shared->fingerMarkerPosition3DNew = KalmanFinger.GetPosition();
+		// 	shared->fingerMarkerAngleNew	  = KalmanFinger.GetAngle();
+		// }
 	}
 }
 
@@ -446,7 +437,7 @@ void UpdateState() {
 void BuildSerialPacket() {
 
 	if ( shared->serialTrigger == "drive" ) {
-		// Build string
+		// Build string32
 		shared->serialPacket0 = std::string( "E" ) + ( shared->FLAG_AMPLIFIERS_ENABLED ? "1" : "0" ) + "A" + Serial.PadValues( shared->controllerPWM.x, 4 ) + "B" + Serial.PadValues( shared->controllerPWM.y, 4 ) + "C" + Serial.PadValues( shared->controllerPWM.z, 4 ) + "X";
 	} else if ( shared->serialTrigger == "reset" ) {
 		shared->serialPacket0 = "E0RX";

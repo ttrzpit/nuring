@@ -47,8 +47,8 @@ private:
 	cv::aruco::ArucoDetector	  arucoDetector;
 
 	// Aruco variables
-	std::vector<bool> arucoTagsPresent;	   // Is a given tag present?
-	std::vector<int>  arucoDetectedIDs;	   // Collection of IDs detected
+	std::vector<uint8_t> arucoTagsPresent{ 10, 0 };	   // Is a given tag present?
+	std::vector<int>	 arucoDetectedIDs;				   // Collection of IDs detected
 	// cv::Vec3d							  arucoRotationVector	  = cv::Vec3d( 0, 0, 0 );				// Rotation vector
 	// cv::Vec3d							  arucoTranslationVector  = cv::Vec3d( 0, 0, 0 );				// Translation vector
 	// bool								  arucoDetected			  = false;								// Is there a tag detected

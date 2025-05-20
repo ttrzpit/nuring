@@ -72,45 +72,30 @@ void ControllerClass::Update() {
 		// shared->controllerPWM.z = std::clamp( 2048 - int( ( shared->controllerCurrent.z / nominalCurrent ) * 2047 ), 1, 2048 );
 	} else {
 
-		// Motor vectors
-		cv::Point2f motorA( COS35, SIN35 );
-		cv::Point2f motorB( COS145, SIN145 );
-		cv::Point2f motorC( COS270, SIN270 );
-
 		// Calculate error angle for motor selection
-		float angle = std::atan2( shared->targetMarkerPosition3dNew.y, shared->targetMarkerPosition3dNew.x );
-		float r		= cv::norm( cv::Vec2f( shared->targetMarkerPosition3dNew.x, shared->targetMarkerPosition3dNew.y ) );
-		float rMax	= 0.0f;
-		float thA	= 35.0f * DEG2RAD;
-		float thB	= 145.0f * DEG2RAD;
-		float thC	= 270.0f * DEG2RAD;
-		float thAT	= 0.0f;
-		float thBT	= 0.0f;
-		float thCT	= 0.0f;
-		float thAB	= 110.0f * DEG2RAD;
-		float thBC	= 125.0f * DEG2RAD;
-		float thAC	= 125.0f * DEG2RAD;
-
-		cv::Point3f contribution( 0, 0, 0 );
+		thTarget = std::atan2( shared->targetMarkerPosition3dNew.y, shared->targetMarkerPosition3dNew.x );
+		rTarget	 = cv::norm( cv::Vec2f( shared->targetMarkerPosition3dNew.x, shared->targetMarkerPosition3dNew.y ) );
 
 		// Wrap angle within 0-360 deg
-		if ( angle < 0 ) {
-			angle += ( 360.0f * DEG2RAD );
+		if ( thTarget < 0 ) {
+			thTarget += ( 360.0f * DEG2RAD );
 		}
 
 		// Calculate max radius
-		rMax = std::clamp( float( std::atan2( r, shared->targetMarkerPosition3dNew.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD ) * shared->controllerKp.x;
+		rMax = std::clamp( float( std::atan2( rTarget, shared->targetMarkerPosition3dNew.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD ) * shared->controllerKp.x;
 
-		// Determine angle and solve
-		if ( angle >= ( 270 * DEG2RAD ) || angle < ( 35 * DEG2RAD ) ) {
+		// std::cout << "Vel: " << shared->FormatDecimal( shared->targetMarkerVelocity3dNew.x, 2 ) <<
+
+			// Determine angle and solve
+			if ( thTarget >= ( 270 * DEG2RAD ) || thTarget < ( 35 * DEG2RAD ) ) {
 
 			// Wrap-around for 360/0 deg, calculate angles AC
-			if ( angle < thA ) {
-				thAT = thA - angle;
+			if ( thTarget < thA ) {
+				thAT = thA - thTarget;
 				thCT = thAC - thAT;
 			}
-			if ( angle > thC ) {
-				thCT = angle - thC;
+			if ( thTarget > thC ) {
+				thCT = thTarget - thC;
 				thAT = thAC - thCT;
 			}
 
@@ -119,29 +104,29 @@ void ControllerClass::Update() {
 			contribution.z = ( 1.0f - ( thCT / thAC ) ) * rMax;
 
 			// Debug
-			std::cout << "|A+C| Angle: " << shared->FormatDecimal( angle * RAD2DEG, 2 ) << "   Contrib: A: " << shared->FormatDecimal( contribution.x, 2 ) << " , C: " << shared->FormatDecimal( contribution.z, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
-
-		} else if ( angle >= ( 35 * DEG2RAD ) && angle < ( 145 * DEG2RAD ) ) {
+			// std::cout << "|A+C| Angle: " << shared->FormatDecimal( thTarget * RAD2DEG, 2 ) << "   Contrib: A: " << shared->FormatDecimal( contribution.x, 2 ) << " , C: " << shared->FormatDecimal( contribution.z, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
+		}
+		else if ( thTarget >= ( 35 * DEG2RAD ) && thTarget < ( 145 * DEG2RAD ) ) {
 
 			// Calculate angles AB
-			thAT = angle - thA;
+			thAT = thTarget - thA;
 			thBT = thAB - thAT;
 
 			contribution.x = ( 1.0f - ( thAT / thAB ) ) * rMax;
 			contribution.y = ( 1.0f - ( thBT / thAB ) ) * rMax;
 
-			std::cout << "|A+B| Angle: " << shared->FormatDecimal( angle * RAD2DEG, 2 ) << "   Contrib: A: " << shared->FormatDecimal( contribution.x, 2 ) << " , B: " << shared->FormatDecimal( contribution.y, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
-
-		} else if ( angle >= ( 145 * DEG2RAD ) && angle < ( 270 * DEG2RAD ) ) {
+			// std::cout << "|A+B| Angle: " << shared->FormatDecimal( thTarget * RAD2DEG, 2 ) << "   Contrib: A: " << shared->FormatDecimal( contribution.x, 2 ) << " , B: " << shared->FormatDecimal( contribution.y, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
+		}
+		else if ( thTarget >= ( 145 * DEG2RAD ) && thTarget < ( 270 * DEG2RAD ) ) {
 
 			// Calculate angles BC
-			thBT = angle - thB;
+			thBT = thTarget - thB;
 			thCT = thBC - thBT;
 
 			contribution.y = ( 1.0f - ( thBT / thBC ) ) * rMax;
 			contribution.z = ( 1.0f - ( thCT / thBC ) ) * rMax;
 
-			std::cout << "|B+C| Angle: " << shared->FormatDecimal( angle * RAD2DEG, 2 ) << "   Contrib: B: " << shared->FormatDecimal( contribution.y, 2 ) << " , C: " << shared->FormatDecimal( contribution.z, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
+			// std::cout << "|B+C| Angle: " << shared->FormatDecimal( thTarget * RAD2DEG, 2 ) << "   Contrib: B: " << shared->FormatDecimal( contribution.y, 2 ) << " , C: " << shared->FormatDecimal( contribution.z, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
 		}
 
 		// Multiply with gains
@@ -173,9 +158,9 @@ void ControllerClass::Update() {
 		// shared->controllerPercentage = shared->controllerCurrent / nominalCurrent;
 
 		// Map to PWM
-		shared->controllerPWM.x = std::clamp( 2048 - int( ( shared->controllerPercentage.x ) * 2047 ), 1, 2048 );
-		shared->controllerPWM.y = std::clamp( 2048 - int( ( shared->controllerPercentage.y ) * 2047 ), 1, 2048 );
-		shared->controllerPWM.z = std::clamp( 2048 - int( ( shared->controllerPercentage.z ) * 2047 ), 1, 2048 );
+		shared->controllerPWM.x = std::clamp( 2048 - int( ( shared->controllerPercentage.x ) * 2047 ), 4, 2044 );
+		shared->controllerPWM.y = std::clamp( 2048 - int( ( shared->controllerPercentage.y ) * 2047 ), 4, 2044 );
+		shared->controllerPWM.z = std::clamp( 2048 - int( ( shared->controllerPercentage.z ) * 2047 ), 4, 2044 );
 
 		// std::cout << "MotorA: " << shared->controllerTorqueABC.x << "  MotorB: " << shared->controllerTorqueABC.y << "  MotorC: " << shared->controllerTorqueABC.z << "\n";
 

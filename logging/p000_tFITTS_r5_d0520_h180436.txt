@@ -1,0 +1,2 @@
+timestamp,errXmm,errYmm,errZmm,MarkerPresent,Touched,Encoder,Heading4,Heading5
+0.43042,-127,-48,320,1,1,TE1A4B0C0D000X,0,0

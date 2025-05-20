@@ -177,38 +177,40 @@ void KalmanClass::InitializeAngle( float measuredAngle, float tInitial ) {
 	isAngleInitialized = true;
 }
 
-void KalmanClass::UpdateAngle( float measuredAngle, float tCurrent ) {
-	if ( !isAngleInitialized ) {
-		InitializeAngle( measuredAngle, tCurrent );
-		return;
-	}
 
-	float dt	   = std::clamp( tCurrent - tAnglePrevious, 1e-5f, shared->kalmanTimeStepDt );
-	tAnglePrevious = tCurrent;
 
-	// State transition matrix
-	cv::Mat F = ( cv::Mat_<float>( 2, 2 ) << 1.0f, dt, 0.0f, 1.0f );
+// void KalmanClass::UpdateAngle( float measuredAngle, float tCurrent ) {
+// 	if ( !isAngleInitialized ) {
+// 		InitializeAngle( measuredAngle, tCurrent );
+// 		return;
+// 	}
 
-	// Predict
-	angleState = F * angleState;
-	angleP	   = F * angleP * F.t() + angleQ;
+// 	float dt	   = std::clamp( tCurrent - tAnglePrevious, 1e-5f, shared->kalmanTimeStepDt );
+// 	tAnglePrevious = tCurrent;
 
-	// Measurement update
-	cv::Mat z = ( cv::Mat_<float>( 1, 1 ) << measuredAngle );
-	cv::Mat y = z - angleH * angleState;
-	cv::Mat S = angleH * angleP * angleH.t() + angleR;
+// 	// State transition matrix
+// 	cv::Mat F = ( cv::Mat_<float>( 2, 2 ) << 1.0f, dt, 0.0f, 1.0f );
 
-	if ( cv::determinant( S ) > 1e-6f ) {
-		cv::Mat K  = angleP * angleH.t() * S.inv();
-		angleState = angleState + K * y;
-		angleP	   = ( angleI - K * angleH ) * angleP;
-	}
-}
+// 	// Predict
+// 	angleState = F * angleState;
+// 	angleP	   = F * angleP * F.t() + angleQ;
 
-float KalmanClass::GetFilteredAngle() const {
-	return angleState.at<float>( 0 );
-}
+// 	// Measurement update
+// 	cv::Mat z = ( cv::Mat_<float>( 1, 1 ) << measuredAngle );
+// 	cv::Mat y = z - angleH * angleState;
+// 	cv::Mat S = angleH * angleP * angleH.t() + angleR;
 
-float KalmanClass::GetFilteredAngularVelocity() const {
-	return angleState.at<float>( 1 );
-}
+// 	if ( cv::determinant( S ) > 1e-6f ) {
+// 		cv::Mat K  = angleP * angleH.t() * S.inv();
+// 		angleState = angleState + K * y;
+// 		angleP	   = ( angleI - K * angleH ) * angleP;
+// 	}
+// }
+
+// float KalmanClass::GetFilteredAngle() const {
+// 	return angleState.at<float>( 0 );
+// }
+
+// float KalmanClass::GetFilteredAngularVelocity() const {
+// 	return angleState.at<float>( 1 );
+// }

@@ -236,18 +236,18 @@ void DisplayClass::AddText() {
 	// Teensy lines
 	if ( shared->teensyAmplifierEnabled && shared->teensySerialResponding ) {
 		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS35 * ( ( shared->teensyABC.x / 10.0 ) * 60.0f ), center.y - SIN35 * ( ( shared->teensyABC.x / 10.0 ) * 60.0f ) ), CONFIG_colRedLt, 8 );
-		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS145 * ( ( shared->teensyABC.y / 10.0 ) * 60.0f ), center.y - SIN145 * ( ( shared->teensyABC.y / 10.0 ) * 60.0f ) ), CONFIG_colRedLt, 8 );
-		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( ( shared->teensyABC.z / 10.0 ) * 60.0f ) ), CONFIG_colRedLt, 8 );
+		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS145 * ( ( shared->teensyABC.y / 10.0 ) * 60.0f ), center.y - SIN145 * ( ( shared->teensyABC.y / 10.0 ) * 60.0f ) ), CONFIG_colGreLt, 8 );
+		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( ( shared->teensyABC.z / 10.0 ) * 60.0f ) ), CONFIG_colBluLt, 8 );
 	}
-	// Active lines
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + std::clamp( float( COS35 * ( shared->controllerPercentage.x * 60.0f ) ), 0.0f, 60.0f ), center.y - std::clamp( float( SIN35 * ( shared->controllerPercentage.x * 60.0f ) ), 0.0f, 60.0f ) ), CONFIG_colRedMd, 2 );
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + std::clamp( float( COS145 * ( shared->controllerPercentage.y * 60.0f ) ), -60.0f, 0.0f ), center.y - std::clamp( float( SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), 0.0f, 60.0f ) ), CONFIG_colGreMd, 2 );
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colBluLt, 2 );
 	/// Lines connecting motor pairs
 	cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->controllerPercentage.x * 60.0f ), center.y - SIN35 * ( shared->controllerPercentage.x * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 1 );
 	cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS145 * ( shared->controllerPercentage.y * 60.0f ), center.y - SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 1 );
 	cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->controllerPercentage.x * 60.0f ), center.y - SIN35 * ( shared->controllerPercentage.x * 60.0f ) ),
 			  cv::Point2i( center.x + COS145 * ( shared->controllerPercentage.y * 60.0f ), center.y - SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), CONFIG_colRedMd, 1 );
+	// Active lines
+	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + std::clamp( float( COS35 * ( shared->controllerPercentage.x * 60.0f ) ), 0.0f, 60.0f ), center.y - std::clamp( float( SIN35 * ( shared->controllerPercentage.x * 60.0f ) ), 0.0f, 60.0f ) ), CONFIG_colRedMd, 2 );
+	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + std::clamp( float( COS145 * ( shared->controllerPercentage.y * 60.0f ) ), -60.0f, 0.0f ), center.y - std::clamp( float( SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), 0.0f, 60.0f ) ), CONFIG_colGreDk, 2 );
+	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colBluMd, 2 );
 	// Motor output circles
 	cv::circle( shared->matFrameOverlay, center, 60, ( shared->FLAG_AMPLIFIERS_ENABLED ? CONFIG_colGreDk : CONFIG_colGraDk ), 1 );
 	cv::circle( shared->matFrameOverlay, center, ( shared->FLAG_AMPLIFIERS_ENABLED ? 6 : 2 ), ( shared->FLAG_AMPLIFIERS_ENABLED ? CONFIG_colGreDk : CONFIG_colGraDk ), -1 );

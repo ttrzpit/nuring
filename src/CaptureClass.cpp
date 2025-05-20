@@ -37,6 +37,7 @@ void CaptureClass::Initialize() {
 
 		// Camera settings
 		Capture.set( cv::CAP_PROP_BRIGHTNESS, CONFIG_CAM_BRIGHTNESS );
+
 		Capture.set( cv::CAP_PROP_CONTRAST, CONFIG_CAM_CONTRAST );
 		Capture.set( cv::CAP_PROP_SATURATION, CONFIG_CAM_SATURATION );
 		Capture.set( cv::CAP_PROP_HUE, CONFIG_CAM_HUE );

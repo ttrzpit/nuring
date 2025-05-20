@@ -26,18 +26,18 @@ void ArucoClass::Initialize() {
 	arucoDictionary = cv::aruco::getPredefinedDictionary( cv::aruco::DICT_4X4_50 );
 
 	// Assign ArUco detector parameters
-	arucoDetectorParams.adaptiveThreshConstant		  = 7;									// 7
-	arucoDetectorParams.adaptiveThreshWinSizeMin	  = 3;									// 3  KEEP THIS
-	arucoDetectorParams.adaptiveThreshWinSizeMax	  = 13;									// 13	KEEP THIS
-	arucoDetectorParams.adaptiveThreshWinSizeStep	  = 10;									// 10
-	arucoDetectorParams.minMarkerPerimeterRate		  = 0.03;								// 0.03
-	arucoDetectorParams.maxMarkerPerimeterRate		  = 4.0;								// 4.0 Not critical
-	arucoDetectorParams.polygonalApproxAccuracyRate	  = 0.1;								// 0.15
-	arucoDetectorParams.minCornerDistanceRate		  = 0.05;								// 0.05
-	arucoDetectorParams.minDistanceToBorder			  = 3;									// 3
-	arucoDetectorParams.cornerRefinementMethod		  = cv::aruco::CORNER_REFINE_SUBPIX;	// cv::aruco::CORNER_REFINE_SUBPIX;
-	arucoDetectorParams.cornerRefinementMaxIterations = 30;									// 30
-	arucoDetectorParams.cornerRefinementMinAccuracy	  = 0.01;								// 0.1
+	arucoDetectorParams.adaptiveThreshConstant		  = 7;								  // 7
+	arucoDetectorParams.adaptiveThreshWinSizeMin	  = 3;								  // 3  KEEP THIS
+	arucoDetectorParams.adaptiveThreshWinSizeMax	  = 13;								  // 13	KEEP THIS
+	arucoDetectorParams.adaptiveThreshWinSizeStep	  = 10;								  // 10
+	arucoDetectorParams.minMarkerPerimeterRate		  = 0.03;							  // 0.03
+	arucoDetectorParams.maxMarkerPerimeterRate		  = 4.0;							  // 4.0 Not critical
+	arucoDetectorParams.polygonalApproxAccuracyRate	  = 0.15;							  // 0.15
+	arucoDetectorParams.minCornerDistanceRate		  = 0.05;							  // 0.05
+	arucoDetectorParams.minDistanceToBorder			  = 3;								  // 3
+	arucoDetectorParams.cornerRefinementMethod		  = cv::aruco::CORNER_REFINE_NONE;	  // cv::aruco::CORNER_REFINE_SUBPIX;
+	arucoDetectorParams.cornerRefinementMaxIterations = 30;								  // 30
+	arucoDetectorParams.cornerRefinementMinAccuracy	  = 0.01;							  // 0.1
 
 	// Re-initialize detector
 	arucoDetector = cv::aruco::ArucoDetector( arucoDictionary, arucoDetectorParams );
@@ -49,12 +49,11 @@ void ArucoClass::Initialize() {
 	arucoPoints.ptr<cv::Vec3f>( 0 )[3] = cv::Vec3f( -CONFIG_LARGE_MARKER_WIDTH / 2.f, -CONFIG_LARGE_MARKER_WIDTH / 2.f, 0 );
 
 	// Configure tag vector sizes
-	arucoTagsPresent.resize( 11 );
+	// arucoTagsPresent.resize( 11 );
 
 	// Update console
 	std::cout << "ArucoClass:   ArUco detector initialized.\n";
 }
-
 
 
 /**

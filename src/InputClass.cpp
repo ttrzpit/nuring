@@ -218,18 +218,20 @@ void InputClass::ParseInput( int key ) {
 			break;
 		case 102:	 // 'f'
 			// Run fitts-law test
-			shared->TASK_RUNNING = false;
-			shared->TASK_NAME	 = "FITTS";
-			shared->TASK_REP_NUMBER++ ;
+			shared->touchDetected = 0;
+			shared->TASK_RUNNING  = false;
+			shared->TASK_NAME	  = "FITTS";
+			shared->TASK_REP_NUMBER++;
 			// shared->TASK_RUNNING = true;
 			// shared->fittsTestStarted = false;
 			shared->displayString = "InputClass: Starting fitts-law test.";
 			break;
 		case 103:	 // 'g'
-			// Run fitts-law test
-			shared->TASK_RUNNING = false;
-			shared->TASK_NAME	 = "FITTS_ANGLE";
-			shared->angleEnabled = true;
+			// End test
+			shared->touchDetected = 1;
+			// shared->TASK_RUNNING = false;
+			// shared->TASK_NAME	 = "FITTS_ANGLE";
+			// shared->angleEnabled = true;
 			// shared->TASK_RUNNING = true;
 			// shared->fittsTestStarted = false;
 			shared->displayString = "InputClass: Starting angle test.";
