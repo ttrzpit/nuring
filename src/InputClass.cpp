@@ -26,7 +26,7 @@ void InputClass::ParseInput( int key ) {
 		std::cout << "InputClass:   Detected key press = " << key << "\n";
 
 		switch ( key ) {
-		case 27:	// ESC key 1048603
+		case 27: {	  // ESC key 1048603
 			shared->FLAG_SERIAL0_ENABLED	= false;
 			shared->FLAG_AMPLIFIERS_ENABLED = false;
 			shared->serialPacket0			= "DX\n";
@@ -42,48 +42,43 @@ void InputClass::ParseInput( int key ) {
 			shared->FLAG_PACKET_WAITING = true;
 			shared->FLAG_SHUTTING_DOWN	= true;
 			break;
-		// case 177:	 // Numpad 1
-		case '0':	 // 1
-					 // shared->FLAG_TARGET_FOUND = false ;
+		}
+		case '0': {	   // '0'
 			shared->targetMarkerActiveID = 0;
-
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 0 ? "0." : "0." );
+			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 0 ? "0." : "0." );
 			break;
-		// case 178:	 // Numpad 2
-		case '1':	 // 1
-					 // shared->FLAG_TARGET_FOUND = false ;
+		}
+		case '1': {	   // '1'
 			shared->targetMarkerActiveID = 1;
-
-			shared->displayString = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 1 ? "1." : "0." );
+			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 1 ? "1." : "0." );
 			break;
-		// case 178:	 // Numpad 2
-		case '2':	 // 2
+		}
+		case '2': {	   // '2'
 			shared->targetMarkerActiveID = 2;
 			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 2 ? "2." : "0." );
 			break;
-		// case 179:	 // Numpad 3
-		case '3':	 // 3
+		}
+		case '3': {	   // '3'
 			shared->targetMarkerActiveID = 3;
 			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 3 ? "3." : "0." );
 			break;
-		// case 180:	 // Numpad 4
-		case '4':	 // 4
+		}
+		case '4': {	   // '4'
 			shared->targetMarkerActiveID = 4;
 			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 4 ? "4." : "0." );
 			break;
-		// case 181:	 // Numpad 5
-		case '5':	 // 5
-					 // shared->FLAG_TARGET_FOUND = false ;
+		}
+		case '5': {	   // '5'
 			shared->targetMarkerActiveID = 5;
 			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 5 ? "5." : "0." );
-
 			break;
-
-		case '`':	 // ` (tilde)
+		}
+		case '`': {	   // ` (tilde)
 			shared->displayString		 = "InputClass: Disabling all active markers.";
 			shared->targetMarkerActiveID = 0;
 			break;
-		case 'a':	 // E
+		}
+		case 'a': {	   // 'e'
 			shared->FLAG_AMPLIFIERS_ENABLED = !shared->FLAG_AMPLIFIERS_ENABLED;
 			if ( shared->FLAG_AMPLIFIERS_ENABLED ) {
 				// shared->serialPacket		= "e\n";
@@ -95,26 +90,27 @@ void InputClass::ParseInput( int key ) {
 				shared->displayString		= "InputClass: Amplifiers disabled.";
 			}
 			break;
-		case 's': {	   // s
+		}
+		case 's': {	   // 's'
 			// Toggle serial flags
 			shared->FLAG_SERIAL0_ENABLED = !shared->FLAG_SERIAL0_ENABLED;
 			shared->FLAG_SERIAL1_ENABLED = !shared->FLAG_SERIAL1_ENABLED;
 			if ( shared->FLAG_SERIAL0_ENABLED ) {
-				shared->displayString		   = "InputClass: Enabling serial IO.";
-				shared->FLAG_SERIAL0_ENABLED   = true;
-				shared->FLAG_SERIAL1_ENABLED   = true;
-				shared->teensyAmplifierEnabled = false;
+				shared->displayString				  = "InputClass: Enabling serial IO.";
+				shared->FLAG_SERIAL0_ENABLED		  = true;
+				shared->FLAG_SERIAL1_ENABLED		  = true;
+				shared->FLAG_TEENSY_AMPLIFIER_ENABLED = false;
 			} else {
 				// shared->serialPacket0		 = "DX\n";
-				shared->FLAG_PACKET_WAITING	   = true;
-				shared->FLAG_SERIAL0_ENABLED   = false;
-				shared->FLAG_SERIAL1_ENABLED   = false;
-				shared->teensyAmplifierEnabled = false;
-				shared->displayString		   = "InputClass: Disabling serial IO.";
+				shared->FLAG_PACKET_WAITING			  = true;
+				shared->FLAG_SERIAL0_ENABLED		  = false;
+				shared->FLAG_SERIAL1_ENABLED		  = false;
+				shared->FLAG_TEENSY_AMPLIFIER_ENABLED = false;
+				shared->displayString				  = "InputClass: Disabling serial IO.";
 			}
 			break;
 		}
-		case 'x':	 // X
+		case 'x': {	   // 'x'
 			shared->displayString = "InputClass: Software E-Stop Triggered. Amplifiers and serial output disabled.";
 			if ( shared->FLAG_SERIAL0_OPEN ) {
 				shared->serialPacket0		= "DX\n";
@@ -122,101 +118,105 @@ void InputClass::ParseInput( int key ) {
 			}
 			shared->FLAG_AMPLIFIERS_ENABLED = false;
 			break;
-		case 'r':
-		// shared->fittsTestStarted = false;
-		// Fitts.StartTest();
-		// OutputDisplay.setStatusString( "Randomizing Fitts Test Marker." );
-		// 		}
-		// 	}
-		// }
+		}
 		case 111: {	   // 'o'
 			shared->controllerKp.x -= 0.20f;
 			shared->displayString = "InputClass: Decreasing Kp(x) to " + std::to_string( shared->controllerKp.x ) + ".";
 			break;
 		}
-		case 112:	 // 'p'
+		case 112: {	   // 'p'
 			shared->controllerKp.x += 0.20f;
 			shared->displayString = "InputClass: Increasing Kp(x) to " + std::to_string( shared->controllerKp.x ) + ".";
 			break;
+		}
 		case 91: {	  // '['
+			shared->controllerKd.x -= 0.01;
+			shared->displayString = "InputClass: Decreasing Kd(x) to " + std::to_string( shared->controllerKd.x ) + ".";
+			break;
+		}
+		case 93: {	  // ']'
+			shared->controllerKd.x += 0.01;
+			shared->displayString = "InputClass: Increasing Kd(x) to " + std::to_string( shared->controllerKd.x ) + ".";
+			break;
+		}
+		case 107: {	   // 'k'
 			shared->controllerKp.y -= 0.20f;
 			shared->displayString = "InputClass: Decreasing Kp(y) to " + std::to_string( shared->controllerKp.y ) + ".";
 			break;
 		}
-		case 93:	// ']'
+		case 108: {	   // 'l'
 			shared->controllerKp.y += 0.20f;
 			shared->displayString = "InputClass: Increasing Kp(y) to " + std::to_string( shared->controllerKp.y ) + ".";
 			break;
-		case 107:	 // 'k'
-			shared->controllerKd.x -= 0.01;
-			shared->displayString = "InputClass: Decreasing Kd(x) to " + std::to_string( shared->controllerKd.x ) + ".";
-			break;
-		case 108:	 // 'l'
-			shared->controllerKd.x += 0.01;
-			shared->displayString = "InputClass: Increasing Kd(x) to " + std::to_string( shared->controllerKd.x ) + ".";
-			break;
-
-		case 59:	// ';'
+		}
+		case 59: {	  // ';'
 			shared->controllerKd.y -= 0.01;
 			shared->displayString = "InputClass: Decreasing Kd(y) to " + std::to_string( shared->controllerKp.y ) + ".";
 			break;
-		case 39:	// '''
+		}
+		case 39: {	  // '''
 			shared->controllerKd.y += 0.01;
 			shared->displayString = "InputClass: Increasing Kd(y) to " + std::to_string( shared->controllerKp.y ) + ".";
 			break;
-
-		case 183:	 // numpad 7
+		}
+		case 183: {	   // numpad 7
 			shared->controllerTension.x += 0.2f;
 			shared->displayString = "InputClass: Increasing Tension A to " + shared->FormatDecimal( shared->controllerTension.x, 2 ) + ".";
 			break;
-		case 180:	 // numpad 4
+		}
+		case 180: {	   // numpad 4
 			if ( shared->controllerTension.x > 0.2 ) {
 				shared->controllerTension.x -= 0.2f;
 				shared->displayString = "InputClass: Decreasing Tension A to " + shared->FormatDecimal( shared->controllerTension.x, 2 ) + ".";
 			}
 			break;
-		case 184:	 // numpad 8
+		}
+		case 184: {	   // numpad 8
 			shared->controllerTension.y += 0.2f;
 			shared->displayString = "InputClass: Increasing Tension B to " + shared->FormatDecimal( shared->controllerTension.y, 2 ) + ".";
 			break;
-		case 181:	 // numpad 5
+		}
+		case 181: {	   // numpad 5
 			if ( shared->controllerTension.y > 0.2 ) {
 				shared->controllerTension.y -= 0.2f;
 				shared->displayString = "InputClass: Decreasing Tension B to " + shared->FormatDecimal( shared->controllerTension.y, 2 ) + ".";
 			}
 			break;
-		case 185:	 // numpad 9
+		}
+		case 185: {	   // numpad 9
 			shared->controllerTension.z += 0.2f;
 			shared->displayString = "InputClass: Increasing Tension C to " + shared->FormatDecimal( shared->controllerTension.z, 2 ) + ".";
 			break;
-		case 182:	 // numpad 6
+		}
+		case 182: {	   // numpad 6
 			if ( shared->controllerTension.z > 0.2 ) {
 				shared->controllerTension.z -= 0.2f;
 				shared->displayString = "InputClass: Decreasing Tension C to " + shared->FormatDecimal( shared->controllerTension.z, 2 ) + ".";
 			}
 			break;
-
-		case 122:	 // 'z'
+		}
+		case 122: {	   // 'z'
 			shared->vizClear	  = true;
 			shared->displayString = "InputClass: Resetting visualization trails.";
 			break;
-		case 99:	// 'c'
-			// shared->targetActiveID = 8;
-			shared->TASK_NAME = "CALIB";
-
-			// shared->TASK_RUNNING  = true;
+		}
+		case 99: {	  // 'c'
+			shared->TASK_NAME			= "CALIB";
 			shared->calibrationComplete = false;
 			shared->displayString		= "InputClass: Starting calibration.";
 			break;
-		case 118:	 // 'v'
+		}
+		case 118: {	   // 'v'
 			shared->vizEnabled	  = !shared->vizEnabled;
 			shared->displayString = "InputClass: 3D Visualization " + std::string( shared->vizEnabled ? "enabled." : "disabled." );
 			break;
-		case 116:	 // 't'
+		}
+		case 116: {	   // 't'
 			shared->angleEnabled  = !shared->angleEnabled;
 			shared->displayString = "InputClass: Angle Visualization " + std::string( shared->angleEnabled ? "enabled." : "disabled." );
 			break;
-		case 102:	 // 'f'
+		}
+		case 102: {	   // 'f'
 			// Run fitts-law test
 			shared->touchDetected = 0;
 			shared->TASK_RUNNING  = false;
@@ -226,7 +226,8 @@ void InputClass::ParseInput( int key ) {
 			// shared->fittsTestStarted = false;
 			shared->displayString = "InputClass: Starting fitts-law test.";
 			break;
-		case 103:	 // 'g'
+		}
+		case 103: {	   // 'g'
 			// End test
 			shared->touchDetected = 1;
 			// shared->TASK_RUNNING = false;
@@ -236,28 +237,22 @@ void InputClass::ParseInput( int key ) {
 			// shared->fittsTestStarted = false;
 			shared->displayString = "InputClass: Starting angle test.";
 			break;
-		case 98:	// 'b'
+		}
+		case 98: {	  // 'b'
 			shared->touchDetected = 1;
 			shared->displayString = "InputClass: Ending angle test.";
 			break;
-		case 113:	 // 'q'
+		}
+		case 113: {	   // 'q'
 			shared->serialTrigger = "reset";
 			shared->displayString = "InputClass: Encoder reset.";
 			break;
-			// case 113:	 // 'q'
-			// shared->serialTrigger = "reset";
-			// shared->displayString = "InputClass: Encoder reset.";
-			// break;
-			// case 108:	 // l
-			// 	shared->FLAG_LOGGING_STARTED = !shared->FLAG_LOGGING_STARTED;
-			// 	shared->displayString		 = "InputClass: Started logging.";
-			// 	std::cout << "InputClass: Logging started.\n";
-			// 	break;
-			// case 113:	 // q
-			// 	cv::destroyAllWindows();
-			// 	break;
 		}
-		// std::cout << "\n";
+		default: {
+			shared->displayString = "InputClass: Unknown input.";
+			break;
+		}
+		}
 	} else {
 		shared->serialPacket0		= "DX\n";
 		shared->FLAG_PACKET_WAITING = true;

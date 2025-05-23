@@ -5,6 +5,9 @@
 // Data manager for exclusive read/write
 #include "include/SystemDataManager.h"
 
+// Configuration files
+#include "include/config.h"
+
 // System data manager object handle
 SystemDataManager dataHandle;
 
@@ -38,7 +41,7 @@ LoggingClass	 Logging( dataHandle );					  // Logging interface
 FittsClass		 Fitts( dataHandle, Timing, Logging );	  // For fitts-law testing
 CalibrationClass Calibration( dataHandle );				  // For calibration of user to touchscreen
 ControllerClass	 Controller( dataHandle );				  // Controller
-KalmanClass		 KalmanTarget( dataHandle );			  // Kalman filter for target
+KalmanClass		 Kalman( dataHandle );			  // Kalman filter for target
 // KalmanClass		 KalmanFinger( dataHandle );			  // Kalman filter
 // KalmanClass		 KalmanAngle( dataHandle );
 
@@ -85,6 +88,7 @@ int main() {
 	Serial.Send( "E0A2048B2048C2048X" );
 
 	// Initialize kalman filter
+	shared->kalmanP = cv::Mat::eye(6, 6, CV_32F) * 1.0f;
 	// Kalman.Initialize( cv::Point3f( 0.0f, 0.0f, 0.0f ), shared->timingTimestamp );
 
 	// Main loop
@@ -296,19 +300,21 @@ void TaskFitts() {
 		// Customize header
 		shared->loggingHeader1 = "MarkerPresent";
 		shared->loggingHeader2 = "Touched";
-		shared->loggingHeader3 = "Encoder";
+		// shared->loggingHeader3 = "Encoder";
 
 		// Initialize and add initial entry
+		// Start timer for measuring loop frequency
 		Timing.GetTimestamp();
 		Logging.Initialize();
-		Logging.AddEntry();
+		Timing.StartTimer();
+		// Logging.AddEntry();
 		shared->FLAG_LOGGING_STARTED = true;
 
 	} else if ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) {
 
 		shared->loggingVariable1 = std::to_string( shared->FLAG_TARGET_MARKER_FOUND );
 		shared->loggingVariable2 = std::to_string( shared->touchDetected );
-		shared->loggingVariable3 = shared->serialPacket1;
+		// shared->loggingVariable3 = shared->serialPacket1.substr(0, shared->serialPacket1.length() -1 );
 		Logging.AddEntry();
 	}
 
@@ -405,30 +411,24 @@ void UpdateState() {
 		shared->targetMarkerAngleOld.x			= shared->angleTheta;
 		shared->targetMarkerAnglularVelocityOld = shared->targetMarkerAnglularVelocityNew;
 
+		
 		// Update kalman filter
 		if ( shared->calibrationComplete ) {
-			KalmanTarget.Update( shared->targetMarkerPosition3dRaw + cv::Point3f( shared->calibrationOffsetMM ), shared->timingTimestamp );
+			Kalman.Update( shared->targetMarkerPosition3dRaw + cv::Point3f( shared->calibrationOffsetMM ), shared->timingTimestamp );
 		} else {
-			KalmanTarget.Update( shared->targetMarkerPosition3dRaw, shared->timingTimestamp );
+			Kalman.Update( shared->targetMarkerPosition3dRaw, shared->timingTimestamp );
 		}
 
 		// Get updated state values
-		shared->targetMarkerPosition3dNew		= KalmanTarget.GetPosition();
-		shared->targetMarkerVelocity3dNew		= KalmanTarget.GetVelocity();
-		shared->targetMarkerAngleNew			= KalmanTarget.GetAngle();
-		shared->targetMarkerAnglularVelocityNew = KalmanTarget.GetAnglularVelocity();
+		shared->targetMarkerPosition3dNew		= Kalman.GetPosition();
+		shared->targetMarkerVelocity3dNew		= Kalman.GetVelocity();
+		shared->targetMarkerAngleNew			= Kalman.GetAngle();
+		shared->targetMarkerAnglularVelocityNew = Kalman.GetAnglularVelocity();
 
-
-		// // Check if finger tag present
-		// if ( shared->FLAG_FINGER_MARKER_FOUND ) {
-
-		// 	// Update filter
-		// 	KalmanFinger.Update( shared->fingerMarkerPosition3DRaw, shared->timingTimestamp );
-
-		// 	// Get updated values
-		// 	shared->fingerMarkerPosition3DNew = KalmanFinger.GetPosition();
-		// 	shared->fingerMarkerAngleNew	  = KalmanFinger.GetAngle();
-		// }
+		// Get covariance from Kalman filter
+		shared->kalmanP = Kalman.GetCovariance() ; 
+	
+	
 	}
 }
 
@@ -438,7 +438,7 @@ void BuildSerialPacket() {
 
 	if ( shared->serialTrigger == "drive" ) {
 		// Build string32
-		shared->serialPacket0 = std::string( "E" ) + ( shared->FLAG_AMPLIFIERS_ENABLED ? "1" : "0" ) + "A" + Serial.PadValues( shared->controllerPWM.x, 4 ) + "B" + Serial.PadValues( shared->controllerPWM.y, 4 ) + "C" + Serial.PadValues( shared->controllerPWM.z, 4 ) + "X";
+		shared->serialPacket0 = std::string( "E" ) + ( shared->FLAG_AMPLIFIERS_ENABLED ? "1" : "0" ) + "A" + shared->PadValues( shared->controllerPWM.x, 4 ) + "B" + shared->PadValues( shared->controllerPWM.y, 4 ) + "C" + shared->PadValues( shared->controllerPWM.z, 4 ) + "X";
 	} else if ( shared->serialTrigger == "reset" ) {
 		shared->serialPacket0 = "E0RX";
 		shared->serialTrigger = "drive";

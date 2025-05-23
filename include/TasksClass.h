@@ -23,13 +23,25 @@ private:
 	// Data manager handle
 	SystemDataManager&			 dataHandle;
 	std::shared_ptr<ManagedData> shared;
+};
+
+
+class CalibrateClass {
+
+public:
+	// Constructor
+	CalibrateClass( SystemDataManager & dataHandle );
 
 	// Calibration tasks
-    void CalibrateStart() ;
-    void CalibrateUpdate() ;
-    void CalibrateEnd() ;
+	void CalibrateStart();
+	void CalibrateEnd();
 
-    // Angle tasks
-    
+private:
+	// Data manager handle
+	SystemDataManager & dataHandle;
+	std::shared_ptr<ManagedData> shared;
 
-} ;
+
+	// Calibration update
+	void CalibrateUpdate();
+};

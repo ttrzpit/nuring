@@ -34,10 +34,11 @@ public:
 	cv::Point2f GetAngle() const;												// Get filtered angle
 	cv::Point2f GetAnglularVelocity() const;									// Get filtered angular velocity
 
-	void  InitializeAngle( float measuredAngle, float tInitial );
-	void  UpdateAngle( float measuredAngle, float tCurrent );
-	float GetFilteredAngle() const;
-	float GetFilteredAngularVelocity() const;
+	void		   InitializeAngle( float measuredAngle, float tInitial );
+	void		   UpdateAngle( float measuredAngle, float tCurrent );
+	float		   GetFilteredAngle() const;
+	float		   GetFilteredAngularVelocity() const;
+	const cv::Mat& GetCovariance() const;
 
 
 
@@ -47,22 +48,19 @@ private:
 	std::shared_ptr<ManagedData> shared;
 
 	// Private matrices
-	cv::Mat state;	  // [x y z vx vy vz]
-	cv::Mat P;		  // Covariance
-	cv::Mat Q;		  // Process noise
-	cv::Mat R;		  // Measurement noise
-	cv::Mat H;		  // Measurement matrix
-	cv::Mat I;		  // Identity
+	cv::Mat state;												// [x y z vx vy vz]
+	cv::Mat P = cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;	// Covariance
+	cv::Mat Q;													// Process noise
+	cv::Mat R;													// Measurement noise
+	cv::Mat H;													// Measurement matrix
+	cv::Mat I;													// Identity
 
-	// Angle Kalman filter members
-	cv::Mat angleState;	   // [angle, angular velocity]
-	cv::Mat angleP;
-	cv::Mat angleQ;
-	cv::Mat angleR;
-	cv::Mat angleH;
-	cv::Mat angleI;
-	float	tAnglePrevious	   = 0.0f;
-	bool	isAngleInitialized = false;
+	// Measurement matrices
+	cv::Mat z;
+	cv::Mat y;
+	cv::Mat S;
+	cv::Mat K;
+	cv::Mat F;
 
 	// Private variables
 	float tPrevious		= 0.0f;		// Previous timestamp

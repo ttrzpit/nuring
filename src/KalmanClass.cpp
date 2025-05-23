@@ -20,12 +20,15 @@ KalmanClass::KalmanClass( SystemDataManager& ctx )
 	, isInitialized( false ) {
 
 	// Build matrices
-	state = cv::Mat::zeros( 6, 1, CV_32F );
-	P	  = cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
-	Q	  = cv::Mat::eye( 6, 6, CV_32F ) * shared->kalmanProcessNoiseCovarianceQ;
-	R	  = cv::Mat::eye( 3, 3, CV_32F ) * shared->kalmanMeasurementNoiseR;
-	H	  = cv::Mat::zeros( 3, 6, CV_32F );
-	I	  = cv::Mat::eye( 6, 6, CV_32F );
+	state				= cv::Mat::zeros( 6, 1, CV_32F );
+	P					= cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
+	Q					= cv::Mat::eye( 6, 6, CV_32F ) * shared->kalmanProcessNoiseCovarianceQ;
+	Q.at<float>( 3, 3 ) = 1e-1f;	// Velocity
+	Q.at<float>( 4, 4 ) = 1e-1f;
+	Q.at<float>( 5, 5 ) = 1e-1f;
+	R					= cv::Mat::eye( 3, 3, CV_32F ) * shared->kalmanMeasurementNoiseR;
+	H					= cv::Mat::zeros( 3, 6, CV_32F );
+	I					= cv::Mat::eye( 6, 6, CV_32F );
 
 	// Only position is measured
 	H.at<float>( 0, 0 ) = 1.0f;
@@ -83,7 +86,7 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	tPrevious = tCurrent;
 
 	// State transition matrix
-	cv::Mat F			= cv::Mat::eye( 6, 6, CV_32F );
+	F					= cv::Mat::eye( 6, 6, CV_32F );
 	F.at<float>( 0, 3 ) = dt;
 	F.at<float>( 1, 4 ) = dt;
 	F.at<float>( 2, 5 ) = dt;
@@ -93,19 +96,31 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	P	  = F * P * F.t() + Q;
 
 	// Measurement
-	cv::Mat z = ( cv::Mat_<float>( 3, 1 ) << measuredPos.x, measuredPos.y, measuredPos.z );
-	cv::Mat y = z - H * state;
-	cv::Mat S = H * P * H.t() + R;
+	z = ( cv::Mat_<float>( 3, 1 ) << measuredPos.x, measuredPos.y, measuredPos.z );
+	y = z - H * state;
+	S = H * P * H.t() + R;
 
 	// Check if S is invertible before computing K and updating
 	if ( cv::determinant( S ) > 1e-6f ) {
-		cv::Mat K = P * H.t() * S.inv();
-		state	  = state + K * y;
-		P		  = ( I - K * H ) * P;
+		K	  = P * H.t() * S.inv();
+		state = state + K * y;
+		P	  = ( I - K * H ) * P;
 	} else {
 		std::cerr << "KalmanClass: S matrix not invertible, skipping update.\n";
 	}
 }
+
+
+/**
+ * @brief Get covariance matrix
+ * 
+ * @return cv::Mat& 
+ */
+const cv::Mat& KalmanClass::GetCovariance() const {
+	return P;
+}
+
+
 
 /**
  * @brief Get filtered position
@@ -164,53 +179,3 @@ cv::Point2f KalmanClass::GetAnglularVelocity() const {
 	// Return filtered angular velocity
 	return cv::Point2f( dThetaX, dThetaY );
 }
-
-void KalmanClass::InitializeAngle( float measuredAngle, float tInitial ) {
-	angleState = ( cv::Mat_<float>( 2, 1 ) << measuredAngle, 0.0f );	// angle, angular velocity
-	angleP	   = cv::Mat::eye( 2, 2, CV_32F ) * 0.10f;
-	angleQ	   = ( cv::Mat_<float>( 2, 2 ) << 1.0f, 0.0f, 0.0f, 15.0f );	   // Trust velocity to change more
-	angleR	   = cv::Mat::eye( 1, 1, CV_32F ) * 1.0f;					   // Measurement noise (lower = faster)
-	angleH	   = ( cv::Mat_<float>( 1, 2 ) << 1.0f, 0.0f );
-	angleI	   = cv::Mat::eye( 2, 2, CV_32F );
-
-	tAnglePrevious	   = tInitial;
-	isAngleInitialized = true;
-}
-
-
-
-// void KalmanClass::UpdateAngle( float measuredAngle, float tCurrent ) {
-// 	if ( !isAngleInitialized ) {
-// 		InitializeAngle( measuredAngle, tCurrent );
-// 		return;
-// 	}
-
-// 	float dt	   = std::clamp( tCurrent - tAnglePrevious, 1e-5f, shared->kalmanTimeStepDt );
-// 	tAnglePrevious = tCurrent;
-
-// 	// State transition matrix
-// 	cv::Mat F = ( cv::Mat_<float>( 2, 2 ) << 1.0f, dt, 0.0f, 1.0f );
-
-// 	// Predict
-// 	angleState = F * angleState;
-// 	angleP	   = F * angleP * F.t() + angleQ;
-
-// 	// Measurement update
-// 	cv::Mat z = ( cv::Mat_<float>( 1, 1 ) << measuredAngle );
-// 	cv::Mat y = z - angleH * angleState;
-// 	cv::Mat S = angleH * angleP * angleH.t() + angleR;
-
-// 	if ( cv::determinant( S ) > 1e-6f ) {
-// 		cv::Mat K  = angleP * angleH.t() * S.inv();
-// 		angleState = angleState + K * y;
-// 		angleP	   = ( angleI - K * angleH ) * angleP;
-// 	}
-// }
-
-// float KalmanClass::GetFilteredAngle() const {
-// 	return angleState.at<float>( 0 );
-// }
-
-// float KalmanClass::GetFilteredAngularVelocity() const {
-// 	return angleState.at<float>( 1 );
-// }

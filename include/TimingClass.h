@@ -30,7 +30,6 @@ public:
 	void		TaskTimerEnd();
 	void GetTimestamp();
 
-
 private:
 	// Data manager handle
 	SystemDataManager&			 dataHandle;
@@ -40,7 +39,9 @@ private:
 	unsigned long long					  loopCounter = 0;
 	std::chrono::steady_clock::time_point currentTime;
 	std::chrono::steady_clock::time_point previousTime;
+	std::chrono::steady_clock::time_point previousTimeFreq;
 	std::chrono::duration<double>		  elapsedTime;
+	std::chrono::duration<double>		  elapsedTimeFreq;
 	std::chrono::steady_clock::time_point taskTimeStart;
 	std::chrono::steady_clock::time_point taskTimeEnd;
 	std::chrono::duration<double>		  taskTimeElapsed;

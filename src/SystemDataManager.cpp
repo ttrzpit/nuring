@@ -109,3 +109,14 @@ std::string ManagedData::FormatDecimal( float x, uint8_t d ) {
 
 	return oss.str();
 }
+
+/**
+ * @brief Pad the given value with a specified number of zeros
+ * @param val Value to be padded
+ * @param nZeroes Number of padding zeroes
+ */
+std::string ManagedData::PadValues( int val, int nZeroes ) {
+	std::ostringstream sstream;
+	sstream << std::setw( nZeroes ) << std::setfill( '0' ) << val;
+	return sstream.str();
+}

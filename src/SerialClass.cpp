@@ -157,37 +157,11 @@ void SerialClass::Send( const std::string& msg ) {
 }
 
 
+
 void SerialClass::Close() {
 	close( serialPort0 );
 }
 
-
-bool SerialClass::GetStatus() {
-	return shared->FLAG_SERIAL0_OPEN;
-}
-
-void SerialClass::Monitor() {
-	if ( shared->FLAG_SERIAL0_OPEN && shared->FLAG_PACKET_WAITING ) {
-		std::string outgoingPacket = shared->serialPacket0 + "\n";
-		ssize_t		bytesWritten   = write( serialPort0, outgoingPacket.c_str(), outgoingPacket.size() );
-		if ( bytesWritten < 0 ) {
-			std::cerr << "SerialClass:  Serial packet not sent.\n";
-		}
-		// shared->serialPacket		= "";
-		shared->FLAG_PACKET_WAITING = false;
-	}
-}
-
-/**
- * @brief Pad the given value with a specified number of zeros
- * @param val Value to be padded
- * @param nZeroes Number of padding zeroes
- */
-std::string SerialClass::PadValues( int val, int nZeroes ) {
-	std::ostringstream sstream;
-	sstream << std::setw( nZeroes ) << std::setfill( '0' ) << val;
-	return sstream.str();
-}
 
 int8_t SerialClass::Sign( int val ) {
 	return ( ( val < 0 ) ? 1 : 0 );
@@ -229,12 +203,12 @@ void SerialClass::CheckForPacket() {
 					shared->serialPacket1 = packet;
 
 					// Parse packet
-					shared->teensySerialResponding = true;
-					shared->teensyAmplifierEnabled = bool( std::stoi( packet.substr( 2, 1 ) ) );
-					shared->teensyABC.x			   = std::stoi( packet.substr( 4, 1 ) );
-					shared->teensyABC.y			   = std::stoi( packet.substr( 6, 1 ) );
-					shared->teensyABC.z			   = std::stoi( packet.substr( 8, 1 ) );
-					shared->angleTheta			   = ( std::stoi( packet.substr( 10, 1 ) ) == 1 ? -1 : 1 ) * std::stoi( packet.substr( 11, 2 ) );
+					shared->FLAG_TEENSY_SERIAL_RESPONDING  = true;
+					shared->FLAG_TEENSY_AMPLIFIER_ENABLED  = bool( std::stoi( packet.substr( 2, 1 ) ) );
+					shared->teensyMeasuredAmplfierOutput.x = std::stoi( packet.substr( 4, 1 ) );
+					shared->teensyMeasuredAmplfierOutput.y = std::stoi( packet.substr( 6, 1 ) );
+					shared->teensyMeasuredAmplfierOutput.z = std::stoi( packet.substr( 8, 1 ) );
+					shared->angleTheta					   = ( std::stoi( packet.substr( 10, 1 ) ) == 1 ? -1 : 1 ) * std::stoi( packet.substr( 11, 2 ) );
 					// std::cout << "T: " << shared->timingTimestamp << " Theta: " << shared->angleTheta << "\n";
 					// Debug
 					// std::cout << "E:" << shared->teensyEnabled << " A:" << shared->teensyABC.x << " B:" << shared->teensyABC.y << " C:" << shared->teensyABC.z << "\n";
@@ -243,7 +217,7 @@ void SerialClass::CheckForPacket() {
 					// std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << e.what() << "\n";
 					// shared->controllerActive = false;
 					// shared->serialPacket1	 = "INVALID!";
-					shared->teensySerialResponding = false;
+					shared->FLAG_TEENSY_SERIAL_RESPONDING = false;
 				}
 
 				// Remove processed packet
@@ -251,8 +225,8 @@ void SerialClass::CheckForPacket() {
 
 			} else {
 				// std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << "\n";
-				shared->serialPacket1		   = "INVALID!";
-				shared->teensySerialResponding = false;
+				shared->serialPacket1				  = "INVALID!";
+				shared->FLAG_TEENSY_SERIAL_RESPONDING = false;
 				// shared->controllerActive = false;
 			}
 

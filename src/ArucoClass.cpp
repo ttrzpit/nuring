@@ -74,7 +74,8 @@ void ArucoClass::FindTags() {
 		}
 
 		// Run detector
-		arucoDetector.detectMarkers( shared->matFrameGray, arucoCorners, arucoDetectedIDs, arucoRejects );
+		// arucoDetector.detectMarkers( shared->matFrameGray, arucoCorners, arucoDetectedIDs, arucoRejects );
+		arucoDetector.detectMarkers( shared->matFrameGray, arucoCorners, arucoDetectedIDs );
 
 		// Check if markers have been found
 		if ( !arucoDetectedIDs.empty() ) {
@@ -91,16 +92,13 @@ void ArucoClass::FindTags() {
 			for ( int i = 0; i < arucoDetectedIDs.size(); i++ ) {
 
 				// Process finger marker
-				if ( arucoDetectedIDs[i] == 0 ) {	 // Process finger marker
-
-					// Set correct marker size
-					arucoMarkerSize = CONFIG_MEDIUM_MARKER_WIDTH;
+				if ( arucoDetectedIDs[i] == 0 && shared->FLAG_USE_FINGER_MARKER ) {	 // Process finger marker
 
 					// Extract current corner
 					std::vector<std::vector<cv::Point2f>> currentCorner = { arucoCorners[i] };
 
 					// Estimate tag pose formarkers in the valid range
-					cv::aruco::estimatePoseSingleMarkers( currentCorner, arucoMarkerSize, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
+					cv::aruco::estimatePoseSingleMarkers( currentCorner, CONFIG_MEDIUM_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
 					if ( arucoTranslationVector.empty() )
 						continue;
 
@@ -132,14 +130,11 @@ void ArucoClass::FindTags() {
 
 					if ( ( arucoDetectedIDs[i] > 0 ) && ( arucoDetectedIDs[i] == shared->targetMarkerActiveID ) ) {	   // Only process active tag
 
-						// Set correct marker size
-						arucoMarkerSize = CONFIG_LARGE_MARKER_WIDTH;
-
 						// Extract current corner
 						std::vector<std::vector<cv::Point2f>> currentCorner = { arucoCorners[i] };
 
 						// Estimate tag pose formarkers in the valid range
-						cv::aruco::estimatePoseSingleMarkers( currentCorner, arucoMarkerSize, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
+						cv::aruco::estimatePoseSingleMarkers( currentCorner, CONFIG_LARGE_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
 						if ( arucoTranslationVector.empty() )
 							continue;
 

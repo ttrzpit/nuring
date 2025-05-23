@@ -45,7 +45,6 @@ public:
 	int						 trailCounter  = 0;
 	int						 trailInterval = 1;
 	int						 trailLimit	   = 1000;
-	int						 zOffset	   = 0;
 
 private:
 	// Data manager handle
@@ -59,8 +58,6 @@ private:
 	void		DrawKeyCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
 	cv::Point2i ProjectIsometric( const cv::Point3i& p3d );
 	cv::Point2i GetForwardDirectionFromPose( const cv::Vec3d rvec, const cv::Vec3d tvec, const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, float axisLength );
-	void		DrawMotorOutput();
-
 
 	// Window names
 	std::string winAngle	  = "Angle Visualizer";
@@ -88,7 +85,6 @@ private:
 	float	 key_fontHeader = 0.0f;
 	float	 key_fontBody	= 0.0f;
 	cv::Size key_textSize;
-	// short	 key_cellPx = 40;
 	short key_WIDTH	 = CONFIG_DIS_KEY_CELL_WIDTH;
 	short key_HEIGHT = CONFIG_DIS_KEY_CELL_HEIGHT;
 	short key_c0	 = 0;

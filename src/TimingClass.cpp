@@ -38,6 +38,7 @@ void TimingClass::UpdateTimer() {
 
 	// Get elapsed time
 	elapsedTime				= currentTime - previousTime;
+	elapsedTimeFreq			= currentTime - previousTimeFreq;
 	shared->timingTimestamp = elapsedTime.count();
 
 	// if ( TASK_TIMER_STARTED ) {
@@ -46,11 +47,11 @@ void TimingClass::UpdateTimer() {
 	// }
 
 	// Check if 1 second has passed
-	if ( elapsedTime.count() >= 1.0 ) {
-		shared->timingFrequency = short( loopCounter / elapsedTime.count() );
+	if ( elapsedTimeFreq.count() >= 1.0 ) {
+		shared->timingFrequency = short( loopCounter / elapsedTimeFreq.count() );
 		shared->timingTimestep	= 1.0f / shared->timingFrequency;
 		loopCounter				= 0;
-		previousTime			= currentTime;
+		previousTimeFreq		= currentTime;	  // This resets the time every second
 	}
 }
 

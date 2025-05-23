@@ -196,7 +196,7 @@ void DisplayClass::AddText() {
 
 	// Amplifier
 	DrawCell( "Amplifier", "V1", 13, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( ( shared->FLAG_AMPLIFIERS_ENABLED && shared->teensyAmplifierEnabled ) ? "ON" : "OFF", "V2", 1, 2, fontBody, CONFIG_colWhite, ( shared->FLAG_AMPLIFIERS_ENABLED ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
+	DrawCell( ( shared->FLAG_AMPLIFIERS_ENABLED && shared->FLAG_TEENSY_AMPLIFIER_ENABLED ) ? "ON" : "OFF", "V2", 1, 2, fontBody, CONFIG_colWhite, ( shared->FLAG_AMPLIFIERS_ENABLED ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
 	DrawCell( "A", "V4", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "B", "V5", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "C", "V6", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -223,8 +223,8 @@ void DisplayClass::AddText() {
 
 	// Teensy
 	DrawCell( "Teensy Status", "V7", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( shared->FLAG_SERIAL0_ENABLED && shared->teensySerialResponding ) ? "Serial Connected" : "Serial Disconnected", "Y7", 3, 1, fontBody, CONFIG_colWhite, ( ( shared->FLAG_SERIAL0_ENABLED && shared->teensySerialResponding ) ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
-	DrawCell( ( shared->teensyAmplifierEnabled ? "Amplifiers On" : "Amplifiers Off" ), "AB7", 3, 1, fontBody, CONFIG_colWhite, ( shared->teensyAmplifierEnabled ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
+	DrawCell( ( shared->FLAG_SERIAL0_ENABLED && shared->FLAG_TEENSY_SERIAL_RESPONDING ) ? "Serial Connected" : "Serial Disconnected", "Y7", 3, 1, fontBody, CONFIG_colWhite, ( ( shared->FLAG_SERIAL0_ENABLED && shared->FLAG_TEENSY_SERIAL_RESPONDING ) ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
+	DrawCell( ( shared->FLAG_TEENSY_AMPLIFIER_ENABLED ? "Amplifiers On" : "Amplifiers Off" ), "AB7", 3, 1, fontBody, CONFIG_colWhite, ( shared->FLAG_TEENSY_AMPLIFIER_ENABLED ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
 
 	// Motor Output Block
 	cv::Point2i center( 960 + 64, 1221 + 66 );
@@ -234,10 +234,10 @@ void DisplayClass::AddText() {
 	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS145 * 60, center.y - SIN145 * 60 ), CONFIG_colGraBk, 2 );
 	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * 60 ), CONFIG_colGraBk, 2 );
 	// Teensy lines
-	if ( shared->teensyAmplifierEnabled && shared->teensySerialResponding ) {
-		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS35 * ( ( shared->teensyABC.x / 10.0 ) * 60.0f ), center.y - SIN35 * ( ( shared->teensyABC.x / 10.0 ) * 60.0f ) ), CONFIG_colRedLt, 8 );
-		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS145 * ( ( shared->teensyABC.y / 10.0 ) * 60.0f ), center.y - SIN145 * ( ( shared->teensyABC.y / 10.0 ) * 60.0f ) ), CONFIG_colGreLt, 8 );
-		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( ( shared->teensyABC.z / 10.0 ) * 60.0f ) ), CONFIG_colBluLt, 8 );
+	if ( shared->FLAG_TEENSY_AMPLIFIER_ENABLED && shared->FLAG_TEENSY_SERIAL_RESPONDING ) {
+		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS35 * ( ( shared->teensyMeasuredAmplfierOutput.x / 10.0 ) * 60.0f ), center.y - SIN35 * ( ( shared->teensyMeasuredAmplfierOutput.x / 10.0 ) * 60.0f ) ), CONFIG_colRedLt, 8 );
+		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS145 * ( ( shared->teensyMeasuredAmplfierOutput.y / 10.0 ) * 60.0f ), center.y - SIN145 * ( ( shared->teensyMeasuredAmplfierOutput.y / 10.0 ) * 60.0f ) ), CONFIG_colGreLt, 8 );
+		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( ( shared->teensyMeasuredAmplfierOutput.z / 10.0 ) * 60.0f ) ), CONFIG_colBluLt, 8 );
 	}
 	/// Lines connecting motor pairs
 	cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->controllerPercentage.x * 60.0f ), center.y - SIN35 * ( shared->controllerPercentage.x * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 1 );
@@ -1048,5 +1048,3 @@ void DisplayClass::CheckOptions() {
 		// }
 	}
 }
-
-void DrawMotorOutput() { }

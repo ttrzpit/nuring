@@ -80,6 +80,12 @@ inline constexpr unsigned short CONFIG_DET_RADIUS = 400;
 
 #endif
 
+
+// Device parameters
+inline constexpr float CONFIG_DEVICE_TORQUE_CONSTANT = 14.4f;	 // Motor torque constant [nM*m/A]
+inline constexpr float CONFIG_DEVICE_NOMINAL_CURRENT = 1.89f;	 // Motor nominal current [A]
+inline constexpr float CONFIG_DEVICE_NOMINAL_TORQUE	 = 28.6;	 // Nominal torque [mN*m]
+
 // Serial properties
 inline std::string CONFIG_SERIAL_PORT_0 = "/dev/ttyACM0";
 inline std::string CONFIG_SERIAL_PORT_1 = "/dev/ttyACM1";
@@ -106,8 +112,8 @@ inline constexpr unsigned short CONFIG_CAM_CONTRAST			 = 0;
 inline constexpr unsigned short CONFIG_CAM_SATURATION		 = 32;	  // 56
 inline constexpr short			CONFIG_CAM_HUE				 = 0;
 inline constexpr bool			CONFIG_CAM_AUTO_WHITEBALANCE = false;
-inline constexpr unsigned short CONFIG_CAM_GAMMA			 = 110;	  //110 200
-inline constexpr unsigned short CONFIG_CAM_GAIN				 = 10;	  //10
+inline constexpr unsigned short CONFIG_CAM_GAMMA			 = 110;	   //110 200
+inline constexpr unsigned short CONFIG_CAM_GAIN				 = 10;	   //10
 inline constexpr unsigned short CONFIG_CAM_POWERLINE_FREQ	 = 2;
 inline constexpr unsigned short CONFIG_CAM_WHITEBALANCE_TEMP = 4600;
 inline constexpr unsigned short CONFIG_CAM_SHARPNESS		 = 0;
@@ -139,7 +145,7 @@ inline constexpr unsigned short CONFIG_FITTS_SCREEN_WIDTH		   = 1920;
 inline constexpr unsigned short CONFIG_FITTS_SCREEN_HEIGHT		   = 1080;
 
 // Pulley
-inline constexpr unsigned short CONFIG_PULLEY_RADIUS = 2.5;	   // [mm]
+// inline constexpr unsigned short CONFIG_PULLEY_RADIUS = 2.5;	   // [mm]
 
 // // Available Resolutions @ 90Hz
 // // Resolution   1920x1080   1920x1200   1600x1200   1280x960    1280x720    1024x768    960x720     800x600
