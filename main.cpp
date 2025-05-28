@@ -1,4 +1,4 @@
-
+// Test
 // Library for managing interrupt signals
 #include <csignal>
 
@@ -321,7 +321,7 @@ void TaskFitts() {
 		shared->loggingVariable1 = std::to_string( shared->touchDetected );
 		shared->loggingVariable2 = shared->serialPacket0.substr( 0, shared->serialPacket0.length() - 1 );
 		shared->loggingVariable3 = shared->serialPacket1.substr( 0, shared->serialPacket1.length() - 1 );
-		shared->loggingVariable4 = std::to_string ( shared->FLAG_SERIAL0_ENABLED ) + "," + std::to_string ( shared->FLAG_SERIAL0_OPEN ) + "," + std::to_string ( shared->FLAG_SERIAL1_ENABLED ) + "," + std::to_string ( shared->FLAG_SERIAL1_OPEN ) ;
+		shared->loggingVariable4 = std::to_string( shared->FLAG_SERIAL0_ENABLED ) + "," + std::to_string( shared->FLAG_SERIAL0_OPEN ) + "," + std::to_string( shared->FLAG_SERIAL1_ENABLED ) + "," + std::to_string( shared->FLAG_SERIAL1_OPEN );
 		shared->loggingVariable5 = shared->FormatDecimal( shared->controllerKp.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKp.y, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.y, 1, 1 ) + ","
 			+ shared->FormatDecimal( shared->controllerKd.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKd.y, 1, 1 );
 		Logging.AddEntry();
