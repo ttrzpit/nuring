@@ -1,4 +1,3 @@
-// Test 2
 // Library for managing interrupt signals
 #include <csignal>
 
