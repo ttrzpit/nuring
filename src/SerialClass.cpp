@@ -216,7 +216,7 @@ void SerialClass::CheckForPacket() {
 				} catch ( const std::exception& e ) {
 					// std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << e.what() << "\n";
 					// shared->controllerActive = false;
-					// shared->serialPacket1	 = "INVALID!";
+					shared->serialPacket1	 = "INVALID!";
 					shared->FLAG_TEENSY_SERIAL_RESPONDING = false;
 				}
 
@@ -237,6 +237,7 @@ void SerialClass::CheckForPacket() {
 	} else if ( bytesRead < 0 && errno != EAGAIN ) {
 		std::cerr << "SerialClass:  Serial1 read error: " << strerror( errno ) << "\n";
 	}
+	
 }
 
 void SerialClass::ParseIncomingPacket( std::string packet ) { }

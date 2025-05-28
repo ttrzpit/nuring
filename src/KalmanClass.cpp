@@ -23,9 +23,9 @@ KalmanClass::KalmanClass( SystemDataManager& ctx )
 	state				= cv::Mat::zeros( 6, 1, CV_32F );
 	P					= cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
 	Q					= cv::Mat::eye( 6, 6, CV_32F ) * shared->kalmanProcessNoiseCovarianceQ;
-	Q.at<float>( 3, 3 ) = 1e-1f;	// Velocity
-	Q.at<float>( 4, 4 ) = 1e-1f;
-	Q.at<float>( 5, 5 ) = 1e-1f;
+	Q.at<float>( 3, 3 ) = 1e-2f;	// Velocity
+	Q.at<float>( 4, 4 ) = 1e-2f;
+	Q.at<float>( 5, 5 ) = 1e-2f;
 	R					= cv::Mat::eye( 3, 3, CV_32F ) * shared->kalmanMeasurementNoiseR;
 	H					= cv::Mat::zeros( 3, 6, CV_32F );
 	I					= cv::Mat::eye( 6, 6, CV_32F );
@@ -46,6 +46,8 @@ KalmanClass::KalmanClass( SystemDataManager& ctx )
  */
 void KalmanClass::Initialize( const cv::Point3f& initialPos, float tInitial ) {
 
+	std::cout << "KalmanClass: Initializing Kalman filter.\n";
+
 	// Populate state
 	state.at<float>( 0 ) = initialPos.x;	// Position
 	state.at<float>( 1 ) = initialPos.y;
@@ -54,11 +56,18 @@ void KalmanClass::Initialize( const cv::Point3f& initialPos, float tInitial ) {
 	state.at<float>( 4 ) = 0.0f;
 	state.at<float>( 5 ) = 0.0f;
 
-	// Update timestamp
-	tPrevious = tInitial;
+	// Reset covariance (optional, if you want a clean slate)
+	P = cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
+
+	// Update values
+	tPrevious	  = tInitial;
+	integralError = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	prevError	  = cv::Point3f( 0.0f, 0.0f, 0.0f );
+
 
 	// Update flag
-	isInitialized = true;
+	isInitialized			  = true;
+	shared->FLAG_TARGET_RESET = false;
 }
 
 
@@ -71,36 +80,42 @@ void KalmanClass::Initialize( const cv::Point3f& initialPos, float tInitial ) {
  */
 void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 
-	// Make sure the filter is initialized
-	if ( !isInitialized ) {
 
-		// Initialize
-		Initialize( measuredPos, shared->timingTimestamp );
+	if ( shared->FLAG_TARGET_RESET ) {
 
-		// Break out of method
+		// shared->timingTimestamp = 0.0f;
+		tCurrent				  = 0.0f;
+		tPrevious				  = 0.0f;
+		shared->FLAG_TARGET_RESET = false;
+		Initialize( shared->targetMarkerPosition3dRaw, shared->timingTimestamp );
+		std::cout << "KalmanClass: Reset\n";
 		return;
 	}
 
-	// Update timestep
+
+
+	// Make sure the filter is initialized
+	if ( !isInitialized ) {
+		Initialize( measuredPos, tCurrent );
+		return;
+	}
+
+	// Normal Kalman update
 	dt		  = std::clamp( tCurrent - tPrevious, 1e-5f, shared->kalmanTimeStepDt );
 	tPrevious = tCurrent;
 
-	// State transition matrix
 	F					= cv::Mat::eye( 6, 6, CV_32F );
 	F.at<float>( 0, 3 ) = dt;
 	F.at<float>( 1, 4 ) = dt;
 	F.at<float>( 2, 5 ) = dt;
 
-	// Predict state
 	state = F * state;
 	P	  = F * P * F.t() + Q;
 
-	// Measurement
 	z = ( cv::Mat_<float>( 3, 1 ) << measuredPos.x, measuredPos.y, measuredPos.z );
 	y = z - H * state;
 	S = H * P * H.t() + R;
 
-	// Check if S is invertible before computing K and updating
 	if ( cv::determinant( S ) > 1e-6f ) {
 		K	  = P * H.t() * S.inv();
 		state = state + K * y;
@@ -108,17 +123,44 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	} else {
 		std::cerr << "KalmanClass: S matrix not invertible, skipping update.\n";
 	}
+
+	// Calculate integral term
+	cv::Point3f error		   = GetPosition();
+	float		errorMagnitude = cv::norm( cv::Point2f( error.x, error.y ) );
+	// std::cout << "Int: " << integralError << "\n" ;
+
+	// // Update integral error
+	// integralError.x += error.x * dt;
+	// integralError.y += error.y * dt;
+	// integralError.z += error.z * dt;
+
+	// Add decay
+	if ( errorMagnitude < 10.0f ) {
+		integralError *= 0.8;	 // Decrease by 10% each time
+
+	} else {
+		integralError += error * dt;
+	}
+
+
+	// Clamp to avoid windup
+	integralError.x = std::clamp( integralError.x, -maxError, maxError );
+	integralError.y = std::clamp( integralError.y, -maxError, maxError );
+	integralError.z = std::clamp( integralError.z, -maxError, maxError );
+
+	// Save for derivative use
+	prevError = error;
 }
 
 
-/**
- * @brief Get covariance matrix
- * 
- * @return cv::Mat& 
- */
-const cv::Mat& KalmanClass::GetCovariance() const {
-	return P;
-}
+// /**
+//  * @brief Get covariance matrix
+//  *
+//  * @return cv::Mat&
+//  */
+// const cv::Mat& KalmanClass::GetCovariance() const {
+// 	return P;
+// }
 
 
 
@@ -140,6 +182,7 @@ cv::Point3f KalmanClass::GetPosition() const {
  * @return cv::Point3f
  */
 cv::Point3f KalmanClass::GetVelocity() const {
+
 	return cv::Point3f( state.at<float>( 3 ), state.at<float>( 4 ), state.at<float>( 5 ) );
 }
 
@@ -178,4 +221,11 @@ cv::Point2f KalmanClass::GetAnglularVelocity() const {
 
 	// Return filtered angular velocity
 	return cv::Point2f( dThetaX, dThetaY );
+}
+
+
+
+cv::Point3f KalmanClass::GetIntegralError() const {
+
+	return integralError;
 }

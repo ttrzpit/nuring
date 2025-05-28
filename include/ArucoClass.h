@@ -39,7 +39,7 @@ private:
 	std::shared_ptr<ManagedData> shared;
 
 	// Private variables
-
+	uint8_t LOSSES = 0 ; 
 
 	// ArUco detector
 	cv::aruco::Dictionary		  arucoDictionary;

@@ -29,6 +29,7 @@ struct loggingStruct {
 	std::string custom3;
 	std::string custom4;
 	std::string custom5;
+	
 };
 
 

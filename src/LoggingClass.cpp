@@ -78,7 +78,8 @@ void LoggingClass::Initialize() {
 	logFile.clear();
 
 	// Update new file name
-	shared->loggingFilename = "p" + PadValues( shared->TASK_USER_ID, 3 ) + "_t" + shared->TASK_NAME + "_r" + std::to_string( shared->TASK_REP_NUMBER ) + shared->loggingTimestamp;
+	// shared->loggingFilename = "p" + PadValues( shared->TASK_USER_ID, 3 ) + "_t" + shared->TASK_NAME + "_r" + std::to_string( shared->TASK_REP_NUMBER ) + shared->loggingTimestamp;
+	shared->loggingFilename = shared->TASK_NAME + shared->loggingTimestamp;
 	shared->displayString	= "LoggingClass: Filename = " + shared->loggingFilename;
 }
 

@@ -33,12 +33,13 @@ public:
 	cv::Point3f GetVelocity() const;											// Get filtered velocity
 	cv::Point2f GetAngle() const;												// Get filtered angle
 	cv::Point2f GetAnglularVelocity() const;									// Get filtered angular velocity
+	cv::Point3f GetIntegralError() const;										// Get filtered integral error
 
-	void		   InitializeAngle( float measuredAngle, float tInitial );
-	void		   UpdateAngle( float measuredAngle, float tCurrent );
-	float		   GetFilteredAngle() const;
-	float		   GetFilteredAngularVelocity() const;
-	const cv::Mat& GetCovariance() const;
+	// void		   InitializeAngle( float measuredAngle, float tInitial );
+	// void		   UpdateAngle( float measuredAngle, float tCurrent );
+	// float		   GetFilteredAngle() const;
+	// float		   GetFilteredAngularVelocity() const;
+	// const cv::Mat& GetCovariance() const;
 
 
 
@@ -48,12 +49,12 @@ private:
 	std::shared_ptr<ManagedData> shared;
 
 	// Private matrices
-	cv::Mat state;												// [x y z vx vy vz]
+	cv::Mat state;										// [x y z vx vy vz]
 	cv::Mat P = cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;	// Covariance
-	cv::Mat Q;													// Process noise
-	cv::Mat R;													// Measurement noise
-	cv::Mat H;													// Measurement matrix
-	cv::Mat I;													// Identity
+	cv::Mat Q;											// Process noise
+	cv::Mat R;											// Measurement noise
+	cv::Mat H;											// Measurement matrix
+	cv::Mat I;											// Identity
 
 	// Measurement matrices
 	cv::Mat z;
@@ -66,4 +67,9 @@ private:
 	float tPrevious		= 0.0f;		// Previous timestamp
 	bool  isInitialized = false;	// Check if filter is initialized
 	float dt			= 0.0f;		// Timestep
+
+	// Integral error
+	cv::Point3f integralError = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	cv::Point3f prevError	  = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	float		maxError	  = 100.0f;	   // [mm]
 };

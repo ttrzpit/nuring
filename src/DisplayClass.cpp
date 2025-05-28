@@ -76,11 +76,15 @@ void DisplayClass::Update() {
 		cv::line( shared->matFrameOverlay, CONFIG_CAM_CENTER, shared->targetMarkerScreenPosition, CONFIG_colCyaMd, 2 );
 
 		// Draw border and axis elements of target marker
-		cv::polylines( shared->matFrameOverlay, shared->targetMarkerCorners, true, CONFIG_colGreMd, 3 );
+		cv::polylines( shared->matFrameOverlay, shared->targetMarkerCorners, true, CONFIG_colGreMd, 2 );
 		// cv::drawFrameAxes( shared->matFrameUndistorted, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, shared->targetMarkerRotationVector, shared->targetMarkerTranslationVector, CONFIG_LARGE_MARKER_WIDTH, 15 );
 
 		// Draw velocity
-		cv::line( shared->matFrameOverlay, shared->targetMarkerScreenPosition, cv::Point2i( shared->targetMarkerScreenPosition.x + shared->targetMarkerVelocity3dNew.x * MM2PX, shared->targetMarkerScreenPosition.y - shared->targetMarkerVelocity3dNew.y * MM2PX ), CONFIG_colMagLt, 2 );
+		// cv::line( shared->matFrameOverlay, shared->targetMarkerScreenPosition, cv::Point2i( shared->targetMarkerScreenPosition.x + shared->targetMarkerVelocity3dNew.x * MM2PX, shared->targetMarkerScreenPosition.y - shared->targetMarkerVelocity3dNew.y * MM2PX ), CONFIG_colMagLt, 2 );
+		cv::line( shared->matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_CENTER.x - shared->targetMarkerVelocity3dNew.x * MM2PX / 2.0f, CONFIG_CAM_CENTER.y + shared->targetMarkerVelocity3dNew.y * MM2PX / 2.0f ), CONFIG_colMagLt, 2 );
+
+		// Graph velocity on screen
+		cv::line( shared->matFrameOverlay, cv::Point2i( shared->targetMarkerScreenPosition.x + shared->targetMarkerVelocity3dNew.x, CONFIG_CAM_CENTER.y + 100 ), cv::Point2i( shared->targetMarkerScreenPosition.x - shared->targetMarkerVelocity3dNew.x, CONFIG_CAM_CENTER.y + 100 ), CONFIG_colRedMd, 2 );
 	}
 
 
@@ -150,41 +154,65 @@ void DisplayClass::AddText() {
 	DrawCell( std::to_string( int( shared->targetMarkerVelocity3dNew.y ) ), "D5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( int( shared->targetMarkerVelocity3dNew.z ) ), "D6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( int( shared->GetNorm3D( shared->targetMarkerVelocity3dNew ) ) ), "D7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// Integral
+	DrawCell( "Integral E", "F2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[mm]", "F3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->targetMarkerIntegralError.x, 3, 1 ), "F4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->targetMarkerIntegralError.y, 3, 1 ), "F5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	// Angle
-	DrawCell( "Theta E", "F2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[deg]", "F3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->targetMarkerAngleNew.x * RAD2DEG ) ), "F4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->targetMarkerAngleNew.y * RAD2DEG ) ), "F5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Theta dE", "H2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[deg/s]", "H3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->targetMarkerAnglularVelocityNew.x * RAD2DEG ) ), "H4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->targetMarkerAnglularVelocityNew.y * RAD2DEG ) ), "H5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Theta E", "H2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[deg]", "H3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( int( shared->targetMarkerAngleNew.x * RAD2DEG ) ), "H4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->targetMarkerAngleNew.y * RAD2DEG ) ), "H5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Theta dE", "H2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[deg/s]", "H3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( std::to_string( int( shared->targetMarkerAnglularVelocityNew.x * RAD2DEG ) ), "H4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( std::to_string( int( shared->targetMarkerAnglularVelocityNew.y * RAD2DEG ) ), "H5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	// Frequency
 	DrawCell( "Frequency [Hz]", "F6", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
 	DrawCell( std::to_string( int( shared->timingFrequency ) ), "F7", 4, 1, fontBody * 1.5, CONFIG_colWhite, ( shared->timingFrequency > 60 ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
 
 	// Controller
 	DrawCell( "Controller", "J1", 12, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( "Kp", "J2", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[mN*m/rad]", "J3", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerKp.x, 2 ), "J4", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerKp.y, 2 ), "J5", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Kd", "M2", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[mN*m*s/rad]", "M3", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerKd.x, 2 ), "M4", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerKd.y, 2 ), "M5", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Kp*E", "P2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[mN*m]", "P3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerXYProportional.x, 2 ), "P4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerXYProportional.y, 2 ), "P5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Kd*dE", "R2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[mN*m]", "R3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerXYDerivative.x, 2 ), "R4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerXYDerivative.y, 2 ), "R5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Total", "T2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[mN*m]", "T3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerXYTotal.x, 2 ), "T4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerXYTotal.y, 2 ), "T5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Kp", "J2", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[?]", "J3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->controllerKp.x, 1, 1 ), "J4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerKp.y, 1, 1 ), "J5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Ki", "K2", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[?]", "K3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->controllerKi.x, 2, 1 ), "K4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerKi.y, 2, 1 ), "K5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Kd", "L2", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[?]", "L3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->controllerKd.x, 2, 1 ), "L4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerKd.y, 2, 1 ), "L5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	DrawCell( "Kp*E", "M2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[?*mm]", "M3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->controllerProportinalTerm.x, 1, 1 ), "M4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerProportinalTerm.y, 1, 1 ), "M5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Ki*iE", "O2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[?*mm]", "O3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->controllerIntegralTerm.x, 1, 1 ), "O4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerIntegralTerm.y, 1, 1 ), "O5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Kd*dE", "Q2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[?*mm/s]", "Q3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->controllerDerivativeTerm.x, 1, 1 ), "Q4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerDerivativeTerm.y, 1, 1 ), "Q5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Total", "S2", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[?]", "S3", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->controllerTotalTerm.x, 1, 1 ), "S4", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerTotalTerm.y, 1, 1 ), "S5", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+
+	// DrawCell( "Kd*dE", "R2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[mN*m]", "R3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerDerivativeTerm.x, 2, 2 ), "R4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerDerivativeTerm.y, 2, 2 ), "R5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Total", "T2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[mN*m]", "T3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerTotalTerm.x, 2, 2 ), "T4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerTotalTerm.y, 2, 2 ), "T5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Serial Interface
 	DrawCell( "Serial Out", "J6", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
@@ -201,20 +229,20 @@ void DisplayClass::AddText() {
 	DrawCell( "B", "V5", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "C", "V6", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "Tension", "W2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[mN*m]", "W3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerTension.x, 2 ), "W4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerTension.y, 2 ), "W5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerTension.z, 2 ), "W6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "[%I]", "W3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->controllerTension.x, 2, 2 ), "W4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerTension.y, 2, 2 ), "W5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerTension.z, 2, 2 ), "W6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "Torque", "Y2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[mN*m]", "Y3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerTorqueABC.x, 2 ), "Y4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerTorqueABC.y, 2 ), "Y5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerTorqueABC.z, 2 ), "Y6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerTorqueABC.x, 2, 2 ), "Y4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerTorqueABC.y, 2, 2 ), "Y5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerTorqueABC.z, 2, 2 ), "Y6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "Current", "AA2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[A]", "AA3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerCurrent.x, 2 ), "AA4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerCurrent.y, 2 ), "AA5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerCurrent.z, 2 ), "AA6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerCurrent.x, 2, 2 ), "AA4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerCurrent.y, 2, 2 ), "AA5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->controllerCurrent.z, 2, 2 ), "AA6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "PWM", "AC2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[duty]", "AC3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( int( shared->controllerPWM.x ) ), "AC4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
@@ -973,8 +1001,10 @@ void DisplayClass::UpdateAngle() {
 	cv::line( matAngles, midPt, midPt + endPtDesired, CONFIG_colGreWt, 10 );
 
 	// Velocity Line
-	cv::Point2i endPtVel( int( cos( ( shared->angleFiltered + shared->angleVelocity + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleFiltered + shared->angleVelocity + 270 ) * DEG2RAD ) * radius ) );
+	// cv::Point2i endPtVel( int( cos( ( shared->angleFiltered + shared->angleVelocity + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleFiltered + shared->angleVelocity + 270 ) * DEG2RAD ) * radius ) );
+	cv::Point2i endPtVel( int( shared->targetMarkerVelocity3dNew.x * MM2PX ), int( shared->targetMarkerVelocity3dNew.x * MM2PX ) );
 	cv::line( matAngles, midPt, midPt + endPtVel, CONFIG_colBluWt, 2 );
+
 
 
 	// Measured angle
@@ -986,11 +1016,11 @@ void DisplayClass::UpdateAngle() {
 
 	// Text
 	cv::putText( matAngles, "Desired [deg]: ", cv::Point2i( 20, 40 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
-	cv::putText( matAngles, shared->FormatDecimal( shared->angleDesired, 2 ), cv::Point2i( 300, 40 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+	cv::putText( matAngles, shared->FormatDecimal( shared->angleDesired, 2, 2 ), cv::Point2i( 300, 40 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
 	cv::putText( matAngles, "Measured [deg]: ", cv::Point2i( 20, 80 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
-	cv::putText( matAngles, shared->FormatDecimal( shared->angleFiltered, 2 ), cv::Point2i( 300, 80 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+	cv::putText( matAngles, shared->FormatDecimal( shared->angleFiltered, 2, 2 ), cv::Point2i( 300, 80 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
 	cv::putText( matAngles, "Error [deg]: ", cv::Point2i( 20, 120 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
-	cv::putText( matAngles, shared->FormatDecimal( shared->angleFiltered - shared->angleDesired, 2 ), cv::Point2i( 300, 120 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+	cv::putText( matAngles, shared->FormatDecimal( shared->angleFiltered - shared->angleDesired, 2, 2 ), cv::Point2i( 300, 120 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
 
 	if ( shared->touchDetected == 1 ) {
 

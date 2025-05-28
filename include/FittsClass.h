@@ -38,11 +38,11 @@ public:
 	void StartTest( char axis );
 	void Update();
 	void EndTest();
-	void Initialize() ;
+	void Initialize();
 
-	void StartAngleTest() ;
-	void UpdateAngle() ;
-	void EndAngleTest() ;
+	void StartAngleTest();
+	void UpdateAngle();
+	void EndAngleTest();
 
 
 
@@ -51,11 +51,18 @@ private:
 	unsigned short CalculateNorm( cv::Point2i pt1, cv::Point2i pt2 );
 
 	// Private variables
-	cv::Point2i errorPx		   = cv::Point2i( 0, 0 );
-	cv::Point2f errorMm		   = cv::Point2f( 0, 0 );
-	cv::Point2i touchPosition  = cv::Point2i( 0, 0 );
-	bool		testStarted	   = false;
-	bool		testComplete   = false;
+	cv::Point2i errorPx		  = cv::Point2i( 0, 0 );
+	cv::Point2f errorMm		  = cv::Point2f( 0, 0 );
+	cv::Point2i touchPosition = cv::Point2i( 0, 0 );
+	bool		testStarted	  = false;
+	bool		testComplete  = false;
+
+	// For testing velocity
+	cv::Point2f fittsPosition	= cv::Point2f( 0.0f, 0.0f );
+	int			lastTriggerStep = -1;
+	int			currentStep		= 0;
+	float		velocity		= 60.0f * 1.633f;	 // mm per 1/10 sec
+
 
 	// ArUco tag
 	cv::Mat matAruco01 = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-01-20mm.png" );
@@ -68,4 +75,12 @@ private:
 	TimingClass&				 timer;
 	LoggingClass&				 logger;
 	std::shared_ptr<ManagedData> shared;
+
+	// Fitts functions
+	void GenerateRandomX();
+	void GenerateRandomY();
+	void GenerateRandomXY();
+	void GenerateIncrementingXY();
+	void GenerateTestVelocity();
+	void GenerateFixedXY();
 };

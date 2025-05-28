@@ -41,7 +41,7 @@ LoggingClass	 Logging( dataHandle );					  // Logging interface
 FittsClass		 Fitts( dataHandle, Timing, Logging );	  // For fitts-law testing
 CalibrationClass Calibration( dataHandle );				  // For calibration of user to touchscreen
 ControllerClass	 Controller( dataHandle );				  // Controller
-KalmanClass		 Kalman( dataHandle );			  // Kalman filter for target
+KalmanClass		 Kalman( dataHandle );					  // Kalman filter for target
 // KalmanClass		 KalmanFinger( dataHandle );			  // Kalman filter
 // KalmanClass		 KalmanAngle( dataHandle );
 
@@ -88,14 +88,20 @@ int main() {
 	Serial.Send( "E0A2048B2048C2048X" );
 
 	// Initialize kalman filter
-	shared->kalmanP = cv::Mat::eye(6, 6, CV_32F) * 1.0f;
+	shared->kalmanP = cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
 	// Kalman.Initialize( cv::Point3f( 0.0f, 0.0f, 0.0f ), shared->timingTimestamp );
+
+
 
 	// Main loop
 	while ( shared->FLAG_MAIN_RUNNING ) {
 
 		// Update timer (for measuring loop frequency)
 		Timing.UpdateTimer();
+
+		// Parse any input and use OpenCV WaitKey()
+		Input.ParseInput( cv::pollKey() & 0xFF );
+
 
 		// Capture frame
 		Capture.GetFrame();
@@ -121,8 +127,6 @@ int main() {
 		// Update controller
 		Controller.Update();
 
-		// Parse any input and use OpenCV WaitKey()
-		Input.ParseInput( cv::pollKey() & 0xFF );
 
 		// Check touchscreen input
 		Touch.GetCursorPosition();
@@ -298,9 +302,11 @@ void TaskFitts() {
 	if ( shared->FLAG_LOGGING_ENABLED && !shared->FLAG_LOGGING_STARTED && shared->TASK_RUNNING ) {
 
 		// Customize header
-		shared->loggingHeader1 = "MarkerPresent";
-		shared->loggingHeader2 = "Touched";
-		// shared->loggingHeader3 = "Encoder";
+		shared->loggingHeader1 = "TouchDetected";
+		shared->loggingHeader2 = "OutgoingPacket";
+		shared->loggingHeader3 = "IncomingPacket";
+		shared->loggingHeader4 = "Serial0Enabled,Serial0Open,Serial1Enabled,Serial1Open";
+		shared->loggingHeader5 = "kpx,kpy,kix,kiy,kdx,kdy";
 
 		// Initialize and add initial entry
 		// Start timer for measuring loop frequency
@@ -312,11 +318,16 @@ void TaskFitts() {
 
 	} else if ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) {
 
-		shared->loggingVariable1 = std::to_string( shared->FLAG_TARGET_MARKER_FOUND );
-		shared->loggingVariable2 = std::to_string( shared->touchDetected );
-		// shared->loggingVariable3 = shared->serialPacket1.substr(0, shared->serialPacket1.length() -1 );
+		shared->loggingVariable1 = std::to_string( shared->touchDetected );
+		shared->loggingVariable2 = shared->serialPacket0.substr( 0, shared->serialPacket0.length() - 1 );
+		shared->loggingVariable3 = shared->serialPacket1.substr( 0, shared->serialPacket1.length() - 1 );
+		shared->loggingVariable4 = std::to_string ( shared->FLAG_SERIAL0_ENABLED ) + "," + std::to_string ( shared->FLAG_SERIAL0_OPEN ) + "," + std::to_string ( shared->FLAG_SERIAL1_ENABLED ) + "," + std::to_string ( shared->FLAG_SERIAL1_OPEN ) ;
+		shared->loggingVariable5 = shared->FormatDecimal( shared->controllerKp.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKp.y, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.y, 1, 1 ) + ","
+			+ shared->FormatDecimal( shared->controllerKd.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKd.y, 1, 1 );
 		Logging.AddEntry();
 	}
+
+	// std::cout << "0: " << shared->serialPacket0.substr( 0, shared->serialPacket0.length() ) << "  1: " << shared->serialPacket1.substr( 0, shared->serialPacket1.length() ) << "\n";
 
 	// Run task
 	if ( !shared->TASK_RUNNING ) {
@@ -325,7 +336,7 @@ void TaskFitts() {
 		shared->TASK_COMPLETE		 = false;
 		shared->targetMarkerActiveID = 1;
 		Fitts.Initialize();
-		Fitts.StartTest( 'z' );
+		Fitts.StartTest( 'z' );	   // x , y , z, t , v, f
 	} else {
 
 		Fitts.Update();
@@ -405,13 +416,19 @@ void UpdateState() {
 
 	if ( shared->FLAG_TARGET_MARKER_FOUND && shared->FLAG_FRAME_READY ) {
 
+
+		if ( cv::norm( cv::Point2f( shared->targetMarkerPosition3dRaw.x, shared->targetMarkerPosition3dRaw.y ) - cv::Point2f( shared->targetMarkerPosition3dOld.x, shared->targetMarkerPosition3dOld.y ) ) > 100.0f ) {
+			shared->FLAG_TARGET_RESET = true;
+			// shared->lostCount++;
+		}
+
+
 		// Save old data
 		shared->targetMarkerPosition3dOld		= shared->targetMarkerPosition3dNew;
 		shared->targetMarkerVelocity3dOld		= shared->targetMarkerVelocity3dNew;
 		shared->targetMarkerAngleOld.x			= shared->angleTheta;
 		shared->targetMarkerAnglularVelocityOld = shared->targetMarkerAnglularVelocityNew;
 
-		
 		// Update kalman filter
 		if ( shared->calibrationComplete ) {
 			Kalman.Update( shared->targetMarkerPosition3dRaw + cv::Point3f( shared->calibrationOffsetMM ), shared->timingTimestamp );
@@ -424,11 +441,10 @@ void UpdateState() {
 		shared->targetMarkerVelocity3dNew		= Kalman.GetVelocity();
 		shared->targetMarkerAngleNew			= Kalman.GetAngle();
 		shared->targetMarkerAnglularVelocityNew = Kalman.GetAnglularVelocity();
+		shared->targetMarkerIntegralError		= Kalman.GetIntegralError();
 
 		// Get covariance from Kalman filter
-		shared->kalmanP = Kalman.GetCovariance() ; 
-	
-	
+		// shared->kalmanP = Kalman.GetCovariance();
 	}
 }
 

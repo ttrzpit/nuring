@@ -119,80 +119,121 @@ void InputClass::ParseInput( int key ) {
 			shared->FLAG_AMPLIFIERS_ENABLED = false;
 			break;
 		}
-		case 111: {	   // 'o'
-			shared->controllerKp.x -= 0.20f;
-			shared->displayString = "InputClass: Decreasing Kp(x) to " + std::to_string( shared->controllerKp.x ) + ".";
+
+		// Reset gains
+		case 116: {	   // 'y'
+			shared->controllerKp  = cv::Point3f( 0.0f, 0.0f, 0.0f );
+			shared->controllerKi  = cv::Point3f( 0.0f, 0.0f, 0.0f );
+			shared->controllerKd  = cv::Point3f( 0.0f, 0.0f, 0.0f );
+			shared->displayString = "InputClass: Setting gains to 0";
 			break;
 		}
-		case 112: {	   // 'p'
-			shared->controllerKp.x += 0.20f;
-			shared->displayString = "InputClass: Increasing Kp(x) to " + std::to_string( shared->controllerKp.x ) + ".";
+
+
+		// Gains X
+		case 'u': {	   // 'u'
+			IncrementValueF( "Kp(x)", shared->controllerKp.x, -0.2f );
 			break;
 		}
-		case 91: {	  // '['
-			shared->controllerKd.x -= 0.01;
-			shared->displayString = "InputClass: Decreasing Kd(x) to " + std::to_string( shared->controllerKd.x ) + ".";
+		case 'i': {	   // 'i'
+			IncrementValueF( "Kp(x)", shared->controllerKp.x, 0.2f );
 			break;
 		}
-		case 93: {	  // ']'
-			shared->controllerKd.x += 0.01;
-			shared->displayString = "InputClass: Increasing Kd(x) to " + std::to_string( shared->controllerKd.x ) + ".";
+		case 'o': {	   // 'o'
+			IncrementValueF( "Ki(x)", shared->controllerKi.x, -0.2f );
 			break;
 		}
-		case 107: {	   // 'k'
-			shared->controllerKp.y -= 0.20f;
-			shared->displayString = "InputClass: Decreasing Kp(y) to " + std::to_string( shared->controllerKp.y ) + ".";
+		case 'p': {	   // 'p'
+			IncrementValueF( "Ki(x)", shared->controllerKi.x, 0.2f );
 			break;
 		}
-		case 108: {	   // 'l'
-			shared->controllerKp.y += 0.20f;
-			shared->displayString = "InputClass: Increasing Kp(y) to " + std::to_string( shared->controllerKp.y ) + ".";
+		case '[': {	   // '['
+			IncrementValueF( "Kd(x)", shared->controllerKd.x, -0.2f );
 			break;
 		}
-		case 59: {	  // ';'
-			shared->controllerKd.y -= 0.01;
-			shared->displayString = "InputClass: Decreasing Kd(y) to " + std::to_string( shared->controllerKp.y ) + ".";
+		case ']': {	   // ']'
+			IncrementValueF( "Kd(x)", shared->controllerKd.x, 0.2f );
+			break;
+		}
+
+		// Gains Y
+		case 'h': {	   // 'h'
+			IncrementValueF( "Kp(y)", shared->controllerKp.y, -0.2f );
+			break;
+		}
+		case 'j': {	   // 'j'
+			IncrementValueF( "Kp(y)", shared->controllerKp.y, 0.2f );
+			break;
+		}
+		case 'k': {	   // 'k'
+			IncrementValueF( "Ki(y)", shared->controllerKi.y, -0.2f );
+			break;
+		}
+		case 'l': {	   // 'l'
+			IncrementValueF( "Ki(y)", shared->controllerKi.y, 0.2f );
+			break;
+		}
+		case ';': {	   // ';'
+			IncrementValueF( "Kd(y)", shared->controllerKd.y, -0.2f );
 			break;
 		}
 		case 39: {	  // '''
-			shared->controllerKd.y += 0.01;
-			shared->displayString = "InputClass: Increasing Kd(y) to " + std::to_string( shared->controllerKp.y ) + ".";
+			IncrementValueF( "Kd(y)", shared->controllerKd.y, 0.2f );
 			break;
 		}
+
+		// case 91: {	  // '['
+		// 	shared->controllerKd.x -= 0.01;
+		// 	shared->displayString = "InputClass: Decreasing Kd(x) to " + std::to_string( shared->controllerKd.x ) + ".";
+		// 	break;
+		// }
+		// case 93: {	  // ']'
+		// 	shared->controllerKd.x += 0.01;
+		// 	shared->displayString = "InputClass: Increasing Kd(x) to " + std::to_string( shared->controllerKd.x ) + ".";
+		// 	break;
+		// }
+		// case 107: {	   // 'k'
+		// 	shared->controllerKp.y -= 0.20f;
+		// 	shared->displayString = "InputClass: Decreasing Kp(y) to " + std::to_string( shared->controllerKp.y ) + ".";
+		// 	break;
+		// }
+		// case 108: {	   // 'l'
+		// 	shared->controllerKp.y += 0.20f;
+		// 	shared->displayString = "InputClass: Increasing Kp(y) to " + std::to_string( shared->controllerKp.y ) + ".";
+		// 	break;
+		// }
+		// case 59: {	  // ';'
+		// 	shared->controllerKd.y -= 0.01;
+		// 	shared->displayString = "InputClass: Decreasing Kd(y) to " + std::to_string( shared->controllerKp.y ) + ".";
+		// 	break;
+		// }
+		// case 39: {	  // '''
+		// 	shared->controllerKd.y += 0.01;
+		// 	shared->displayString = "InputClass: Increasing Kd(y) to " + std::to_string( shared->controllerKp.y ) + ".";
+		// 	break;
+		// }
 		case 183: {	   // numpad 7
-			shared->controllerTension.x += 0.2f;
-			shared->displayString = "InputClass: Increasing Tension A to " + shared->FormatDecimal( shared->controllerTension.x, 2 ) + ".";
+			IncrementValueF( "Tension A", shared->controllerTension.x, 0.01 );
 			break;
 		}
 		case 180: {	   // numpad 4
-			if ( shared->controllerTension.x > 0.2 ) {
-				shared->controllerTension.x -= 0.2f;
-				shared->displayString = "InputClass: Decreasing Tension A to " + shared->FormatDecimal( shared->controllerTension.x, 2 ) + ".";
-			}
+			IncrementValueF( "Tension A", shared->controllerTension.x, -0.01 );
 			break;
 		}
 		case 184: {	   // numpad 8
-			shared->controllerTension.y += 0.2f;
-			shared->displayString = "InputClass: Increasing Tension B to " + shared->FormatDecimal( shared->controllerTension.y, 2 ) + ".";
+			IncrementValueF( "Tension B", shared->controllerTension.y, 0.01 );
 			break;
 		}
 		case 181: {	   // numpad 5
-			if ( shared->controllerTension.y > 0.2 ) {
-				shared->controllerTension.y -= 0.2f;
-				shared->displayString = "InputClass: Decreasing Tension B to " + shared->FormatDecimal( shared->controllerTension.y, 2 ) + ".";
-			}
+			IncrementValueF( "Tension B", shared->controllerTension.y, -0.01 );
 			break;
 		}
 		case 185: {	   // numpad 9
-			shared->controllerTension.z += 0.2f;
-			shared->displayString = "InputClass: Increasing Tension C to " + shared->FormatDecimal( shared->controllerTension.z, 2 ) + ".";
+			IncrementValueF( "Tension B", shared->controllerTension.z, 0.01 );
 			break;
 		}
 		case 182: {	   // numpad 6
-			if ( shared->controllerTension.z > 0.2 ) {
-				shared->controllerTension.z -= 0.2f;
-				shared->displayString = "InputClass: Decreasing Tension C to " + shared->FormatDecimal( shared->controllerTension.z, 2 ) + ".";
-			}
+			IncrementValueF( "Tension B", shared->controllerTension.z, -0.01 );
 			break;
 		}
 		case 122: {	   // 'z'
@@ -211,16 +252,17 @@ void InputClass::ParseInput( int key ) {
 			shared->displayString = "InputClass: 3D Visualization " + std::string( shared->vizEnabled ? "enabled." : "disabled." );
 			break;
 		}
-		case 116: {	   // 't'
-			shared->angleEnabled  = !shared->angleEnabled;
-			shared->displayString = "InputClass: Angle Visualization " + std::string( shared->angleEnabled ? "enabled." : "disabled." );
-			break;
-		}
+		// case 116: {	   // 't'
+		// 	shared->angleEnabled  = !shared->angleEnabled;
+		// 	shared->displayString = "InputClass: Angle Visualization " + std::string( shared->angleEnabled ? "enabled." : "disabled." );
+		// 	break;
+		// }
 		case 102: {	   // 'f'
 			// Run fitts-law test
-			shared->touchDetected = 0;
-			shared->TASK_RUNNING  = false;
-			shared->TASK_NAME	  = "FITTS";
+			shared->FLAG_TARGET_RESET = true;
+			shared->touchDetected	  = 0;
+			shared->TASK_RUNNING	  = false;
+			shared->TASK_NAME		  = "FITTS";
 			shared->TASK_REP_NUMBER++;
 			// shared->TASK_RUNNING = true;
 			// shared->fittsTestStarted = false;
@@ -254,7 +296,22 @@ void InputClass::ParseInput( int key ) {
 		}
 		}
 	} else {
-		shared->serialPacket0		= "DX\n";
+		// shared->serialPacket0		= "DX\n";
 		shared->FLAG_PACKET_WAITING = true;
 	}
+}
+
+// PRINT_VAR(shared->vizEnabled) ;
+
+
+// Functions
+void InputClass::IncrementValueF( std::string name, float& target, float increment ) {
+
+	if ( ( target + increment ) >= 0 ) {
+		// Increment
+		target = target + increment;
+	}
+
+	// Update
+	shared->displayString = "InputClass: " + name + ( ( increment > 0 ) ? " increased to " : " decreased to " ) + shared->FormatDecimal( target, 1, 2 );
 }

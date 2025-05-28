@@ -39,7 +39,9 @@ struct ManagedData {
 	bool FLAG_TEENSY_SERIAL_RESPONDING = false;
 	bool FLAG_TEENSY_AMPLIFIER_ENABLED = false;
 	bool FLAG_USE_FINGER_MARKER		   = false;
-
+	bool FLAG_TARGET_RESET			   = false;
+	bool FLAG_USE_FIXED_MARKER		   = false;
+	// int	 lostCount					   = 0;
 	// Target marker
 	// bool					 FLAG_TARGET_MARKER_SWITCHED	 = false;																					  // Updated in ArucoClass
 	int						 targetMarkerActiveID			 = 1;																						  // ID of target currently being tracked
@@ -50,6 +52,7 @@ struct ManagedData {
 	cv::Point3f				 targetMarkerPosition3dPredicted = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // [mm] New position of tag relative to camera
 	cv::Point3f				 targetMarkerVelocity3dOld		 = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // [mm] Old position of tag relative to camera
 	cv::Point3f				 targetMarkerVelocity3dNew		 = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // [mm] New position of tag relative to camera
+	cv::Point3f				 targetMarkerIntegralError		 = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // [mm] Integral error
 	cv::Point2f				 targetMarkerAngleOld			 = cv::Point2f( 0.0f, 0.0f );																  // [rad] Old angle
 	cv::Point2f				 targetMarkerAngleNew			 = cv::Point2f( 0.0f, 0.0f );																  // [rad] New angle
 	cv::Point2f				 targetMarkerAnglularVelocityOld = cv::Point2f( 0.0f, 0.0f );																  // [rad/s] Old angular velocity
@@ -58,17 +61,26 @@ struct ManagedData {
 	cv::Vec3d				 targetMarkerRotationVector, targetMarkerTranslationVector;																	  // Rotation and translation vectors for active marker
 
 	// Controller variables
-	cv::Point3f controllerKp			 = cv::Point3f( 0.0f, 0.0f, 0.0f );
-	cv::Point3f controllerKd			 = cv::Point3f( 0.0f, 0.0f, 0.0f );
-	cv::Point3f controllerKi			 = cv::Point3f( 0.0f, 0.0f, 0.0f );
-	cv::Point3i controllerPWM			 = cv::Point3i( 0, 0, 0 );
-	cv::Point3f controllerPercentage	 = cv::Point3f( 0.0f, 0.0f, 0.0f );
-	cv::Point2f controllerXYProportional = cv::Point2f( 0.0f, 0.0f );
-	cv::Point2f controllerXYDerivative	 = cv::Point2f( 0.0f, 0.0f );
-	cv::Point2f controllerXYTotal		 = cv::Point2f( 0.0f, 0.0f );
-	cv::Point3f controllerTorqueABC		 = cv::Point3f( 0.0f, 0.0f, 0.0f );
-	cv::Point3f controllerCurrent		 = cv::Point3f( 0.0f, 0.0f, 0.0f );
-	cv::Point3i controllerTension		 = cv::Point3f( 0, 0, 0 );
+	cv::Point3f controllerKp			  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Proportional gain
+	cv::Point3f controllerKd			  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Derivative gain
+	cv::Point3f controllerKi			  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Integral gain
+	cv::Point3i controllerPWM			  = cv::Point3i( 0, 0, 0 );				// Motor output PWM value
+	cv::Point3f controllerPercentage	  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Motor output percentage
+	cv::Point3f controllerProportinalTerm = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for proportional term
+	cv::Point3f controllerDerivativeTerm  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for derivative term
+	cv::Point3f controllerIntegralTerm	  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for integral term
+	cv::Point3f controllerTotalTerm		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for total term
+	cv::Point3f controllerTorqueABC		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Torque
+	cv::Point3f controllerCurrent		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Current
+	cv::Point3f controllerTension		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Tension (in PWM units)
+	float		controllerRampLimit		  = 0.05f;								// Maximum change per update
+
+	// Kalman filter
+	float	kalmanProcessNoiseCovarianceQ = 0.00001f;	 // 0.01 Higher Q = more trust in model, faster response, less lag
+	float	kalmanMeasurementNoiseR		  = 1.0e-2f;	 // 0.5f;		// 10.0 [mm^2] Higher R means less trust in model, smoother but more lag
+	float	kalmanTimeStepDt			  = 0.01f;		 // 0.01 Minimum time step
+	cv::Mat kalmanP;									 // Covariance
+
 
 	// Finger marker
 	bool					 FLAG_FINGER_MARKER_FOUND  = false;
@@ -167,12 +179,6 @@ struct ManagedData {
 	cv::Point2i calibrationScreenPX = cv::Point2i( 0, 0 );
 	bool		calibrationLoaded	= false;
 
-	// Kalman filter
-	float	kalmanProcessNoiseCovarianceQ = 1.0e-4f;	// 0.01 Higher Q = more trust in model, faster response, less lag
-	float	kalmanMeasurementNoiseR		  = 1.0e-2f;	// 0.5f;		// 10.0 [mm^2] Higher R means less trust in model, smoother but more lag
-	float	kalmanTimeStepDt			  = 0.01f;		// 0.01 Minimum time step
-	cv::Mat kalmanP;									// Covariance
-
 
 
 	// Helper functions
@@ -182,8 +188,10 @@ struct ManagedData {
 	float		GetDist3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate magnitude of 2D distance between 2 points
 	cv::Point2f GetDelta2D( cv::Point2f pt1, cv::Point2f pt2 );	   // Calculate the x,y delta beteen two points
 	cv::Point3f GetDelta3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate the x,y,z delta beteen two points
-	std::string FormatDecimal( float x, uint8_t d );			   // Formats a float to xx.xxx
+	std::string FormatDecimal( float x, uint8_t p, uint8_t d );	   // Formats a float to xx.xxx
 	std::string PadValues( int val, int nZeroes );				   // Return a padded string
+	// int			MapInt( int x, int inMin, int inMax, int outMin, int outMax );					// Return a remapped integer
+	float MapFloat( float val, float inMin, float inMax, float outMin, float outMax );	  // Return a remapped float
 };
 
 class SystemDataManager {

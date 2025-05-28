@@ -99,13 +99,13 @@ cv::Point3f ManagedData::GetDelta3D( cv::Point3f pt1, cv::Point3f pt2 ) {
  * @param x Input float
  * @return std::string Formatted text string
  */
-std::string ManagedData::FormatDecimal( float x, uint8_t d ) {
+std::string ManagedData::FormatDecimal( float x, uint8_t p , uint8_t d ) {
 
 	// Build new string
 	std::ostringstream oss;
 
 	// Format string
-	oss << std::setfill( '0' ) << std::setw( 5 ) << std::fixed << std::setprecision( d ) << x;
+	oss << std::setfill( '0' ) << std::setw( p ) << std::fixed << std::setprecision( d ) << x;
 
 	return oss.str();
 }
@@ -119,4 +119,21 @@ std::string ManagedData::PadValues( int val, int nZeroes ) {
 	std::ostringstream sstream;
 	sstream << std::setw( nZeroes ) << std::setfill( '0' ) << val;
 	return sstream.str();
+}
+
+
+/**
+ * @brief Remaps a float value
+ * 
+ * @param x 		Input value
+ * @param inMin 	Input minimum
+ * @param inMax		Input maximum
+ * @param outMin 	Output minimum
+ * @param outMax 	Output maximum 
+ * @return float 	Re-mapped value
+ */
+float ManagedData::MapFloat( float val, float inMin, float inMax, float outMin, float outMax ) {
+
+	float newVal = ( val - inMin ) * ( ( outMax - outMin ) / ( inMax - inMin ) ) + outMin;
+	return std::clamp( newVal, outMin, outMax );
 }

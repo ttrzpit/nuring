@@ -107,24 +107,24 @@ inline constexpr short CONFIG_SMALL_MARKER_WIDTH  = 8;
 
 
 // Camera properties
-inline constexpr short			CONFIG_CAM_BRIGHTNESS		 = 0;
-inline constexpr unsigned short CONFIG_CAM_CONTRAST			 = 0;
-inline constexpr unsigned short CONFIG_CAM_SATURATION		 = 32;	  // 56
-inline constexpr short			CONFIG_CAM_HUE				 = 0;
-inline constexpr bool			CONFIG_CAM_AUTO_WHITEBALANCE = false;
-inline constexpr unsigned short CONFIG_CAM_GAMMA			 = 110;	   //110 200
-inline constexpr unsigned short CONFIG_CAM_GAIN				 = 10;	   //10
-inline constexpr unsigned short CONFIG_CAM_POWERLINE_FREQ	 = 2;
-inline constexpr unsigned short CONFIG_CAM_WHITEBALANCE_TEMP = 4600;
-inline constexpr unsigned short CONFIG_CAM_SHARPNESS		 = 0;
-inline constexpr unsigned short CONFIG_CAM_BACKLIGHT		 = 0;	 //54
-inline constexpr unsigned short CONFIG_CAM_AUTO_EXPOSURE	 = 0;
-inline constexpr unsigned short CONFIG_CAM_EXPOSURE_LEVEL	 = 32;	  //32
-inline constexpr int			CONFIG_CAM_PAN				 = 0;
-inline constexpr int			CONFIG_CAM_TILT				 = 0;
-inline constexpr unsigned short CONFIG_CAM_FOCUS_LEVEL		 = 0;
-inline constexpr bool			CONFIG_CAM_AUTO_FOCUS		 = 0;
-inline constexpr unsigned short CONFIG_CAM_ZOOM				 = 0;
+inline constexpr short			CONFIG_CAM_BRIGHTNESS		 = 0;		 // 0
+inline constexpr unsigned short CONFIG_CAM_CONTRAST			 = 0;		 // 0
+inline constexpr unsigned short CONFIG_CAM_SATURATION		 = 32;		 // 56
+inline constexpr short			CONFIG_CAM_HUE				 = 0;		 // 0
+inline constexpr bool			CONFIG_CAM_AUTO_WHITEBALANCE = false;	 // false
+inline constexpr unsigned short CONFIG_CAM_GAMMA			 = 60;		 // 60 110 200
+inline constexpr unsigned short CONFIG_CAM_GAIN				 = 18;		 // 6 10
+inline constexpr unsigned short CONFIG_CAM_POWERLINE_FREQ	 = 2;		 // 2
+inline constexpr unsigned short CONFIG_CAM_WHITEBALANCE_TEMP = 4600;	 // 4600
+inline constexpr unsigned short CONFIG_CAM_SHARPNESS		 = 0;		 // 0
+inline constexpr unsigned short CONFIG_CAM_BACKLIGHT		 = 0;		 //54
+inline constexpr unsigned short CONFIG_CAM_AUTO_EXPOSURE	 = 0;		 // 0
+inline constexpr unsigned short CONFIG_CAM_EXPOSURE_LEVEL	 = 32;		 //32
+inline constexpr int			CONFIG_CAM_PAN				 = 0;		 // 0
+inline constexpr int			CONFIG_CAM_TILT				 = 0;		 // 0
+inline constexpr unsigned short CONFIG_CAM_FOCUS_LEVEL		 = 0;		 // 0
+inline constexpr bool			CONFIG_CAM_AUTO_FOCUS		 = 0;		 // 0
+inline constexpr unsigned short CONFIG_CAM_ZOOM				 = 0;		 // 0
 
 // Declare colors (defined in `config.cpp`)
 extern const cv::Scalar CONFIG_colRedMd, CONFIG_colRedLt, CONFIG_colRedDk, CONFIG_colRedBk, CONFIG_colRedWt;

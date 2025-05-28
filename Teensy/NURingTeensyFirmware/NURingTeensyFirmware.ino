@@ -7,6 +7,12 @@ bool FLAG_PC_CONNECTED = false;
 bool FLAG_SERIAL_OUT_ENABLED = true;
 bool FLAG_USE_ENCODER = true;
 
+
+volatile bool FLAG_NEW_PACKET_READY = false;
+char serialPacketOut[64] = { 0 };
+char serialPacketIn[64] = { 0 };
+uint8_t serialPacketIndex = 0;
+
 // LED Flags
 bool LED_Connected = false;
 bool LED_Enabled = false;
@@ -39,18 +45,18 @@ uint16_t FREQ_IT_SERIAL = 60;
 String SYSTEM_STATE = "WAITING";
 
 // Serial strings
-String serialPacketOut = "";
-String serialPacketIn = "";
+// String serialPacketOut = "";
+// String serialPacketIn = "";
 
 
 
 void setup() {
 
   // Main software serial interface for communications with C++
-  Serial.begin(10000000);
+  Serial.begin(1000000);
 
   // Second terminal for Teensy to PC feedback
-  SerialUSB1.begin(9600);
+  SerialUSB1.begin(1000000);
 
   // pinMode(0, OUTPUT); WTF is this?
 
@@ -83,6 +89,11 @@ void setup() {
 // Main loop
 void loop() {
 
+  // Send serial
+  if (FLAG_NEW_PACKET_READY) {
+    SerialUSB1.println(serialPacketOut);
+    FLAG_NEW_PACKET_READY = false;
+  }
   // Nothing, handled in IntervalTimer callbacks
 }
 
@@ -104,10 +115,11 @@ void Callback_IT_AMPLIFIER() {
 
 void Callback_IT_SERIAL() {
 
-  if (FLAG_SERIAL_OUT_ENABLED) {
+  if (FLAG_SERIAL_OUT_ENABLED && !FLAG_NEW_PACKET_READY) {
     BuildOutgoingString();
-    SerialUSB1.println(serialPacketOut);
-    serialPacketOut = "";
+    // SerialUSB1.println(serialPacketOut);
+    FLAG_NEW_PACKET_READY = true;
+    // serialPacketOut = "";
   }
 }
 
@@ -123,6 +135,8 @@ void Callback_IT_ENCODER() {
 // Function to parse incoming serial packet
 void ParseSerialPacket(String newPacket) {
 
+  if (newPacket.length() < 16) return;
+
   // Toggle onboard LED
   LEDs.ToggleBuiltInLED();
 
@@ -130,7 +144,7 @@ void ParseSerialPacket(String newPacket) {
   char footer = newPacket.charAt(newPacket.length() - 1);
 
   // 0         1
-  // 012345678901234560
+  // 012345678901234567
   // E0A0000B0000C0000X
 
   // Make sure packet is complete
@@ -156,7 +170,7 @@ void ParseSerialPacket(String newPacket) {
           // Parse motor PWM substring
           // Serial.print("Parse ");
           Encoder.Reset();
-          LEDs.ToggleBuiltInLED() ;
+          LEDs.ToggleBuiltInLED();
           // serialPacketOut = newPacket;
           break;
         }
@@ -174,25 +188,17 @@ void ParseSerialPacket(String newPacket) {
 
 
 void serialEvent() {
-
-  serialPacketIn = "";
-
   while (Serial.available()) {
-    digitalWrite(LED_BUILTIN, HIGH);
-
     char incomingChar = (char)Serial.read();
     if (incomingChar == '\n') {
-      // Serial.print("Packet received: ");
-      // Serial.println(incomingCommand);
-      ParseSerialPacket(serialPacketIn);
-
-    } else {
-      serialPacketIn += incomingChar;
+      serialPacketIn[serialPacketIndex] = '\0';  // Null-terminate
+      ParseSerialPacket(String(serialPacketIn)); // You can later replace this String use too
+      serialPacketIndex = 0;
+    } else if (serialPacketIndex < sizeof(serialPacketIn) - 1) {
+      serialPacketIn[serialPacketIndex++] = incomingChar;
     }
   }
 }
-
-
 
 
 
@@ -224,9 +230,10 @@ void BuildOutgoingString() {
   int deg = constrain(int(Encoder.angleDeg), -99, 99);
   int negative = (deg < 0) ? 1 : 0;
 
-  char buffer[3];
-  sprintf(buffer, "%02d", abs(deg));
+  // char buffer[3];
+  // sprintf(buffer, "%02d", abs(deg));
 
-  serialPacketOut = String("TE") + (Amplifiers.ENABLED ? "1" : "0") + "A" + String(A) + "B" + String(B) + "C" + String(C) + "D" + String(negative) + String(buffer) + "X";
-  Serial.println(serialPacketOut);
+  snprintf(serialPacketOut, sizeof(serialPacketOut), "TE%dA%dB%dC%dD%d%02dX", Amplifiers.ENABLED ? 1 : 0, A, B, C, negative, abs(deg));
+  // serialPacketOut = String("TE") + (Amplifiers.ENABLED ? "1" : "0") + "A" + String(A) + "B" + String(B) + "C" + String(C) + "D" + String(negative) + String(buffer) + "X";
+  // Serial.println(serialPacketOut);
 }
