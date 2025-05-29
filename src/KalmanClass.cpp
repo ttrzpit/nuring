@@ -134,12 +134,15 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	// integralError.y += error.y * dt;
 	// integralError.z += error.z * dt;
 
-	// Add decay
-	if ( errorMagnitude < 10.0f ) {
-		integralError *= 0.8;	 // Decrease by 10% each time
+	// Only calculate if within a certain radius of the target
+	if ( errorMagnitude < 80.0f ) {
 
-	} else {
-		integralError += error * dt;
+		// Add decay
+		if ( errorMagnitude < 10.0f ) {
+			integralError *= 0.8;	 // Decrease by 10% each time
+		} else {
+			integralError += error * dt;
+		}
 	}
 
 
