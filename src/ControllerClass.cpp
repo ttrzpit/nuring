@@ -10,24 +10,46 @@ ControllerClass::ControllerClass( SystemDataManager& ctx )
 
 void ControllerClass::Update() {
 
-	// Calculate proportional term
-	shared->controllerProportinalTerm.x = shared->controllerKp.x * shared->targetMarkerPosition3dNew.x;
-	shared->controllerProportinalTerm.y = shared->controllerKp.y * shared->targetMarkerPosition3dNew.y;
-	shared->controllerProportinalTerm.z = shared->controllerKp.z * shared->targetMarkerPosition3dNew.z;
+	// Reset ramp if target was reset
+	if ( shared->FLAG_TARGET_RESET ) {
 
-	// Calculate derivative term
-	shared->controllerDerivativeTerm.x = shared->controllerKd.x * shared->targetMarkerVelocity3dNew.x;
-	shared->controllerDerivativeTerm.y = shared->controllerKd.y * shared->targetMarkerVelocity3dNew.y;
-	shared->controllerDerivativeTerm.z = shared->controllerKd.z * shared->targetMarkerVelocity3dNew.z;
+		shared->controllerRampFactor	= 0.0f;
+		shared->controllerRampStartTime = shared->timingTimestamp;
+	}
 
-	// Calculate integral term
-	shared->controllerIntegralTerm.x = shared->controllerKi.x * shared->targetMarkerIntegralError.x;
-	shared->controllerIntegralTerm.y = shared->controllerKi.y * shared->targetMarkerIntegralError.y;
-	shared->controllerIntegralTerm.z = shared->controllerKi.z * shared->targetMarkerIntegralError.z;
 
-	// Sum terms
-	shared->controllerTotalTerm = shared->controllerProportinalTerm + shared->controllerDerivativeTerm + shared->controllerIntegralTerm;
 
+	// Ramp-up value
+	if ( shared->controllerIsRamping && shared->FLAG_TARGET_MARKER_FOUND ) {
+		float elapsed				 = shared->timingTimestamp - shared->controllerRampStartTime;
+		shared->controllerRampFactor = std::clamp( elapsed / shared->controllerRampDuration, 0.0f, 1.0f );
+
+		if ( shared->controllerRampFactor >= 1.0f ) {
+			shared->controllerIsRamping = false;
+		}
+	}
+
+	if ( shared->FLAG_TARGET_MARKER_FOUND ) {
+		// Calculate proportional term
+		shared->controllerProportinalTerm.x = shared->controllerKp.x * shared->targetMarkerPosition3dNew.x;
+		shared->controllerProportinalTerm.y = shared->controllerKp.y * shared->targetMarkerPosition3dNew.y;
+		shared->controllerProportinalTerm.z = shared->controllerKp.z * shared->targetMarkerPosition3dNew.z;
+
+		// Calculate derivative term
+		shared->controllerDerivativeTerm.x = shared->controllerKd.x * shared->targetMarkerVelocity3dNew.x;
+		shared->controllerDerivativeTerm.y = shared->controllerKd.y * shared->targetMarkerVelocity3dNew.y;
+		shared->controllerDerivativeTerm.z = shared->controllerKd.z * shared->targetMarkerVelocity3dNew.z;
+
+		// Calculate integral term
+		shared->controllerIntegralTerm.x = shared->controllerKi.x * shared->targetMarkerIntegralError.x;
+		shared->controllerIntegralTerm.y = shared->controllerKi.y * shared->targetMarkerIntegralError.y;
+		shared->controllerIntegralTerm.z = shared->controllerKi.z * shared->targetMarkerIntegralError.z;
+
+		// Sum terms
+		shared->controllerTotalTerm = ( shared->controllerProportinalTerm + shared->controllerDerivativeTerm + shared->controllerIntegralTerm ) * shared->controllerRampFactor;
+	} else {
+		shared->controllerTotalTerm = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	}
 	// Calculate motor contributions
 	MapToContributionABC();
 }

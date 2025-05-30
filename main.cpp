@@ -442,6 +442,8 @@ void UpdateState() {
 		shared->targetMarkerAnglularVelocityNew = Kalman.GetAnglularVelocity();
 		shared->targetMarkerIntegralError		= Kalman.GetIntegralError();
 
+		// std::cout << "dE = " << shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x << "dE/dt = " << ( shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x ) / shared->kalmanDt << "\n" ;
+
 		// Get covariance from Kalman filter
 		// shared->kalmanP = Kalman.GetCovariance();
 	}

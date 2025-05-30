@@ -148,11 +148,11 @@ void InputClass::ParseInput( int key ) {
 			break;
 		}
 		case '[': {	   // '['
-			IncrementValueF( "Kd(x)", shared->controllerKd.x, -0.2f );
+			IncrementValueF( "Kd(x)", shared->controllerKd.x, -0.01f );
 			break;
 		}
 		case ']': {	   // ']'
-			IncrementValueF( "Kd(x)", shared->controllerKd.x, 0.2f );
+			IncrementValueF( "Kd(x)", shared->controllerKd.x, 0.01f );
 			break;
 		}
 
@@ -174,11 +174,11 @@ void InputClass::ParseInput( int key ) {
 			break;
 		}
 		case ';': {	   // ';'
-			IncrementValueF( "Kd(y)", shared->controllerKd.y, -0.2f );
+			IncrementValueF( "Kd(y)", shared->controllerKd.y, -0.01f );
 			break;
 		}
 		case 39: {	  // '''
-			IncrementValueF( "Kd(y)", shared->controllerKd.y, 0.2f );
+			IncrementValueF( "Kd(y)", shared->controllerKd.y, 0.01f );
 			break;
 		}
 
@@ -260,6 +260,7 @@ void InputClass::ParseInput( int key ) {
 		case 102: {	   // 'f'
 			// Run fitts-law test
 			shared->FLAG_TARGET_RESET = true;
+			shared->controllerIsRamping = true ;
 			shared->touchDetected	  = 0;
 			shared->TASK_RUNNING	  = false;
 			shared->TASK_NAME		  = "FITTS";

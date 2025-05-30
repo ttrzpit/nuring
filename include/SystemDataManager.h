@@ -19,6 +19,22 @@
 #define RAD2DEG 57.2958
 #define DEG2RAD 0.01745
 
+
+// Structure for 4-point vector
+struct Point4f {
+	float abb;
+	float add;
+	float flex;
+	float ext;
+
+	// Constructor
+	Point4f( float ab, float ad, float fl, float ex )
+		: abb( ab )
+		, add( ad )
+		, flex( fl )
+		, ext( ex ) { }
+};
+
 // Shared system variable container
 struct ManagedData {
 
@@ -41,6 +57,7 @@ struct ManagedData {
 	bool FLAG_USE_FINGER_MARKER		   = false;
 	bool FLAG_TARGET_RESET			   = false;
 	bool FLAG_USE_FIXED_MARKER		   = false;
+
 	// int	 lostCount					   = 0;
 	// Target marker
 	// bool					 FLAG_TARGET_MARKER_SWITCHED	 = false;																					  // Updated in ArucoClass
@@ -74,12 +91,19 @@ struct ManagedData {
 	cv::Point3f controllerCurrent		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Current
 	cv::Point3f controllerTension		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Tension (in PWM units)
 	float		controllerRampLimit		  = 0.05f;								// Maximum change per update
+	float		controllerRampFactor	  = 0.0f;								// Counter from 0.0 to 1.0
+	bool		controllerIsRamping		  = false;								// Check for ramping
+	float		controllerRampStartTime	  = 0.0f;								// Ramp start time
+	float		controllerRampDuration	  = 1.0f;								// How long to ramp up for
+
+	Point4f controllerGainKp = Point4f ( 0.0f, 0.0f, 0.0f, 0.0f );
 
 	// Kalman filter
 	float	kalmanProcessNoiseCovarianceQ = 0.00001f;	 // 0.01 Higher Q = more trust in model, faster response, less lag
 	float	kalmanMeasurementNoiseR		  = 1.0e-2f;	 // 0.5f;		// 10.0 [mm^2] Higher R means less trust in model, smoother but more lag
 	float	kalmanTimeStepDt			  = 0.01f;		 // 0.01 Minimum time step
 	cv::Mat kalmanP;									 // Covariance
+	float	kalmanDt = 0.1f;
 
 
 	// Finger marker

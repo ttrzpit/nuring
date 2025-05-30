@@ -101,8 +101,9 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	}
 
 	// Normal Kalman update
-	dt		  = std::clamp( tCurrent - tPrevious, 1e-5f, shared->kalmanTimeStepDt );
-	tPrevious = tCurrent;
+	dt				 = std::clamp( tCurrent - tPrevious, 1e-5f, shared->kalmanTimeStepDt );
+	tPrevious		 = tCurrent;
+	shared->kalmanDt = dt;
 
 	F					= cv::Mat::eye( 6, 6, CV_32F );
 	F.at<float>( 0, 3 ) = dt;
@@ -135,11 +136,11 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	// integralError.z += error.z * dt;
 
 	// Only calculate if within a certain radius of the target
-	if ( errorMagnitude < 80.0f ) {
+	if ( errorMagnitude < 100.0f ) {
 
 		// Add decay
 		if ( errorMagnitude < 10.0f ) {
-			integralError *= 0.8;	 // Decrease by 10% each time
+			integralError *= 0.9;	 // Decrease by 10% each time
 		} else {
 			integralError += error * dt;
 		}

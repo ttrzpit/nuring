@@ -55,6 +55,7 @@ private:
 	void		ShowInterface();
 	void		AddText();
 	void		DrawCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
+	void		DrawCellBorder( std::string cell0, short width, short height, uint8_t thickness, cv::Scalar color );
 	void		DrawKeyCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
 	cv::Point2i ProjectIsometric( const cv::Point3i& p3d );
 	cv::Point2i GetForwardDirectionFromPose( const cv::Vec3d rvec, const cv::Vec3d tvec, const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, float axisLength );
@@ -66,6 +67,7 @@ private:
 	std::string winVisualizer = "3D Visualizer";
 
 	// Private variables
+	float	 fontTitle	= 0.0f;
 	float	 fontHeader = 0.0f;
 	float	 fontBody	= 0.0f;
 	cv::Size textSize;
@@ -85,16 +87,16 @@ private:
 	float	 key_fontHeader = 0.0f;
 	float	 key_fontBody	= 0.0f;
 	cv::Size key_textSize;
-	short key_WIDTH	 = CONFIG_DIS_KEY_CELL_WIDTH;
-	short key_HEIGHT = CONFIG_DIS_KEY_CELL_HEIGHT;
-	short key_c0	 = 0;
-	short key_r0	 = 0;
-	short key_nR	 = 0;
-	short key_nC	 = 0;
-	short key_cW	 = 0;
-	short key_rH	 = 0;
-	short key_textX	 = 0;
-	short key_textY	 = 0;
+	short	 key_WIDTH	= CONFIG_DIS_KEY_CELL_WIDTH;
+	short	 key_HEIGHT = CONFIG_DIS_KEY_CELL_HEIGHT;
+	short	 key_c0		= 0;
+	short	 key_r0		= 0;
+	short	 key_nR		= 0;
+	short	 key_nC		= 0;
+	short	 key_cW		= 0;
+	short	 key_rH		= 0;
+	short	 key_textX	= 0;
+	short	 key_textY	= 0;
 
 	// Visualizer settings
 	std::vector<cv::Point2i> ProjectedCorners;
