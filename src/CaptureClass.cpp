@@ -21,7 +21,7 @@ void CaptureClass::Initialize() {
 	cv::setUseOptimized( true );
 
 	// Initialize undistort map tool
-	cv::initUndistortRectifyMap( CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, cv::Mat(), CONFIG_CAMERA_MATRIX, shared->matFrameRaw.size(), CV_32F, shared->matRemap1, shared->matRemap2 );
+	cv::initUndistortRectifyMap( CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, cv::Mat(), CONFIG_CAMERA_MATRIX, shared->Camera.frameRaw.size(), CV_32F, shared->matRemap1, shared->matRemap2 );
 
 	// Try catch to open camera device
 	try {
@@ -73,17 +73,17 @@ void CaptureClass::Initialize() {
 void CaptureClass::GetFrame() {
 
 	// Reset flag
-	shared->FLAG_FRAME_READY = false;
+	shared->Camera.isFrameReady = false;
 
 	// Capture latest frame
 	Capture.grab();
-	Capture.retrieve( shared->matFrameRaw );
+	Capture.retrieve( shared->Camera.frameRaw );
 
 	// Make sure frame isn't empty
-	if ( !shared->matFrameRaw.empty() ) {
+	if ( !shared->Camera.frameRaw.empty() ) {
 
 		// Upload mats to GPU
-		shared->GpuMatFrameRaw.upload( shared->matFrameRaw );
+		shared->GpuMatFrameRaw.upload( shared->Camera.frameRaw );
 		shared->GpuMatRemap1.upload( shared->matRemap1 );
 		shared->GpuMatRemap2.upload( shared->matRemap2 );
 
@@ -95,13 +95,13 @@ void CaptureClass::GetFrame() {
 
 		// Extract frames from GPU
 		shared->GpuMatFrameUndistorted.download( shared->matFrameUndistorted );
-		shared->GpuMatFrameGray.download( shared->matFrameGray );
+		shared->GpuMatFrameGray.download( shared->Camera.frameGray );
 
 		// Update flag
-		shared->FLAG_FRAME_READY = true;
+		shared->Camera.isFrameReady = true;
 
 	} else {
 		std::cerr << "CaptureClass: Captured frame is empty!\n";
-		shared->FLAG_FRAME_READY = false;
+		shared->Camera.isFrameReady = false;
 	}
 }

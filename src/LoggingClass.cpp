@@ -22,9 +22,9 @@ LoggingClass::LoggingClass( SystemDataManager& ctx )
 void LoggingClass::AddEntry() {
 
 	newEntry.timestamp = shared->timingTimestamp;
-	newEntry.errXmm	   = shared->targetMarkerPosition3dNew.x;
-	newEntry.errYmm	   = shared->targetMarkerPosition3dNew.y;
-	newEntry.errZmm	   = shared->targetMarkerPosition3dNew.z;
+	newEntry.errXmm	   = shared->Target.positionFilteredNewMM.x;
+	newEntry.errYmm	   = shared->Target.positionFilteredNewMM.y;
+	newEntry.errZmm	   = shared->Target.positionFilteredNewMM.z;
 	newEntry.custom1   = shared->loggingVariable1;
 	newEntry.custom2   = shared->loggingVariable2;
 	newEntry.custom3   = shared->loggingVariable3;
@@ -41,7 +41,7 @@ void LoggingClass::AddEntry() {
 void LoggingClass::Save() {
 
 	// Stop logging
-	shared->FLAG_LOGGING_STARTED = false;
+	shared->Logging.isLoggingActivelyRunning = false;
 
 	// Open file
 	std::ofstream file( "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".txt" );
@@ -79,7 +79,7 @@ void LoggingClass::Initialize() {
 
 	// Update new file name
 	// shared->loggingFilename = "p" + PadValues( shared->TASK_USER_ID, 3 ) + "_t" + shared->TASK_NAME + "_r" + std::to_string( shared->TASK_REP_NUMBER ) + shared->loggingTimestamp;
-	shared->loggingFilename = shared->TASK_NAME + shared->loggingTimestamp;
+	shared->loggingFilename = shared->Task.name + shared->loggingTimestamp;
 	shared->displayString	= "LoggingClass: Filename = " + shared->loggingFilename;
 }
 

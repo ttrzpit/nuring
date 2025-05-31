@@ -64,9 +64,12 @@ private:
 	cv::Mat F;
 
 	// Private variables
-	float tPrevious		= 0.0f;		// Previous timestamp
-	bool  isInitialized = false;	// Check if filter is initialized
-	float dt			= 0.0f;		// Timestep
+	float tPrevious						= 0.0f;		   // Previous timestamp
+	bool  isInitialized					= false;	   // Check if filter is initialized
+	float dt							= 0.0f;		   // Timestep
+	float kalmanProcessNoiseCovarianceQ = 0.00001f;	   // 0.01 Higher Q = more trust in model, faster response, less lag
+	float kalmanMeasurementNoiseR		= 1.0e-2f;	   // 0.5f;		// 10.0 [mm^2] Higher R means less trust in model, smoother but more lag
+	float kalmanTimeStepDt				= 0.01f;	   // 0.01 Minimum time step
 
 	// Integral error
 	cv::Point3f integralError = cv::Point3f( 0.0f, 0.0f, 0.0f );

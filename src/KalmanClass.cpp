@@ -22,11 +22,11 @@ KalmanClass::KalmanClass( SystemDataManager& ctx )
 	// Build matrices
 	state				= cv::Mat::zeros( 6, 1, CV_32F );
 	P					= cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
-	Q					= cv::Mat::eye( 6, 6, CV_32F ) * shared->kalmanProcessNoiseCovarianceQ;
+	Q					= cv::Mat::eye( 6, 6, CV_32F ) * kalmanProcessNoiseCovarianceQ;
 	Q.at<float>( 3, 3 ) = 1e-2f;	// Velocity
 	Q.at<float>( 4, 4 ) = 1e-2f;
 	Q.at<float>( 5, 5 ) = 1e-2f;
-	R					= cv::Mat::eye( 3, 3, CV_32F ) * shared->kalmanMeasurementNoiseR;
+	R					= cv::Mat::eye( 3, 3, CV_32F ) * kalmanMeasurementNoiseR;
 	H					= cv::Mat::zeros( 3, 6, CV_32F );
 	I					= cv::Mat::eye( 6, 6, CV_32F );
 
@@ -66,8 +66,8 @@ void KalmanClass::Initialize( const cv::Point3f& initialPos, float tInitial ) {
 
 
 	// Update flag
-	isInitialized			  = true;
-	shared->FLAG_TARGET_RESET = false;
+	isInitialized				 = true;
+	shared->Target.isTargetReset = false;
 }
 
 
@@ -81,13 +81,13 @@ void KalmanClass::Initialize( const cv::Point3f& initialPos, float tInitial ) {
 void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 
 
-	if ( shared->FLAG_TARGET_RESET ) {
+	if ( shared->Target.isTargetReset ) {
 
 		// shared->timingTimestamp = 0.0f;
-		tCurrent				  = 0.0f;
-		tPrevious				  = 0.0f;
-		shared->FLAG_TARGET_RESET = false;
-		Initialize( shared->targetMarkerPosition3dRaw, shared->timingTimestamp );
+		tCurrent					 = 0.0f;
+		tPrevious					 = 0.0f;
+		shared->Target.isTargetReset = false;
+		Initialize( shared->Target.positionUnfilteredMM, shared->timingTimestamp );
 		std::cout << "KalmanClass: Reset\n";
 		return;
 	}
@@ -101,9 +101,9 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	}
 
 	// Normal Kalman update
-	dt				 = std::clamp( tCurrent - tPrevious, 1e-5f, shared->kalmanTimeStepDt );
-	tPrevious		 = tCurrent;
-	shared->kalmanDt = dt;
+	dt		  = std::clamp( tCurrent - tPrevious, 1e-5f, kalmanTimeStepDt );
+	tPrevious = tCurrent;
+
 
 	F					= cv::Mat::eye( 6, 6, CV_32F );
 	F.at<float>( 0, 3 ) = dt;

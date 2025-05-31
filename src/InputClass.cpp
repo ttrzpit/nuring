@@ -27,96 +27,96 @@ void InputClass::ParseInput( int key ) {
 
 		switch ( key ) {
 		case 27: {	  // ESC key 1048603
-			shared->FLAG_SERIAL0_ENABLED	= false;
-			shared->FLAG_AMPLIFIERS_ENABLED = false;
-			shared->serialPacket0			= "DX\n";
-			shared->FLAG_PACKET_WAITING		= true;
+			shared->Serial.isSerialSending		= false;
+			shared->Amplifier.isAmplifierActive = false;
+			shared->serialPacket0				= "DX\n";
+			// shared->FLAG_PACKET_WAITING		= true;
 			shared->displayString			= "InputClass: Shutting down...";
-			shared->FLAG_SERIAL0_ENABLED	= false;
-			shared->FLAG_SERIAL0_OPEN		= false;
+			shared->Serial.isSerialSending	= false;
+			shared->Serial.isSerialSendOpen = false;
 
 			shared->displayString = "InputClass: Stop key pressed, exiting.";
 			cv::destroyAllWindows();
 			std::cout << "shutdown initiated.\n";
-			shared->serialPacket0		= "DX\n";
-			shared->FLAG_PACKET_WAITING = true;
-			shared->FLAG_SHUTTING_DOWN	= true;
+			shared->serialPacket0 = "DX\n";
+			// shared->FLAG_PACKET_WAITING = true;
+			shared->Main.isShuttingDown = true;
 			break;
 		}
 		case '0': {	   // '0'
-			shared->targetMarkerActiveID = 0;
-			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 0 ? "0." : "0." );
+			shared->Target.activeID = 0;
+			shared->displayString	= "InputClass: Updated active marker to #" + std::string( shared->Target.activeID == 0 ? "0." : "0." );
 			break;
 		}
 		case '1': {	   // '1'
-			shared->targetMarkerActiveID = 1;
-			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 1 ? "1." : "0." );
+			shared->Target.activeID = 1;
+			shared->displayString	= "InputClass: Updated active marker to #" + std::string( shared->Target.activeID == 1 ? "1." : "0." );
 			break;
 		}
 		case '2': {	   // '2'
-			shared->targetMarkerActiveID = 2;
-			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 2 ? "2." : "0." );
+			shared->Target.activeID = 2;
+			shared->displayString	= "InputClass: Updated active marker to #" + std::string( shared->Target.activeID == 2 ? "2." : "0." );
 			break;
 		}
 		case '3': {	   // '3'
-			shared->targetMarkerActiveID = 3;
-			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 3 ? "3." : "0." );
+			shared->Target.activeID = 3;
+			shared->displayString	= "InputClass: Updated active marker to #" + std::string( shared->Target.activeID == 3 ? "3." : "0." );
 			break;
 		}
 		case '4': {	   // '4'
-			shared->targetMarkerActiveID = 4;
-			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 4 ? "4." : "0." );
+			shared->Target.activeID = 4;
+			shared->displayString	= "InputClass: Updated active marker to #" + std::string( shared->Target.activeID == 4 ? "4." : "0." );
 			break;
 		}
 		case '5': {	   // '5'
-			shared->targetMarkerActiveID = 5;
-			shared->displayString		 = "InputClass: Updated active marker to #" + std::string( shared->targetMarkerActiveID == 5 ? "5." : "0." );
+			shared->Target.activeID = 5;
+			shared->displayString	= "InputClass: Updated active marker to #" + std::string( shared->Target.activeID == 5 ? "5." : "0." );
 			break;
 		}
 		case '`': {	   // ` (tilde)
-			shared->displayString		 = "InputClass: Disabling all active markers.";
-			shared->targetMarkerActiveID = 0;
+			shared->displayString	= "InputClass: Disabling all active markers.";
+			shared->Target.activeID = 0;
 			break;
 		}
 		case 'a': {	   // 'e'
-			shared->FLAG_AMPLIFIERS_ENABLED = !shared->FLAG_AMPLIFIERS_ENABLED;
-			if ( shared->FLAG_AMPLIFIERS_ENABLED ) {
+			shared->Amplifier.isAmplifierActive = !shared->Amplifier.isAmplifierActive;
+			if ( shared->Amplifier.isAmplifierActive ) {
 				// shared->serialPacket		= "e\n";
 				// shared->FLAG_PACKET_WAITING = true;
 				shared->displayString = "InputClass: Amplifiers enabled.";
 			} else {
-				shared->serialPacket0		= "DX\n";
-				shared->FLAG_PACKET_WAITING = true;
-				shared->displayString		= "InputClass: Amplifiers disabled.";
+				shared->serialPacket0 = "DX\n";
+				// shared->FLAG_PACKET_WAITING = true;
+				shared->displayString = "InputClass: Amplifiers disabled.";
 			}
 			break;
 		}
 		case 's': {	   // 's'
 			// Toggle serial flags
-			shared->FLAG_SERIAL0_ENABLED = !shared->FLAG_SERIAL0_ENABLED;
-			shared->FLAG_SERIAL1_ENABLED = !shared->FLAG_SERIAL1_ENABLED;
-			if ( shared->FLAG_SERIAL0_ENABLED ) {
-				shared->displayString				  = "InputClass: Enabling serial IO.";
-				shared->FLAG_SERIAL0_ENABLED		  = true;
-				shared->FLAG_SERIAL1_ENABLED		  = true;
-				shared->FLAG_TEENSY_AMPLIFIER_ENABLED = false;
+			shared->Serial.isSerialSending	 = !shared->Serial.isSerialSending;
+			shared->Serial.isSerialReceiving = !shared->Serial.isSerialReceiving;
+			if ( shared->Serial.isSerialSending ) {
+				shared->displayString				 = "InputClass: Enabling serial IO.";
+				shared->Serial.isSerialSending		 = true;
+				shared->Serial.isSerialReceiving	 = true;
+				shared->Teensy.isAmplifierResponding = false;
 			} else {
 				// shared->serialPacket0		 = "DX\n";
-				shared->FLAG_PACKET_WAITING			  = true;
-				shared->FLAG_SERIAL0_ENABLED		  = false;
-				shared->FLAG_SERIAL1_ENABLED		  = false;
-				shared->FLAG_TEENSY_AMPLIFIER_ENABLED = false;
-				shared->displayString				  = "InputClass: Disabling serial IO.";
+				// shared->FLAG_PACKET_WAITING			  = true;
+				shared->Serial.isSerialSending		 = false;
+				shared->Serial.isSerialReceiving	 = false;
+				shared->Teensy.isAmplifierResponding = false;
+				shared->displayString				 = "InputClass: Disabling serial IO.";
 			}
 			break;
 		}
 		case 'x': {	   // 'x'
 			shared->displayString = "InputClass: Software E-Stop Triggered. Amplifiers and serial output disabled.";
-			if ( shared->FLAG_SERIAL0_OPEN ) {
-				shared->serialPacket0		= "DX\n";
-				shared->FLAG_PACKET_WAITING = true;
+			if ( shared->Serial.isSerialSendOpen ) {
+				shared->serialPacket0 = "DX\n";
+				// shared->FLAG_PACKET_WAITING = true;
 			}
-			shared->FLAG_AMPLIFIERS_ENABLED = false;
+			shared->Amplifier.isAmplifierActive = false;
 			break;
 		}
 
@@ -213,27 +213,27 @@ void InputClass::ParseInput( int key ) {
 		// 	break;
 		// }
 		case 183: {	   // numpad 7
-			IncrementValueF( "Tension A", shared->controllerTension.x, 0.01 );
+			IncrementValueF( "Tension A", shared->Controller.commandedTensionABC.x, 0.01 );
 			break;
 		}
 		case 180: {	   // numpad 4
-			IncrementValueF( "Tension A", shared->controllerTension.x, -0.01 );
+			IncrementValueF( "Tension A", shared->Controller.commandedTensionABC.x, -0.01 );
 			break;
 		}
 		case 184: {	   // numpad 8
-			IncrementValueF( "Tension B", shared->controllerTension.y, 0.01 );
+			IncrementValueF( "Tension B", shared->Controller.commandedTensionABC.y, 0.01 );
 			break;
 		}
 		case 181: {	   // numpad 5
-			IncrementValueF( "Tension B", shared->controllerTension.y, -0.01 );
+			IncrementValueF( "Tension B", shared->Controller.commandedTensionABC.y, -0.01 );
 			break;
 		}
 		case 185: {	   // numpad 9
-			IncrementValueF( "Tension B", shared->controllerTension.z, 0.01 );
+			IncrementValueF( "Tension B", shared->Controller.commandedTensionABC.z, 0.01 );
 			break;
 		}
 		case 182: {	   // numpad 6
-			IncrementValueF( "Tension B", shared->controllerTension.z, -0.01 );
+			IncrementValueF( "Tension B", shared->Controller.commandedTensionABC.z, -0.01 );
 			break;
 		}
 		case 122: {	   // 'z'
@@ -242,7 +242,7 @@ void InputClass::ParseInput( int key ) {
 			break;
 		}
 		case 99: {	  // 'c'
-			shared->TASK_NAME			= "CALIB";
+			shared->Task.name			= "CALIB";
 			shared->calibrationComplete = false;
 			shared->displayString		= "InputClass: Starting calibration.";
 			break;
@@ -259,12 +259,12 @@ void InputClass::ParseInput( int key ) {
 		// }
 		case 102: {	   // 'f'
 			// Run fitts-law test
-			shared->FLAG_TARGET_RESET = true;
-			shared->controllerIsRamping = true ;
-			shared->touchDetected	  = 0;
-			shared->TASK_RUNNING	  = false;
-			shared->TASK_NAME		  = "FITTS";
-			shared->TASK_REP_NUMBER++;
+			shared->Target.isTargetReset = true;
+			shared->Controller.isRampingUp	 = true;
+			shared->touchDetected		 = 0;
+			shared->Task.isRunning		 = false;
+			shared->Task.name			 = "FITTS";
+			shared->Task.repetitionNumber++;
 			// shared->TASK_RUNNING = true;
 			// shared->fittsTestStarted = false;
 			shared->displayString = "InputClass: Starting fitts-law test.";
@@ -298,7 +298,7 @@ void InputClass::ParseInput( int key ) {
 		}
 	} else {
 		// shared->serialPacket0		= "DX\n";
-		shared->FLAG_PACKET_WAITING = true;
+		// shared->FLAG_PACKET_WAITING = true;
 	}
 }
 

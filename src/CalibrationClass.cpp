@@ -33,7 +33,7 @@ void CalibrationClass::Initialize() {
 		cv::namedWindow( winCalibration, cv::WINDOW_AUTOSIZE );
 		cv::moveWindow( winCalibration, 3440, 0 );
 		shared->calibrationLoaded = true;
-		shared->TASK_REP_NUMBER	  = 0;
+		shared->Task.repetitionNumber	  = 0;
 	}
 
 	// Clear window
@@ -44,7 +44,7 @@ void CalibrationClass::Initialize() {
 
 	// Add instructional text
 	std::string line0 = "Please touch the screen while keeping the center of the camera aligned with the dot below. ";
-	std::string line1 = "Completed: " + std::to_string( shared->TASK_REP_NUMBER ) + " / 5";
+	std::string line1 = "Completed: " + std::to_string( shared->Task.repetitionNumber ) + " / 5";
 	cv::putText( matCalibration, line0, cv::Point( 10, 40 ), cv::FONT_HERSHEY_SIMPLEX, 1.2, CONFIG_colBlack, 2 );
 	cv::putText( matCalibration, line1, cv::Point( 10, 80 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
 
@@ -61,13 +61,13 @@ void CalibrationClass::Update() {
 	if ( shared->touchDetected ) {
 
 		calibrationPoints.push_back( shared->touchPosition - cv::Point3i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2, 0 ) );
-		calibrationZPoints.push_back( shared->targetMarkerPosition3dNew.z );
+		calibrationZPoints.push_back( shared->Target.positionFilteredNewMM.z );
 
 		// Debug output
-		std::cout << "Rep: " << shared->TASK_REP_NUMBER << " X: " << shared->touchPosition.x << " Y: " << shared->touchPosition.y << " Z: " << shared->touchPosition.z << "\n";
+		std::cout << "Rep: " << shared->Task.repetitionNumber << " X: " << shared->touchPosition.x << " Y: " << shared->touchPosition.y << " Z: " << shared->touchPosition.z << "\n";
 
 		// Increment
-		shared->TASK_REP_NUMBER++;
+		shared->Task.repetitionNumber++;
 
 		// Reset touch flag
 		shared->touchDetected = false;
@@ -82,7 +82,7 @@ void CalibrationClass::End() {
 
 	if ( !outputCreated ) {
 
-		std::cout << shared->TASK_REP_NUMBER << "!!!/n";
+		std::cout << shared->Task.repetitionNumber << "!!!/n";
 		// Update console
 		shared->displayString = "CalibrationClass: Calibration complete!";
 

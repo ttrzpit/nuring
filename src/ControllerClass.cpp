@@ -11,42 +11,42 @@ ControllerClass::ControllerClass( SystemDataManager& ctx )
 void ControllerClass::Update() {
 
 	// Reset ramp if target was reset
-	if ( shared->FLAG_TARGET_RESET ) {
+	if ( shared->Target.isTargetReset ) {
 
-		shared->controllerRampFactor	= 0.0f;
-		shared->controllerRampStartTime = shared->timingTimestamp;
+		shared->Controller.rampPercentage = 0.0f;
+		shared->Controller.rampStartTime  = shared->timingTimestamp;
 	}
 
 
 
 	// Ramp-up value
-	if ( shared->controllerIsRamping && shared->FLAG_TARGET_MARKER_FOUND ) {
-		float elapsed				 = shared->timingTimestamp - shared->controllerRampStartTime;
-		shared->controllerRampFactor = std::clamp( elapsed / shared->controllerRampDuration, 0.0f, 1.0f );
+	if ( shared->Controller.isRampingUp && shared->Target.isTargetFound ) {
+		float elapsed					  = shared->timingTimestamp - shared->Controller.rampStartTime;
+		shared->Controller.rampPercentage = std::clamp( elapsed / shared->Controller.rampDurationTime, 0.0f, 1.0f );
 
-		if ( shared->controllerRampFactor >= 1.0f ) {
-			shared->controllerIsRamping = false;
+		if ( shared->Controller.rampPercentage >= 1.0f ) {
+			shared->Controller.isRampingUp = false;
 		}
 	}
 
-	if ( shared->FLAG_TARGET_MARKER_FOUND ) {
+	if ( shared->Target.isTargetFound ) {
 		// Calculate proportional term
-		shared->controllerProportinalTerm.x = shared->controllerKp.x * shared->targetMarkerPosition3dNew.x;
-		shared->controllerProportinalTerm.y = shared->controllerKp.y * shared->targetMarkerPosition3dNew.y;
-		shared->controllerProportinalTerm.z = shared->controllerKp.z * shared->targetMarkerPosition3dNew.z;
+		shared->controllerProportinalTerm.x = shared->controllerKp.x * shared->Target.positionFilteredNewMM.x;
+		shared->controllerProportinalTerm.y = shared->controllerKp.y * shared->Target.positionFilteredNewMM.y;
+		shared->controllerProportinalTerm.z = shared->controllerKp.z * shared->Target.positionFilteredNewMM.z;
 
 		// Calculate derivative term
-		shared->controllerDerivativeTerm.x = shared->controllerKd.x * shared->targetMarkerVelocity3dNew.x;
-		shared->controllerDerivativeTerm.y = shared->controllerKd.y * shared->targetMarkerVelocity3dNew.y;
-		shared->controllerDerivativeTerm.z = shared->controllerKd.z * shared->targetMarkerVelocity3dNew.z;
+		shared->controllerDerivativeTerm.x = shared->controllerKd.x * shared->Target.velocityFilteredNewMM.x;
+		shared->controllerDerivativeTerm.y = shared->controllerKd.y * shared->Target.velocityFilteredNewMM.y;
+		shared->controllerDerivativeTerm.z = shared->controllerKd.z * shared->Target.velocityFilteredNewMM.z;
 
 		// Calculate integral term
-		shared->controllerIntegralTerm.x = shared->controllerKi.x * shared->targetMarkerIntegralError.x;
-		shared->controllerIntegralTerm.y = shared->controllerKi.y * shared->targetMarkerIntegralError.y;
-		shared->controllerIntegralTerm.z = shared->controllerKi.z * shared->targetMarkerIntegralError.z;
+		shared->controllerIntegralTerm.x = shared->controllerKi.x * shared->Controller.accumulatedIntegralError.x;
+		shared->controllerIntegralTerm.y = shared->controllerKi.y * shared->Controller.accumulatedIntegralError.y;
+		shared->controllerIntegralTerm.z = shared->controllerKi.z * shared->Controller.accumulatedIntegralError.z;
 
 		// Sum terms
-		shared->controllerTotalTerm = ( shared->controllerProportinalTerm + shared->controllerDerivativeTerm + shared->controllerIntegralTerm ) * shared->controllerRampFactor;
+		shared->controllerTotalTerm = ( shared->controllerProportinalTerm + shared->controllerDerivativeTerm + shared->controllerIntegralTerm ) * shared->Controller.rampPercentage;
 	} else {
 		shared->controllerTotalTerm = cv::Point3f( 0.0f, 0.0f, 0.0f );
 	}
@@ -67,7 +67,7 @@ void ControllerClass::MapToContributionABC() {
 	rTarget	 = cv::norm( cv::Vec2f( shared->controllerTotalTerm.x, shared->controllerTotalTerm.y ) );
 
 	// Calculate max strength
-	rMax = std::clamp( float( std::atan2( rTarget, shared->targetMarkerPosition3dNew.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD );
+	rMax = std::clamp( float( std::atan2( rTarget, shared->Target.positionFilteredNewMM.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD );
 
 
 	// // Old (no PID)
@@ -131,13 +131,13 @@ void ControllerClass::MapToContributionABC() {
 	}
 
 	// Update percentage
-	shared->controllerPercentage = cv::Point3f( contribution ) + shared->controllerTension;
+	shared->Controller.commandedPercentage = cv::Point3f( contribution ) + shared->Controller.commandedTensionABC;
 
 	// Map to current
-	shared->controllerCurrent = MapToCurrent( shared->controllerPercentage, CONFIG_DEVICE_NOMINAL_CURRENT );
+	shared->Controller.commandedCurrentABC = MapToCurrent( shared->Controller.commandedPercentage, CONFIG_DEVICE_NOMINAL_CURRENT );
 
 	// Map to PWM
-	shared->controllerPWM = MapToPWM( shared->controllerPercentage, 4, 2044 );
+	shared->Controller.commandedPwmABC = MapToPWM( shared->Controller.commandedPercentage, 4, 2044 );
 
 
 

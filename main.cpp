@@ -62,9 +62,9 @@ void		BuildSerialPacket();
 int main() {
 
 	// Settings
-	shared->FLAG_LOGGING_ENABLED = true;
-	shared->TASK_USER_ID		 = 000;
-	shared->targetMarkerActiveID = 1;
+	shared->Logging.isLoggingEnabled = true;
+	shared->Task.userID				 = 000;
+	shared->Target.isTargetFound	 = 1;
 
 	// Optimization for C/C++ data types
 	std::ios_base::sync_with_stdio( false );
@@ -87,13 +87,13 @@ int main() {
 	Serial.Send( "E0A2048B2048C2048X" );
 
 	// Initialize kalman filter
-	shared->kalmanP = cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
+	shared->KalmanFilter.pMatrix = cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
 	// Kalman.Initialize( cv::Point3f( 0.0f, 0.0f, 0.0f ), shared->timingTimestamp );
 
 
 
 	// Main loop
-	while ( shared->FLAG_MAIN_RUNNING ) {
+	while ( shared->Main.isMainRunning ) {
 
 		// Update timer (for measuring loop frequency)
 		Timing.UpdateTimer();
@@ -106,16 +106,16 @@ int main() {
 		Capture.GetFrame();
 
 		// Detect ArUco tags
-		if ( shared->TASK_NAME != "FITTS_ANGLE" ) {
+		if ( shared->Task.name != "FITTS_ANGLE" ) {
 			Aruco.FindTags();
 		}
 
 		// Task selector
-		if ( shared->TASK_NAME == "FITTS" ) {
+		if ( shared->Task.name == "FITTS" ) {
 			TaskFitts();
-		} else if ( shared->TASK_NAME == "CALIB" ) {
+		} else if ( shared->Task.name == "CALIB" ) {
 			TaskCalibrate();
-		} else if ( shared->TASK_NAME == "FITTS_ANGLE" ) {
+		} else if ( shared->Task.name == "FITTS_ANGLE" ) {
 			TaskFittsAngle();
 		}
 
@@ -134,13 +134,13 @@ int main() {
 		BuildSerialPacket();
 
 		// Send outgoing serial packet
-		if ( shared->FLAG_SERIAL0_OPEN && shared->FLAG_SERIAL0_ENABLED ) {
+		if ( shared->Serial.isSerialSendOpen && shared->Serial.isSerialSending ) {
 			Serial.Send( shared->serialPacket0 );
 			// std::cout << shared->serialPacket0 << "\n";
 		}
 
 		// Check for new incoming serial packet
-		if ( shared->FLAG_SERIAL1_OPEN && shared->FLAG_SERIAL1_ENABLED ) {
+		if ( shared->Serial.isSerialReceiveOpen && shared->Serial.isSerialReceiving ) {
 			Serial.CheckForPacket();
 		}
 
@@ -148,17 +148,17 @@ int main() {
 		Canvas.Update();
 
 		// Save logging file
-		if ( shared->TASK_COMPLETE ) {
+		if ( shared->Task.isComplete ) {
 			Logging.Save();
 			std::cout << "File saved!\n";
-			shared->TASK_COMPLETE = false;
+			shared->Task.isComplete = false;
 		}
 
 		// Update shutdown flags for clean shutdown
-		if ( shared->FLAG_SHUTTING_DOWN ) {
-			shared->serialPacket0		= "DX\n";
-			shared->FLAG_PACKET_WAITING = true;
-			shared->FLAG_MAIN_RUNNING	= false;
+		if ( shared->Main.isShuttingDown ) {
+			shared->serialPacket0 = "DX\n";
+			// shared->FLAG_PACKET_WAITING = true;
+			shared->Main.isMainRunning = false;
 		}
 	}
 	cv::destroyAllWindows();
@@ -172,7 +172,7 @@ int main() {
  */
 void SignalHandler( int signum ) {
 	std::cout << "\nMain:         Interrupt signal (" << signum << ") received.\n";
-	shared->FLAG_MAIN_RUNNING = false;
+	shared->Main.isMainRunning = false;
 	Touch.Close();
 	exit( signum );
 }
@@ -183,15 +183,15 @@ void SignalHandler( int signum ) {
 void TaskCalibrate() {
 
 	// Task hasn't been started yet
-	if ( !shared->TASK_RUNNING ) {
+	if ( !shared->Task.isRunning ) {
 
 		// Initialize prior to starting logging
-		if ( !shared->FLAG_LOGGING_STARTED ) {
+		if ( !shared->Logging.isLoggingActivelyRunning ) {
 
 			// Disable amplifiers for safety
-			shared->FLAG_AMPLIFIERS_ENABLED = false;
+			shared->Amplifier.isAmplifierActive = false;
 
-			shared->targetMarkerActiveID = 8;
+			shared->Target.isTargetFound = 8;
 
 			// Customize logging header
 			shared->loggingHeader1 = "UserOffsetX";
@@ -203,31 +203,31 @@ void TaskCalibrate() {
 			Logging.Initialize();
 
 			// Update logging flag
-			shared->FLAG_LOGGING_STARTED = true;
+			shared->Logging.isLoggingActivelyRunning = true;
 
 
 
 		} else {	// Logging started
 
 			// Clear values
-			shared->TASK_REP_NUMBER		= 0;
-			shared->calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
+			shared->Task.repetitionNumber = 0;
+			shared->calibrationOffsetMM	  = cv::Point3i( 0, 0, 0 );
 
 			// Initialize task
 			Calibration.Initialize();
 
 			// Update
-			shared->TASK_RUNNING = true;
+			shared->Task.isRunning = true;
 		}
 
 	} else {	// Task running
 
 		// Run task if not complete
-		if ( shared->TASK_REP_NUMBER < 5 ) {
+		if ( shared->Task.repetitionNumber < 5 ) {
 
 			Calibration.Update();
 
-		} else if ( shared->TASK_REP_NUMBER == 5 ) {	// Task complete
+		} else if ( shared->Task.repetitionNumber == 5 ) {	  // Task complete
 
 			// End calibration and dave data
 			Calibration.End();
@@ -237,10 +237,10 @@ void TaskCalibrate() {
 
 			Logging.AddEntry();
 			Logging.Save();
-			shared->TASK_NAME			 = "";
-			shared->FLAG_LOGGING_STARTED = false;
-			shared->TASK_RUNNING		 = false;
-			shared->calibrationComplete	 = true;
+			shared->Task.name						 = "";
+			shared->Logging.isLoggingActivelyRunning = false;
+			shared->Task.isRunning					 = false;
+			shared->calibrationComplete				 = true;
 			Calibration.Close();
 		}
 	}
@@ -298,7 +298,7 @@ void TaskCalibrate() {
 void TaskFitts() {
 
 	// Initialize logging file and update entries
-	if ( shared->FLAG_LOGGING_ENABLED && !shared->FLAG_LOGGING_STARTED && shared->TASK_RUNNING ) {
+	if ( shared->Logging.isLoggingEnabled && !shared->Logging.isLoggingActivelyRunning && shared->Task.isRunning ) {
 
 		// Customize header
 		shared->loggingHeader1 = "TouchDetected";
@@ -313,14 +313,14 @@ void TaskFitts() {
 		Logging.Initialize();
 		Timing.StartTimer();
 		// Logging.AddEntry();
-		shared->FLAG_LOGGING_STARTED = true;
+		shared->Logging.isLoggingActivelyRunning = true;
 
-	} else if ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) {
+	} else if ( shared->Logging.isLoggingEnabled && shared->Logging.isLoggingActivelyRunning ) {
 
 		shared->loggingVariable1 = std::to_string( shared->touchDetected );
 		shared->loggingVariable2 = shared->serialPacket0.substr( 0, shared->serialPacket0.length() - 1 );
 		shared->loggingVariable3 = shared->serialPacket1.substr( 0, shared->serialPacket1.length() - 1 );
-		shared->loggingVariable4 = std::to_string( shared->FLAG_SERIAL0_ENABLED ) + "," + std::to_string( shared->FLAG_SERIAL0_OPEN ) + "," + std::to_string( shared->FLAG_SERIAL1_ENABLED ) + "," + std::to_string( shared->FLAG_SERIAL1_OPEN );
+		shared->loggingVariable4 = std::to_string( shared->Serial.isSerialSending ) + "," + std::to_string( shared->Serial.isSerialSendOpen ) + "," + std::to_string( shared->Serial.isSerialReceiving ) + "," + std::to_string( shared->Serial.isSerialReceiveOpen );
 		shared->loggingVariable5 = shared->FormatDecimal( shared->controllerKp.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKp.y, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.y, 1, 1 ) + ","
 			+ shared->FormatDecimal( shared->controllerKd.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKd.y, 1, 1 );
 		Logging.AddEntry();
@@ -329,11 +329,11 @@ void TaskFitts() {
 	// std::cout << "0: " << shared->serialPacket0.substr( 0, shared->serialPacket0.length() ) << "  1: " << shared->serialPacket1.substr( 0, shared->serialPacket1.length() ) << "\n";
 
 	// Run task
-	if ( !shared->TASK_RUNNING ) {
+	if ( !shared->Task.isRunning ) {
 
-		shared->TASK_RUNNING		 = true;
-		shared->TASK_COMPLETE		 = false;
-		shared->targetMarkerActiveID = 1;
+		shared->Task.isRunning		 = true;
+		shared->Task.isComplete		 = false;
+		shared->Target.isTargetFound = 1;
 		Fitts.Initialize();
 		Fitts.StartTest( 'z' );	   // x , y , z, t , v, f
 	} else {
@@ -350,7 +350,7 @@ void TaskFitts() {
 void TaskFittsAngle() {
 
 	// Initialize logging file and update entries
-	if ( shared->FLAG_LOGGING_ENABLED && !shared->FLAG_LOGGING_STARTED && shared->TASK_RUNNING ) {
+	if ( shared->Logging.isLoggingEnabled && !shared->Logging.isLoggingActivelyRunning && shared->Task.isRunning ) {
 
 		// Customize header
 		shared->loggingHeader1 = "ThetaDesired";
@@ -360,9 +360,9 @@ void TaskFittsAngle() {
 		Timing.GetTimestamp();
 		Logging.Initialize();
 		Logging.AddEntry();
-		shared->FLAG_LOGGING_STARTED = true;
+		shared->Logging.isLoggingActivelyRunning = true;
 
-	} else if ( shared->FLAG_LOGGING_ENABLED && shared->FLAG_LOGGING_STARTED ) {
+	} else if ( shared->Logging.isLoggingEnabled && shared->Logging.isLoggingActivelyRunning ) {
 
 		shared->loggingVariable1 = std::to_string( shared->angleDesired );
 		shared->loggingVariable2 = std::to_string( shared->angleTheta );
@@ -370,11 +370,11 @@ void TaskFittsAngle() {
 	}
 
 	// Run task
-	if ( !shared->TASK_RUNNING ) {
+	if ( !shared->Task.isRunning ) {
 
-		shared->TASK_RUNNING		 = true;
-		shared->TASK_COMPLETE		 = false;
-		shared->targetMarkerActiveID = 1;
+		shared->Task.isRunning		 = true;
+		shared->Task.isComplete		 = false;
+		shared->Target.isTargetFound = 1;
 		shared->angleEnabled		 = !shared->angleEnabled;
 		Fitts.StartAngleTest();
 	} else {
@@ -413,34 +413,34 @@ std::string BuildPacketAngularError() {
  */
 void UpdateState() {
 
-	if ( shared->FLAG_TARGET_MARKER_FOUND && shared->FLAG_FRAME_READY ) {
+	if ( shared->Target.isTargetFound && shared->Camera.isFrameReady ) {
 
 
-		if ( cv::norm( cv::Point2f( shared->targetMarkerPosition3dRaw.x, shared->targetMarkerPosition3dRaw.y ) - cv::Point2f( shared->targetMarkerPosition3dOld.x, shared->targetMarkerPosition3dOld.y ) ) > 100.0f ) {
-			shared->FLAG_TARGET_RESET = true;
+		if ( cv::norm( cv::Point2f( shared->Target.positionUnfilteredMM.x, shared->Target.positionUnfilteredMM.y ) - cv::Point2f( shared->Target.positionFilteredOldMM.x, shared->Target.positionFilteredOldMM.y ) ) > 100.0f ) {
+			shared->Target.isTargetReset = true;
 			// shared->lostCount++;
 		}
 
 
 		// Save old data
-		shared->targetMarkerPosition3dOld		= shared->targetMarkerPosition3dNew;
-		shared->targetMarkerVelocity3dOld		= shared->targetMarkerVelocity3dNew;
-		shared->targetMarkerAngleOld.x			= shared->angleTheta;
-		shared->targetMarkerAnglularVelocityOld = shared->targetMarkerAnglularVelocityNew;
+		shared->Target.positionFilteredOldMM = shared->Target.positionFilteredNewMM;
+		shared->Target.velocityFilteredOldMM = shared->Target.velocityFilteredNewMM;
+		// shared->targetMarkerAngleOld.x			= shared->angleTheta;
+		// shared->targetMarkerAnglularVelocityOld = shared->targetMarkerAnglularVelocityNew;
 
 		// Update kalman filter
 		if ( shared->calibrationComplete ) {
-			Kalman.Update( shared->targetMarkerPosition3dRaw + cv::Point3f( shared->calibrationOffsetMM ), shared->timingTimestamp );
+			Kalman.Update( shared->Target.positionUnfilteredMM + cv::Point3f( shared->calibrationOffsetMM ), shared->timingTimestamp );
 		} else {
-			Kalman.Update( shared->targetMarkerPosition3dRaw, shared->timingTimestamp );
+			Kalman.Update( shared->Target.positionUnfilteredMM, shared->timingTimestamp );
 		}
 
 		// Get updated state values
-		shared->targetMarkerPosition3dNew		= Kalman.GetPosition();
-		shared->targetMarkerVelocity3dNew		= Kalman.GetVelocity();
-		shared->targetMarkerAngleNew			= Kalman.GetAngle();
-		shared->targetMarkerAnglularVelocityNew = Kalman.GetAnglularVelocity();
-		shared->targetMarkerIntegralError		= Kalman.GetIntegralError();
+		shared->Target.positionFilteredNewMM = Kalman.GetPosition();
+		shared->Target.velocityFilteredNewMM = Kalman.GetVelocity();
+		// shared->targetMarkerAngleNew				= Kalman.GetAngle();
+		// shared->targetMarkerAnglularVelocityNew		= Kalman.GetAnglularVelocity();
+		shared->Controller.accumulatedIntegralError = Kalman.GetIntegralError();
 
 		// std::cout << "dE = " << shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x << "dE/dt = " << ( shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x ) / shared->kalmanDt << "\n" ;
 
@@ -455,7 +455,8 @@ void BuildSerialPacket() {
 
 	if ( shared->serialTrigger == "drive" ) {
 		// Build string32
-		shared->serialPacket0 = std::string( "E" ) + ( shared->FLAG_AMPLIFIERS_ENABLED ? "1" : "0" ) + "A" + shared->PadValues( shared->controllerPWM.x, 4 ) + "B" + shared->PadValues( shared->controllerPWM.y, 4 ) + "C" + shared->PadValues( shared->controllerPWM.z, 4 ) + "X";
+		shared->serialPacket0
+			= std::string( "E" ) + ( shared->Amplifier.isAmplifierActive ? "1" : "0" ) + "A" + shared->PadValues( shared->Controller.commandedPwmABC.x, 4 ) + "B" + shared->PadValues( shared->Controller.commandedPwmABC.y, 4 ) + "C" + shared->PadValues( shared->Controller.commandedPwmABC.z, 4 ) + "X";
 	} else if ( shared->serialTrigger == "reset" ) {
 		shared->serialPacket0 = "E0RX";
 		shared->serialTrigger = "drive";

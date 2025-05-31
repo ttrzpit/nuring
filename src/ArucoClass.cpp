@@ -61,157 +61,131 @@ void ArucoClass::Initialize() {
  */
 void ArucoClass::FindTags() {
 
-	if ( shared->FLAG_USE_FIXED_MARKER ) {
-
-		// Set manual point
-		shared->targetMarkerPosition3dRaw = cv::Point3i( 200, 100, 400 );
-		shared->FLAG_TARGET_MARKER_FOUND  = true;
-		arucoTagsPresent[1]				  = true;
-		shared->targetMarkerActiveID	  = 1;
 
 
-		// Rotation and translation (identity, i.e., no rotation or offset from camera)
-		cv::Mat rvec = cv::Mat::zeros( 3, 1, CV_64F );	  // No rotation
-		cv::Mat tvec = cv::Mat::zeros( 3, 1, CV_64F );	  // Camera origin
+	// Make sure image is ready to be processed
+	if ( shared->Camera.isFrameReady ) {
 
-		// Project the 3D point to the 2D image plane
-		std::vector<cv::Point3f> objectPoints = { cv::Point3f( shared->targetMarkerPosition3dRaw.x, -shared->targetMarkerPosition3dRaw.y, shared->targetMarkerPosition3dRaw.z ) };
-		std::vector<cv::Point2f> imagePoints;
+		// Reset global flags
+		shared->Target.isTargetFound = false;
+		// shared->FLAG_FINGER_MARKER_FOUND = false;
 
-		cv::projectPoints( objectPoints, rvec, tvec,
-						   CONFIG_CAMERA_MATRIX,		// your camera matrix
-						   CONFIG_DISTORTION_COEFFS,	// your distortion coefficients
-						   imagePoints );
+		// Reset individual tag state
+		for ( size_t t = 0; t < arucoTagsPresent.size(); t++ ) {
+			arucoTagsPresent[t] = false;
+		}
 
-		shared->targetMarkerScreenPosition = cv::Point2i( imagePoints[0].x, imagePoints[0].y );
+		// Run detector
+		// arucoDetector.detectMarkers( shared->matFrameGray, arucoCorners, arucoDetectedIDs, arucoRejects );
+		arucoDetector.detectMarkers( shared->Camera.frameGray, arucoCorners, arucoDetectedIDs );
 
+		// Check if markers have been found
+		if ( !arucoDetectedIDs.empty() ) {
 
-	} else {
+			// Draw tags on frame
+			// cv::aruco::drawDetectedMarkers( shared->matFrameUndistorted, shared->arucoCorners, shared->arucoIDs );
 
+			// Estimate tag pose, moved this into individual tags to only process the markers in the valid range
+			// cv::aruco::estimatePoseSingleMarkers( arucoCorners, CONFIG_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
 
-		// Make sure image is ready to be processed
-		if ( shared->FLAG_FRAME_READY ) {
-
-			// Reset global flags
-			shared->FLAG_TARGET_MARKER_FOUND = false;
 			// shared->FLAG_FINGER_MARKER_FOUND = false;
 
-			// Reset individual tag state
-			for ( size_t t = 0; t < arucoTagsPresent.size(); t++ ) {
-				arucoTagsPresent[t] = false;
-			}
+			// Process each detected marker
+			for ( int i = 0; i < arucoDetectedIDs.size(); i++ ) {
 
-			// Run detector
-			// arucoDetector.detectMarkers( shared->matFrameGray, arucoCorners, arucoDetectedIDs, arucoRejects );
-			arucoDetector.detectMarkers( shared->matFrameGray, arucoCorners, arucoDetectedIDs );
+				// // Process finger marker
+				// if ( arucoDetectedIDs[i] == 0 && shared->FLAG_USE_FINGER_MARKER ) {	   // Process finger marker
 
-			// Check if markers have been found
-			if ( !arucoDetectedIDs.empty() ) {
+				// 	// Extract current corner
+				// 	std::vector<std::vector<cv::Point2f>> currentCorner = { arucoCorners[i] };
 
-				// Draw tags on frame
-				// cv::aruco::drawDetectedMarkers( shared->matFrameUndistorted, shared->arucoCorners, shared->arucoIDs );
+				// 	// Estimate tag pose formarkers in the valid range
+				// 	cv::aruco::estimatePoseSingleMarkers( currentCorner, CONFIG_MEDIUM_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
+				// 	if ( arucoTranslationVector.empty() )
+				// 		continue;
 
-				// Estimate tag pose, moved this into individual tags to only process the markers in the valid range
-				// cv::aruco::estimatePoseSingleMarkers( arucoCorners, CONFIG_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
+				// 	// Update flag
+				// 	shared->FLAG_FINGER_MARKER_FOUND	  = true;
+				// 	arucoTagsPresent[arucoDetectedIDs[i]] = true;
 
-				// shared->FLAG_FINGER_MARKER_FOUND = false;
+				// 	// Update 2D pixel coordinates
+				// 	int avgX						   = int( ( currentCorner[0][0].x + currentCorner[0][1].x + currentCorner[0][2].x + currentCorner[0][3].x ) / 4.0f );
+				// 	int avgY						   = int( ( currentCorner[0][0].y + currentCorner[0][1].y + currentCorner[0][2].y + currentCorner[0][3].y ) / 4.0f );
+				// 	shared->fingerMarkerScreenPosition = cv::Point2i( avgX, avgY );
 
-				// Process each detected marker
-				for ( int i = 0; i < arucoDetectedIDs.size(); i++ ) {
+				// 	// Update 2D corner vector for active marker
+				// 	shared->fingerMarkerCorners[0] = cv::Point2i( currentCorner[0][0].x, currentCorner[0][0].y );
+				// 	shared->fingerMarkerCorners[1] = cv::Point2i( currentCorner[0][1].x, currentCorner[0][1].y );
+				// 	shared->fingerMarkerCorners[2] = cv::Point2i( currentCorner[0][2].x, currentCorner[0][2].y );
+				// 	shared->fingerMarkerCorners[3] = cv::Point2i( currentCorner[0][3].x, currentCorner[0][3].y );
 
-					// Process finger marker
-					if ( arucoDetectedIDs[i] == 0 && shared->FLAG_USE_FINGER_MARKER ) {	   // Process finger marker
+				// 	// Update 3D real-world coordinates
+				// 	shared->fingerMarkerPosition3DRaw = cv::Point3f( arucoTranslationVector[0][0], -arucoTranslationVector[0][1], arucoTranslationVector[0][2] );
+
+				// 	// Update rotation and translation vectors
+				// 	shared->fingerMarkerRotationVector	  = arucoRotationVector[0];
+				// 	shared->fingerMarkerTranslationVector = arucoTranslationVector[0];
+				// }
+
+				// Sort out markers in valid range
+				if ( ( arucoDetectedIDs[i] > 0 && arucoDetectedIDs[i] <= 5 ) || ( arucoDetectedIDs[i] == 8 ) ) {
+
+					if ( ( arucoDetectedIDs[i] > 0 ) && ( arucoDetectedIDs[i] == shared->Target.activeID ) ) {	  // Only process active tag
+
 
 						// Extract current corner
 						std::vector<std::vector<cv::Point2f>> currentCorner = { arucoCorners[i] };
 
 						// Estimate tag pose formarkers in the valid range
-						cv::aruco::estimatePoseSingleMarkers( currentCorner, CONFIG_MEDIUM_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
+						cv::aruco::estimatePoseSingleMarkers( currentCorner, CONFIG_LARGE_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
 						if ( arucoTranslationVector.empty() )
 							continue;
 
 						// Update flag
-						shared->FLAG_FINGER_MARKER_FOUND	  = true;
+						shared->Target.isTargetFound		  = true;
 						arucoTagsPresent[arucoDetectedIDs[i]] = true;
 
 						// Update 2D pixel coordinates
-						int avgX						   = int( ( currentCorner[0][0].x + currentCorner[0][1].x + currentCorner[0][2].x + currentCorner[0][3].x ) / 4.0f );
-						int avgY						   = int( ( currentCorner[0][0].y + currentCorner[0][1].y + currentCorner[0][2].y + currentCorner[0][3].y ) / 4.0f );
-						shared->fingerMarkerScreenPosition = cv::Point2i( avgX, avgY );
+						int avgX						= int( ( currentCorner[0][0].x + currentCorner[0][1].x + currentCorner[0][2].x + currentCorner[0][3].x ) / 4.0f );
+						int avgY						= int( ( currentCorner[0][0].y + currentCorner[0][1].y + currentCorner[0][2].y + currentCorner[0][3].y ) / 4.0f );
+						shared->Target.screenPositionPX = cv::Point2i( avgX, avgY );
 
 						// Update 2D corner vector for active marker
-						shared->fingerMarkerCorners[0] = cv::Point2i( currentCorner[0][0].x, currentCorner[0][0].y );
-						shared->fingerMarkerCorners[1] = cv::Point2i( currentCorner[0][1].x, currentCorner[0][1].y );
-						shared->fingerMarkerCorners[2] = cv::Point2i( currentCorner[0][2].x, currentCorner[0][2].y );
-						shared->fingerMarkerCorners[3] = cv::Point2i( currentCorner[0][3].x, currentCorner[0][3].y );
+						shared->Target.cornersPX[0] = cv::Point2i( currentCorner[0][0].x, currentCorner[0][0].y );
+						shared->Target.cornersPX[1] = cv::Point2i( currentCorner[0][1].x, currentCorner[0][1].y );
+						shared->Target.cornersPX[2] = cv::Point2i( currentCorner[0][2].x, currentCorner[0][2].y );
+						shared->Target.cornersPX[3] = cv::Point2i( currentCorner[0][3].x, currentCorner[0][3].y );
 
 						// Update 3D real-world coordinates
-						shared->fingerMarkerPosition3DRaw = cv::Point3f( arucoTranslationVector[0][0], -arucoTranslationVector[0][1], arucoTranslationVector[0][2] );
+						shared->Target.positionUnfilteredMM = cv::Point3f( arucoTranslationVector[0][0], -arucoTranslationVector[0][1], arucoTranslationVector[0][2] );
 
 						// Update rotation and translation vectors
-						shared->fingerMarkerRotationVector	  = arucoRotationVector[0];
-						shared->fingerMarkerTranslationVector = arucoTranslationVector[0];
+						// shared->Target.rotationVector	  = arucoRotationVector[0];
+						// shared->Target.translationVector = arucoTranslationVector[0];
+
+						// Calculate area for active tag
+						// shared->arucoTags[index].area = cv::contourArea( shared->arucoCorners[i], true );
+
+						// Save information for frame axis
+						// cv::drawFrameAxes( shared->matFrameUndistorted, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector[ID], arucoTranslationVector[ID], CONFIG_MARKER_WIDTH, 2 );
 					}
 
-					// Sort out markers in valid range
-					if ( ( arucoDetectedIDs[i] > 0 && arucoDetectedIDs[i] <= 5 ) || ( arucoDetectedIDs[i] == 8 ) ) {
 
-						if ( ( arucoDetectedIDs[i] > 0 ) && ( arucoDetectedIDs[i] == shared->targetMarkerActiveID ) ) {	   // Only process active tag
+				}	 // End process valid marker
+				else {
+					// shared->FLAG_TARGET_MARKER_FOUND = false;
+				}
+			}	 // For loop
 
-
-							// Extract current corner
-							std::vector<std::vector<cv::Point2f>> currentCorner = { arucoCorners[i] };
-
-							// Estimate tag pose formarkers in the valid range
-							cv::aruco::estimatePoseSingleMarkers( currentCorner, CONFIG_LARGE_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
-							if ( arucoTranslationVector.empty() )
-								continue;
-
-							// Update flag
-							shared->FLAG_TARGET_MARKER_FOUND	  = true;
-							arucoTagsPresent[arucoDetectedIDs[i]] = true;
-
-							// Update 2D pixel coordinates
-							int avgX						   = int( ( currentCorner[0][0].x + currentCorner[0][1].x + currentCorner[0][2].x + currentCorner[0][3].x ) / 4.0f );
-							int avgY						   = int( ( currentCorner[0][0].y + currentCorner[0][1].y + currentCorner[0][2].y + currentCorner[0][3].y ) / 4.0f );
-							shared->targetMarkerScreenPosition = cv::Point2i( avgX, avgY );
-
-							// Update 2D corner vector for active marker
-							shared->targetMarkerCorners[0] = cv::Point2i( currentCorner[0][0].x, currentCorner[0][0].y );
-							shared->targetMarkerCorners[1] = cv::Point2i( currentCorner[0][1].x, currentCorner[0][1].y );
-							shared->targetMarkerCorners[2] = cv::Point2i( currentCorner[0][2].x, currentCorner[0][2].y );
-							shared->targetMarkerCorners[3] = cv::Point2i( currentCorner[0][3].x, currentCorner[0][3].y );
-
-							// Update 3D real-world coordinates
-							shared->targetMarkerPosition3dRaw = cv::Point3f( arucoTranslationVector[0][0], -arucoTranslationVector[0][1], arucoTranslationVector[0][2] );
-
-							// Update rotation and translation vectors
-							shared->targetMarkerRotationVector	  = arucoRotationVector[0];
-							shared->targetMarkerTranslationVector = arucoTranslationVector[0];
-
-							// Calculate area for active tag
-							// shared->arucoTags[index].area = cv::contourArea( shared->arucoCorners[i], true );
-
-							// Save information for frame axis
-							// cv::drawFrameAxes( shared->matFrameUndistorted, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector[ID], arucoTranslationVector[ID], CONFIG_MARKER_WIDTH, 2 );
-						}
-
-
-					}	 // End process valid marker
-					else {
-						// shared->FLAG_TARGET_MARKER_FOUND = false;
-					}
-				}	 // For loop
-
-			} else {
-				// shared->lostCount++;
-			}	 // End empty check
 		} else {
+			// shared->lostCount++;
+		}	 // End empty check
+	} else {
 
-			// Display error message
-			std::cout << "ArucoClass: Image not ready for processing!\n";
+		// Display error message
+		std::cout << "ArucoClass: Image not ready for processing!\n";
 
-		}	 // End is frame ready
+	}	 // End is frame ready
 
-	}	 // End USE_FIXED_MARKER
+
 }	 // End function

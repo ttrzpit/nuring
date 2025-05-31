@@ -52,10 +52,10 @@ void SerialClass::InitializePort0() {
 	// Get existing settings
 	if ( tcgetattr( serialPort0, &tty0 ) != 0 ) {
 		printf( "SerialClass:  Error %i from tctgetattr: %s\n", errno, strerror( errno ) );
-		shared->FLAG_SERIAL0_OPEN = false;
+		shared->Serial.isSerialSendOpen = false;
 	} else {
 		std::cout << "SerialClass:  Serial interface " << CONFIG_SERIAL_PORT_0 << " (PC -> Teensy) connected.\n";
-		shared->FLAG_SERIAL0_OPEN = true;
+		shared->Serial.isSerialSendOpen = true;
 	}
 
 	// Configure port
@@ -106,10 +106,10 @@ void SerialClass::InitializePort1() {
 	// Get existing settings
 	if ( tcgetattr( serialPort1, &tty1 ) != 0 ) {
 		printf( "SerialClass:  Error %i from tctgetattr: %s\n", errno, strerror( errno ) );
-		shared->FLAG_SERIAL1_OPEN = false;
+		shared->Serial.isSerialReceiveOpen = false;
 	} else {
 		std::cout << "SerialClass:  Serial interface " << CONFIG_SERIAL_PORT_1 << " (Teensy -> PC) connected.\n";
-		shared->FLAG_SERIAL1_OPEN = true;
+		shared->Serial.isSerialReceiveOpen = true;
 	}
 
 	// Configure port
@@ -203,8 +203,8 @@ void SerialClass::CheckForPacket() {
 					shared->serialPacket1 = packet;
 
 					// Parse packet
-					shared->FLAG_TEENSY_SERIAL_RESPONDING  = true;
-					shared->FLAG_TEENSY_AMPLIFIER_ENABLED  = bool( std::stoi( packet.substr( 2, 1 ) ) );
+					shared->Teensy.isTeensyResponding  = true;
+					shared->Teensy.isAmplifierResponding  = bool( std::stoi( packet.substr( 2, 1 ) ) );
 					shared->teensyMeasuredAmplfierOutput.x = std::stoi( packet.substr( 4, 1 ) );
 					shared->teensyMeasuredAmplfierOutput.y = std::stoi( packet.substr( 6, 1 ) );
 					shared->teensyMeasuredAmplfierOutput.z = std::stoi( packet.substr( 8, 1 ) );
@@ -216,8 +216,8 @@ void SerialClass::CheckForPacket() {
 				} catch ( const std::exception& e ) {
 					// std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << e.what() << "\n";
 					// shared->controllerActive = false;
-					shared->serialPacket1	 = "INVALID!";
-					shared->FLAG_TEENSY_SERIAL_RESPONDING = false;
+					shared->serialPacket1				  = "INVALID!";
+					shared->Teensy.isTeensyResponding = false;
 				}
 
 				// Remove processed packet
@@ -226,7 +226,7 @@ void SerialClass::CheckForPacket() {
 			} else {
 				// std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << "\n";
 				shared->serialPacket1				  = "INVALID!";
-				shared->FLAG_TEENSY_SERIAL_RESPONDING = false;
+				shared->Teensy.isTeensyResponding = false;
 				// shared->controllerActive = false;
 			}
 
@@ -237,7 +237,6 @@ void SerialClass::CheckForPacket() {
 	} else if ( bytesRead < 0 && errno != EAGAIN ) {
 		std::cerr << "SerialClass:  Serial1 read error: " << strerror( errno ) << "\n";
 	}
-	
 }
 
 void SerialClass::ParseIncomingPacket( std::string packet ) { }

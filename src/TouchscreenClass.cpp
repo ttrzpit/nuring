@@ -59,7 +59,7 @@ void TouchscreenClass::Close() {
 void TouchscreenClass::ParseClick() {
 	if ( buttonPressedNew == true ) {
 		// Switch-case for active task
-		switch ( shared->TASK_REP_NUMBER ) {
+		switch ( shared->Task.repetitionNumber ) {
 		case 0:
 			// Nothing
 			break;
@@ -68,9 +68,9 @@ void TouchscreenClass::ParseClick() {
 			break;
 		case 2:	   // Fitts
 			if ( shared->touchDetected == 1 ) {
-				shared->TASK_COMMAND = 'c';
+				shared->Task.command = 'c';
 			} else {
-				shared->TASK_COMMAND = 0;
+				shared->Task.command = 0;
 			}
 			break;
 		case 3:

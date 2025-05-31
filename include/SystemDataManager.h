@@ -22,110 +22,187 @@
 
 // Structure for 4-point vector
 struct Point4f {
-	float abb;
-	float add;
-	float flex;
-	float ext;
-
-	// Constructor
-	Point4f( float ab, float ad, float fl, float ex )
-		: abb( ab )
-		, add( ad )
-		, flex( fl )
-		, ext( ex ) { }
+	float abb  = 0.0f;
+	float add  = 0.0f;
+	float flex = 0.0f;
+	float ext  = 0.0f;
 };
+
+
+
+struct AmplifierStruct {
+	bool isAmplifierActive = false;
+};
+
+struct ArUcoStruct {
+
+	// bool isArUcoTagFound = false;
+};
+
+struct CameraStruct {
+	bool	isFrameReady = false;
+	cv::Mat frameRaw	 = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
+	cv::Mat frameGray	 = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
+};
+
+struct ControllerStruct {
+
+	cv::Point3f accumulatedIntegralError = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	Point4f		gainKp;
+	Point4f		gainKi;
+	Point4f		gainKd;
+	Point4f		proportionalTerm;
+	Point4f		integralTerm;
+	Point4f		derivativeTerm;
+	Point4f		combinedPIDTerm;
+	cv::Point3i commandedPwmABC		= cv::Point3i( 0, 0, 0 );			  // Commanded PWM output
+	cv::Point3f commandedPercentage = cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Commanded percentage output
+	cv::Point3f commandedCurrentABC = cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Commanded current output
+	cv::Point3f commandedTensionABC = cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Commanded tension
+	cv::Point3f torqueABC			= cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Commanded torque
+	float		rampPercentage		= 0.00f;							  // Counter
+	float		rampStartTime		= 0.0f;								  // [s]
+	float		rampDurationTime	= 1.0f;								  // [s]
+	bool		isRampingUp			= false;
+};
+
+struct DisplayStruct { };
+
+struct KalmanFilterStruct {
+	cv::Mat pMatrix;
+};
+
+struct LoggingStruct {
+	bool isLoggingActivelyRunning = false;	  // Is logging actively running
+	bool isLoggingEnabled		  = false;	  // Is logging enabled
+};
+
+
+struct MainStruct {
+
+	bool isMainRunning	= true;		// Global flag to shut-down safely
+	bool isShuttingDown = false;	// Trigger safe shutdown
+};
+
+struct SerialStruct {
+	bool isSerialSendOpen	 = false;
+	bool isSerialSending	 = false;
+	bool isSerialReceiveOpen = false;
+	bool isSerialReceiving	 = false;
+};
+
+struct TargetStruct {
+	int						 activeID			   = 1;	   // ID of target currently being tracked
+	bool					 isTargetReset		   = false;
+	bool					 isTargetFound		   = false;
+	cv::Point2i				 screenPositionPX	   = cv::Point2i( 0, 0 );																		// [px] Position of target in screen space
+	cv::Point3f				 positionUnfilteredMM  = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] Raw (unfiltered) position of tag relative to camera
+	cv::Point3f				 positionFilteredNewMM = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] New 3D filtered position
+	cv::Point3f				 positionFilteredOldMM = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] Old 3D filtered position
+	cv::Point3f				 velocityFilteredNewMM = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] New 3D filtered position
+	cv::Point3f				 velocityFilteredOldMM = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] New 3D filtered position
+	std::vector<cv::Point2i> cornersPX			   = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	// Target corners in pixel space
+};
+
+struct TaskStruct {
+	std::string name			 = "";		 // String name of task
+	int			userID			 = 000;		 // Participant ID
+	int			repetitionNumber = 0;		 // Task rep number
+	char		command			 = 0;		 // Command
+	bool		isRunning		 = false;	 // Is the task running
+	bool		isComplete		 = false;	 // Trip when task is complete
+};
+
+
+struct TeensyStruct {
+	bool isTeensyResponding	   = false;
+	bool isAmplifierResponding = false;
+};
+
 
 // Shared system variable container
 struct ManagedData {
 
-	// System flags
-	bool FLAG_AMPLIFIERS_ENABLED	   = false;
-	bool FLAG_CONTROLLER_ACTIVE		   = false;
-	bool FLAG_FRAME_READY			   = false;
-	bool FLAG_LOGGING_ENABLED		   = false;
-	bool FLAG_LOGGING_STARTED		   = false;
-	bool FLAG_MAIN_RUNNING			   = true;
-	bool FLAG_PACKET_WAITING		   = false;
-	bool FLAG_SERIAL0_OPEN			   = false;
-	bool FLAG_SERIAL0_ENABLED		   = false;
-	bool FLAG_SERIAL1_OPEN			   = false;
-	bool FLAG_SERIAL1_ENABLED		   = false;
-	bool FLAG_SHUTTING_DOWN			   = false;
-	bool FLAG_TARGET_MARKER_FOUND	   = false;
-	bool FLAG_TEENSY_SERIAL_RESPONDING = false;
-	bool FLAG_TEENSY_AMPLIFIER_ENABLED = false;
-	bool FLAG_USE_FINGER_MARKER		   = false;
-	bool FLAG_TARGET_RESET			   = false;
-	bool FLAG_USE_FIXED_MARKER		   = false;
+
+	// Structs
+	AmplifierStruct	   Amplifier;
+	ArUcoStruct		   Aruco;
+	CameraStruct	   Camera;
+	ControllerStruct   Controller;
+	DisplayStruct	   Display;
+	KalmanFilterStruct KalmanFilter;
+	LoggingStruct	   Logging;
+	MainStruct		   Main;
+	SerialStruct	   Serial;
+	TargetStruct	   Target;
+	TaskStruct		   Task;
+	TeensyStruct	   Teensy;
+
+
 
 	// int	 lostCount					   = 0;
 	// Target marker
-	// bool					 FLAG_TARGET_MARKER_SWITCHED	 = false;																					  // Updated in ArucoClass
-	int						 targetMarkerActiveID			 = 1;																						  // ID of target currently being tracked
-	cv::Point2i				 targetMarkerScreenPosition		 = cv::Point2i( 0, 0 );																		  // Position of target in screen space, ArucoClass
-	cv::Point3f				 targetMarkerPosition3dRaw		 = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // [mm] Raw (unfiltered) position of tag relative to camera
-	cv::Point3f				 targetMarkerPosition3dOld		 = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // [mm] Old position of tag relative to camera
-	cv::Point3f				 targetMarkerPosition3dNew		 = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // [mm] New position of tag relative to camera
-	cv::Point3f				 targetMarkerPosition3dPredicted = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // [mm] New position of tag relative to camera
-	cv::Point3f				 targetMarkerVelocity3dOld		 = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // [mm] Old position of tag relative to camera
-	cv::Point3f				 targetMarkerVelocity3dNew		 = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // [mm] New position of tag relative to camera
-	cv::Point3f				 targetMarkerIntegralError		 = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // [mm] Integral error
-	cv::Point2f				 targetMarkerAngleOld			 = cv::Point2f( 0.0f, 0.0f );																  // [rad] Old angle
-	cv::Point2f				 targetMarkerAngleNew			 = cv::Point2f( 0.0f, 0.0f );																  // [rad] New angle
-	cv::Point2f				 targetMarkerAnglularVelocityOld = cv::Point2f( 0.0f, 0.0f );																  // [rad/s] Old angular velocity
-	cv::Point2f				 targetMarkerAnglularVelocityNew = cv::Point2f( 0.0f, 0.0f );																  // [rad/s] New angular velocity
-	std::vector<cv::Point2i> targetMarkerCorners			 = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	  // Target corners in pixel space
-	cv::Vec3d				 targetMarkerRotationVector, targetMarkerTranslationVector;																	  // Rotation and translation vectors for active marker
+	// bool					 FLAG_TARGET_MARKER_SWITCHED	 = false;	// Updated in ArucoClass
+	// int						 targetMarkerActiveID			 = 1;		// Target.activeID
+	// cv::Point2i				 targetMarkerScreenPosition		 = cv::Point2i( 0, 0 );		// Target.screenPositionPX
+	// cv::Point3f				 targetMarkerPosition3dRaw		 = cv::Point3f( 0.0f, 0.0f, 0.0f );		// Target.rawPositionMM													  // Target.rawPositionMM	// [mm] Raw (unfiltered) position of tag relative to camera
+	// cv::Point3f				 targetMarkerPosition3dOld		 = cv::Point3f( 0.0f, 0.0f, 0.0f );		// Target.positionOldMM													  // Target.PositionOldMM												  // [mm] Old position of tag relative to camera
+	// cv::Point3f				 targetMarkerPosition3dNew		 = cv::Point3f( 0.0f, 0.0f, 0.0f );		// Target.positionFilteredNewMM													  // Target.filteredPositionMM
+	// cv::Point3f				 targetMarkerPosition3dPredicted = cv::Point3f( 0.0f, 0.0f, 0.0f );		// Deleted
+	// cv::Point3f				 targetMarkerVelocity3dOld		 = cv::Point3f( 0.0f, 0.0f, 0.0f );			// Target.velocityFilteredOldMM												  // Target.velocityFilteredOldMM													  // Target.filteredPositionMM
+	// cv::Point3f				 targetMarkerVelocity3dNew		 = cv::Point3f( 0.0f, 0.0f, 0.0f );				// Target.velocityFilteredNewMM											  // Target.velocityFilteredNewMM
+	// cv::Point3f				 targetMarkerIntegralError		 = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // Controller.accumulatedIntegralError
+	// cv::Point2f				 targetMarkerAngleOld			 = cv::Point2f( 0.0f, 0.0f );	// Deleted
+	// cv::Point2f				 targetMarkerAngleNew			 = cv::Point2f( 0.0f, 0.0f );	// Deleted																  // [rad] New angle
+	// cv::Point2f				 targetMarkerAnglularVelocityOld = cv::Point2f( 0.0f, 0.0f );																  // [rad/s] Old angular velocity
+	// cv::Point2f				 targetMarkerAnglularVelocityNew = cv::Point2f( 0.0f, 0.0f );																  // [rad/s] New angular velocity
+	// std::vector<cv::Point2i> targetMarkerCorners = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	  // Target.cornersPX
+	// cv::Vec3d targetMarkerRotationVector, targetMarkerTranslationVector;	// Target.rotationVector // Rotation and translation vectors for active marker
 
 	// Controller variables
-	cv::Point3f controllerKp			  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Proportional gain
-	cv::Point3f controllerKd			  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Derivative gain
-	cv::Point3f controllerKi			  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Integral gain
-	cv::Point3i controllerPWM			  = cv::Point3i( 0, 0, 0 );				// Motor output PWM value
-	cv::Point3f controllerPercentage	  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Motor output percentage
+	cv::Point3f controllerKp = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Proportional gain
+	cv::Point3f controllerKd = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Derivative gain
+	cv::Point3f controllerKi = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Integral gain
+	// cv::Point3i controllerPWM			  = cv::Point3i( 0, 0, 0 );		// Controller.commandedPwm				// Motor output PWM value
+	// cv::Point3f controllerPercentage	  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Controller.commandedPercentage	// Motor output percentage
 	cv::Point3f controllerProportinalTerm = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for proportional term
 	cv::Point3f controllerDerivativeTerm  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for derivative term
 	cv::Point3f controllerIntegralTerm	  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for integral term
 	cv::Point3f controllerTotalTerm		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for total term
-	cv::Point3f controllerTorqueABC		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Torque
-	cv::Point3f controllerCurrent		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Current
-	cv::Point3f controllerTension		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Tension (in PWM units)
-	float		controllerRampLimit		  = 0.05f;								// Maximum change per update
-	float		controllerRampFactor	  = 0.0f;								// Counter from 0.0 to 1.0
-	bool		controllerIsRamping		  = false;								// Check for ramping
-	float		controllerRampStartTime	  = 0.0f;								// Ramp start time
-	float		controllerRampDuration	  = 1.0f;								// How long to ramp up for
+	// cv::Point3f controllerTorqueABC		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Controller.torqueABC
+	// cv::Point3f controllerCurrent		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Controller.currentABC
+	// cv::Point3f controllerTension		= cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Controller.commandedTensionABC 	Tension (in PWM units)
+	// float controllerRampFactor	  = 0.0f;	  // Controller.rampPercentage
+	// bool  controllerIsRamping	  = false;	  // Controller.isRampingUp
+	// float controllerRampStartTime = 0.0f;	 // Controller.rampStartTime 	Ramp start time
+	// float controllerRampDuration = 1.0f;	// // Controller.rampDurationTime 	How long to ramp up for
 
-	Point4f controllerGainKp = Point4f ( 0.0f, 0.0f, 0.0f, 0.0f );
+
 
 	// Kalman filter
-	float	kalmanProcessNoiseCovarianceQ = 0.00001f;	 // 0.01 Higher Q = more trust in model, faster response, less lag
-	float	kalmanMeasurementNoiseR		  = 1.0e-2f;	 // 0.5f;		// 10.0 [mm^2] Higher R means less trust in model, smoother but more lag
-	float	kalmanTimeStepDt			  = 0.01f;		 // 0.01 Minimum time step
-	cv::Mat kalmanP;									 // Covariance
-	float	kalmanDt = 0.1f;
+	// cv::Mat kalmanP;									 // KalmanFilter.pMatrix
+	// float	kalmanDt = 0.1f;
 
 
 	// Finger marker
-	bool					 FLAG_FINGER_MARKER_FOUND  = false;
-	cv::Point3i				 fingerMarkerPosition3DRaw = cv::Point3i( 0, 0, 0 );
-	cv::Point3i				 fingerMarkerPosition3DNew = cv::Point3i( 0, 0, 0 );
-	std::vector<cv::Point2i> fingerMarkerCorners	   = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	// Corners of finger tag
-	cv::Vec3d				 fingerMarkerRotationVector, fingerMarkerTranslationVector;																// Rotation and translation vectors for active marker
-	cv::Point2i				 fingerMarkerScreenPosition = cv::Point2i( 0, 0 );																		// Position of target in screen space, ArucoClass
-	cv::Point2f				 fingerMarkerAngleNew		= cv::Point2f( 0.0f, 0.0f );																// [rad] New angle
+	// bool					 FLAG_FINGER_MARKER_FOUND  = false;
+	// cv::Point3i				 fingerMarkerPosition3DRaw = cv::Point3i( 0, 0, 0 );
+	// cv::Point3i				 fingerMarkerPosition3DNew = cv::Point3i( 0, 0, 0 );
+	// std::vector<cv::Point2i> fingerMarkerCorners	   = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	// Corners of finger tag
+	// cv::Vec3d				 fingerMarkerRotationVector, fingerMarkerTranslationVector;																// Rotation and translation vectors for active marker
+	// cv::Point2i				 fingerMarkerScreenPosition = cv::Point2i( 0, 0 );																		// Position of target in screen space, ArucoClass
+	// cv::Point2f				 fingerMarkerAngleNew		= cv::Point2f( 0.0f, 0.0f );																// [rad] New angle
 
 	// Tasks
-	std::string TASK_NAME		= "";		// String name of task
-	uint8_t		TASK_USER_ID	= 000;		// Participant ID
-	int			TASK_REP_NUMBER = 0;		// Task rep number
-	char		TASK_COMMAND	= 0;		// Command
-	bool		TASK_RUNNING	= false;	// Is the task running
-	bool		TASK_COMPLETE	= false;	// Trip when task is complete
+	// std::string TASK_NAME		= "";		// Task.name
+	// uint8_t TASK_USER_ID	= 000;		// Task.userID
+	// int	 TASK_REP_NUMBER = 0;		 // Task.repetitionNumber	 Task rep number
+	// char TASK_COMMAND	 = 0;		 // Task.command
+	// bool TASK_RUNNING  = false;	   // Task.isRunning
+	// bool TASK_COMPLETE = false;	   // Task.isComplete Trip when task is complete
 
 	// OpenCV image matrices
-	cv::Mat matFrameRaw			= cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
-	cv::Mat matFrameGray		= cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
+	// cv::Mat matFrameRaw			= cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 ); // Camera.frameRaw
 	cv::Mat matFrameUndistorted = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
 	cv::Mat matFrameOverlay		= cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_WIDTH, CV_8UC3 );
 	cv::Mat matRemap1;
@@ -216,6 +293,29 @@ struct ManagedData {
 	std::string PadValues( int val, int nZeroes );				   // Return a padded string
 	// int			MapInt( int x, int inMin, int inMax, int outMin, int outMax );					// Return a remapped integer
 	float MapFloat( float val, float inMin, float inMax, float outMin, float outMax );	  // Return a remapped float
+
+
+
+	/** OLD VARIABLES */
+
+	// System flags
+	// bool FLAG_AMPLIFIERS_ENABLED	   = false;		// Amplifier.isAmplifierActive
+	// bool FLAG_FRAME_READY			   = false;		// Camera.isFrameReady
+	// bool FLAG_LOGGING_ENABLED		   = false;		// Logging.isLoggingEnabled
+	// bool FLAG_LOGGING_STARTED		   = false;		// Logging.isLoggingActivelyRunning
+	// bool FLAG_MAIN_RUNNING			   = true;		// Main.isMainRunning
+	// bool FLAG_PACKET_WAITING		   	   = false;		// Deleted
+	// bool FLAG_SERIAL0_OPEN			   = false;		// Serial.isSerialSendOpen
+	// bool FLAG_SERIAL0_ENABLED = false;	  // Serial.isSerialSending
+	// bool FLAG_SERIAL1_OPEN			   = false;	   // Serial.isSerialReceiveOpen
+	// bool FLAG_SERIAL1_ENABLED		   = false;	   // Serial.isSerialReceiving
+	// bool FLAG_SHUTTING_DOWN			   = false;	   // Main.isShuttingDown
+	// bool FLAG_TARGET_MARKER_FOUND	   = false;		// Target.isTargetFound
+	// bool FLAG_TEENSY_SERIAL_RESPONDING = false;		// Teensy.isTeensyResponding
+	// bool FLAG_TEENSY_AMPLIFIER_ENABLED = false;		// Teensy.isAmplifierResponding
+	bool FLAG_USE_FINGER_MARKER = false;
+	// bool FLAG_TARGET_RESET		= false;		// Target.isTargetReset
+	// bool FLAG_USE_FIXED_MARKER	= false;		// Deleted
 };
 
 class SystemDataManager {

@@ -55,6 +55,7 @@ private:
 	std::vector<cv::Vec3d>				  arucoRotationVector, arucoTranslationVector;
 	cv::Mat								  arucoPoints { 4, 1, CV_32FC3 };
 	std::vector<cv::Point2i>			  arucoActiveCorners = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };
+	
 	// short								  arucoMarkerSize	 = 20;
 
 
