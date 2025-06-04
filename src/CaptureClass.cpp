@@ -21,7 +21,7 @@ void CaptureClass::Initialize() {
 	cv::setUseOptimized( true );
 
 	// Initialize undistort map tool
-	cv::initUndistortRectifyMap( CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, cv::Mat(), CONFIG_CAMERA_MATRIX, shared->Camera.frameRaw.size(), CV_32F, shared->matRemap1, shared->matRemap2 );
+	cv::initUndistortRectifyMap( CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, cv::Mat(), CONFIG_CAMERA_MATRIX, shared->Capture.frameRaw.size(), CV_32F, shared->Capture.matRemap1, shared->Capture.matRemap2 );
 
 	// Try catch to open camera device
 	try {
@@ -73,35 +73,35 @@ void CaptureClass::Initialize() {
 void CaptureClass::GetFrame() {
 
 	// Reset flag
-	shared->Camera.isFrameReady = false;
+	shared->Capture.isFrameReady = false;
 
 	// Capture latest frame
 	Capture.grab();
-	Capture.retrieve( shared->Camera.frameRaw );
+	Capture.retrieve( shared->Capture.frameRaw );
 
 	// Make sure frame isn't empty
-	if ( !shared->Camera.frameRaw.empty() ) {
+	if ( !shared->Capture.frameRaw.empty() ) {
 
 		// Upload mats to GPU
-		shared->GpuMatFrameRaw.upload( shared->Camera.frameRaw );
-		shared->GpuMatRemap1.upload( shared->matRemap1 );
-		shared->GpuMatRemap2.upload( shared->matRemap2 );
+		shared->Capture.GpuMatFrameRaw.upload( shared->Capture.frameRaw );
+		shared->Capture.GpuMatRemap1.upload( shared->Capture.matRemap1 );
+		shared->Capture.GpuMatRemap2.upload( shared->Capture.matRemap2 );
 
 		// Remap using GPU
-		cv::cuda::remap( shared->GpuMatFrameRaw, shared->GpuMatFrameUndistorted, shared->GpuMatRemap1, shared->GpuMatRemap2, cv::INTER_NEAREST );
+		cv::cuda::remap( shared->Capture.GpuMatFrameRaw, shared->Capture.GpuMatFrameUndistorted, shared->Capture.GpuMatRemap1, shared->Capture.GpuMatRemap2, cv::INTER_NEAREST );
 
 		// Convert to grayscale using GPU
-		cv::cuda::cvtColor( shared->GpuMatFrameUndistorted, shared->GpuMatFrameGray, cv::COLOR_BGR2GRAY );
+		cv::cuda::cvtColor( shared->Capture.GpuMatFrameUndistorted, shared->Capture.GpuMatFrameGray, cv::COLOR_BGR2GRAY );
 
 		// Extract frames from GPU
-		shared->GpuMatFrameUndistorted.download( shared->matFrameUndistorted );
-		shared->GpuMatFrameGray.download( shared->Camera.frameGray );
+		shared->Capture.GpuMatFrameUndistorted.download( shared->Capture.matFrameUndistorted );
+		shared->Capture.GpuMatFrameGray.download( shared->Capture.frameGray );
 
 		// Update flag
-		shared->Camera.isFrameReady = true;
+		shared->Capture.isFrameReady = true;
 
 	} else {
 		std::cerr << "CaptureClass: Captured frame is empty!\n";
-		shared->Camera.isFrameReady = false;
+		shared->Capture.isFrameReady = false;
 	}
 }

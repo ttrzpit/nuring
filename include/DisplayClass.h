@@ -39,6 +39,7 @@ public:
 	void UpdateAngle();
 	void CheckOptions();
 
+
 	// Public variables
 	std::vector<cv::Point3i> trailPoints;
 	std::vector<int>		 trailColor;
@@ -59,6 +60,7 @@ private:
 	void		DrawKeyCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
 	cv::Point2i ProjectIsometric( const cv::Point3i& p3d );
 	cv::Point2i GetForwardDirectionFromPose( const cv::Vec3d rvec, const cv::Vec3d tvec, const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, float axisLength );
+	static void onMouse( int event, int x, int y, int flags, void* userData );
 
 	// Window names
 	std::string winAngle	  = "Angle Visualizer";
@@ -112,7 +114,10 @@ private:
 	// Define 3D corners of a cube
 	const std::vector<cv::Point3i> cubeCorners = { { -vizLimXY, -vizLimXY, 0 }, { vizLimXY, -vizLimXY, 0 }, { vizLimXY, vizLimXY, 0 }, { -vizLimXY, vizLimXY, 0 }, { -vizLimXY, -vizLimXY, vizLimZ }, { vizLimXY, -vizLimXY, vizLimZ }, { vizLimXY, vizLimXY, vizLimZ }, { -vizLimXY, vizLimXY, vizLimZ } };
 
-
+	// Variables for motor viz
+	float limA = 0.0f;
+	float limB = 0.0f;
+	float limC = 0.0f;
 
 	// Edges of 3D cube
 	const std::vector<std::pair<int, int>> edges = {

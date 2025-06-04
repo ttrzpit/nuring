@@ -64,10 +64,10 @@ void ArucoClass::FindTags() {
 
 
 	// Make sure image is ready to be processed
-	if ( shared->Camera.isFrameReady ) {
+	if ( shared->Capture.isFrameReady ) {
 
 		// Reset global flags
-		shared->Target.isTargetFound = false;
+		shared->Telemetry.isTargetFound = false;
 		// shared->FLAG_FINGER_MARKER_FOUND = false;
 
 		// Reset individual tag state
@@ -77,7 +77,7 @@ void ArucoClass::FindTags() {
 
 		// Run detector
 		// arucoDetector.detectMarkers( shared->matFrameGray, arucoCorners, arucoDetectedIDs, arucoRejects );
-		arucoDetector.detectMarkers( shared->Camera.frameGray, arucoCorners, arucoDetectedIDs );
+		arucoDetector.detectMarkers( shared->Capture.frameGray, arucoCorners, arucoDetectedIDs );
 
 		// Check if markers have been found
 		if ( !arucoDetectedIDs.empty() ) {
@@ -130,7 +130,7 @@ void ArucoClass::FindTags() {
 				// Sort out markers in valid range
 				if ( ( arucoDetectedIDs[i] > 0 && arucoDetectedIDs[i] <= 5 ) || ( arucoDetectedIDs[i] == 8 ) ) {
 
-					if ( ( arucoDetectedIDs[i] > 0 ) && ( arucoDetectedIDs[i] == shared->Target.activeID ) ) {	  // Only process active tag
+					if ( ( arucoDetectedIDs[i] > 0 ) && ( arucoDetectedIDs[i] == shared->Telemetry.activeID ) ) {	 // Only process active tag
 
 
 						// Extract current corner
@@ -142,22 +142,22 @@ void ArucoClass::FindTags() {
 							continue;
 
 						// Update flag
-						shared->Target.isTargetFound		  = true;
+						shared->Telemetry.isTargetFound		  = true;
 						arucoTagsPresent[arucoDetectedIDs[i]] = true;
 
 						// Update 2D pixel coordinates
-						int avgX						= int( ( currentCorner[0][0].x + currentCorner[0][1].x + currentCorner[0][2].x + currentCorner[0][3].x ) / 4.0f );
-						int avgY						= int( ( currentCorner[0][0].y + currentCorner[0][1].y + currentCorner[0][2].y + currentCorner[0][3].y ) / 4.0f );
-						shared->Target.screenPositionPX = cv::Point2i( avgX, avgY );
+						int avgX						   = int( ( currentCorner[0][0].x + currentCorner[0][1].x + currentCorner[0][2].x + currentCorner[0][3].x ) / 4.0f );
+						int avgY						   = int( ( currentCorner[0][0].y + currentCorner[0][1].y + currentCorner[0][2].y + currentCorner[0][3].y ) / 4.0f );
+						shared->Telemetry.screenPositionPX = cv::Point2i( avgX, avgY );
 
 						// Update 2D corner vector for active marker
-						shared->Target.cornersPX[0] = cv::Point2i( currentCorner[0][0].x, currentCorner[0][0].y );
-						shared->Target.cornersPX[1] = cv::Point2i( currentCorner[0][1].x, currentCorner[0][1].y );
-						shared->Target.cornersPX[2] = cv::Point2i( currentCorner[0][2].x, currentCorner[0][2].y );
-						shared->Target.cornersPX[3] = cv::Point2i( currentCorner[0][3].x, currentCorner[0][3].y );
+						shared->Telemetry.cornersPX[0] = cv::Point2i( currentCorner[0][0].x, currentCorner[0][0].y );
+						shared->Telemetry.cornersPX[1] = cv::Point2i( currentCorner[0][1].x, currentCorner[0][1].y );
+						shared->Telemetry.cornersPX[2] = cv::Point2i( currentCorner[0][2].x, currentCorner[0][2].y );
+						shared->Telemetry.cornersPX[3] = cv::Point2i( currentCorner[0][3].x, currentCorner[0][3].y );
 
 						// Update 3D real-world coordinates
-						shared->Target.positionUnfilteredMM = cv::Point3f( arucoTranslationVector[0][0], -arucoTranslationVector[0][1], arucoTranslationVector[0][2] );
+						shared->Telemetry.positionUnfilteredMM = cv::Point3f( arucoTranslationVector[0][0], -arucoTranslationVector[0][1], arucoTranslationVector[0][2] );
 
 						// Update rotation and translation vectors
 						// shared->Target.rotationVector	  = arucoRotationVector[0];
@@ -174,6 +174,7 @@ void ArucoClass::FindTags() {
 				}	 // End process valid marker
 				else {
 					// shared->FLAG_TARGET_MARKER_FOUND = false;
+					shared->Controller.isRampingUp = true;
 				}
 			}	 // For loop
 

@@ -11,17 +11,17 @@ ControllerClass::ControllerClass( SystemDataManager& ctx )
 void ControllerClass::Update() {
 
 	// Reset ramp if target was reset
-	if ( shared->Target.isTargetReset ) {
+	if ( shared->Telemetry.isTargetReset ) {
 
 		shared->Controller.rampPercentage = 0.0f;
-		shared->Controller.rampStartTime  = shared->timingTimestamp;
+		shared->Controller.rampStartTime  = shared->Timing.elapsedRunningTime;
 	}
 
 
 
 	// Ramp-up value
-	if ( shared->Controller.isRampingUp && shared->Target.isTargetFound ) {
-		float elapsed					  = shared->timingTimestamp - shared->Controller.rampStartTime;
+	if ( shared->Controller.isRampingUp && shared->Telemetry.isTargetFound ) {
+		float elapsed					  = shared->Timing.elapsedRunningTime - shared->Controller.rampStartTime;
 		shared->Controller.rampPercentage = std::clamp( elapsed / shared->Controller.rampDurationTime, 0.0f, 1.0f );
 
 		if ( shared->Controller.rampPercentage >= 1.0f ) {
@@ -29,21 +29,21 @@ void ControllerClass::Update() {
 		}
 	}
 
-	if ( shared->Target.isTargetFound ) {
+	if ( shared->Telemetry.isTargetFound ) {
 		// Calculate proportional term
-		shared->controllerProportinalTerm.x = shared->controllerKp.x * shared->Target.positionFilteredNewMM.x;
-		shared->controllerProportinalTerm.y = shared->controllerKp.y * shared->Target.positionFilteredNewMM.y;
-		shared->controllerProportinalTerm.z = shared->controllerKp.z * shared->Target.positionFilteredNewMM.z;
+		shared->controllerProportinalTerm.x = shared->controllerKp.x * shared->Telemetry.positionFilteredNewMM.x;
+		shared->controllerProportinalTerm.y = shared->controllerKp.y * shared->Telemetry.positionFilteredNewMM.y;
+		shared->controllerProportinalTerm.z = shared->controllerKp.z * shared->Telemetry.positionFilteredNewMM.z;
 
 		// Calculate derivative term
-		shared->controllerDerivativeTerm.x = shared->controllerKd.x * shared->Target.velocityFilteredNewMM.x;
-		shared->controllerDerivativeTerm.y = shared->controllerKd.y * shared->Target.velocityFilteredNewMM.y;
-		shared->controllerDerivativeTerm.z = shared->controllerKd.z * shared->Target.velocityFilteredNewMM.z;
+		shared->controllerDerivativeTerm.x = shared->controllerKd.x * shared->Telemetry.velocityFilteredNewMM.x;
+		shared->controllerDerivativeTerm.y = shared->controllerKd.y * shared->Telemetry.velocityFilteredNewMM.y;
+		shared->controllerDerivativeTerm.z = shared->controllerKd.z * shared->Telemetry.velocityFilteredNewMM.z;
 
 		// Calculate integral term
-		shared->controllerIntegralTerm.x = shared->controllerKi.x * shared->Controller.accumulatedIntegralError.x;
-		shared->controllerIntegralTerm.y = shared->controllerKi.y * shared->Controller.accumulatedIntegralError.y;
-		shared->controllerIntegralTerm.z = shared->controllerKi.z * shared->Controller.accumulatedIntegralError.z;
+		shared->controllerIntegralTerm.x = shared->controllerKi.x * shared->Telemetry.positionIntegratedMM.x;
+		shared->controllerIntegralTerm.y = shared->controllerKi.y * shared->Telemetry.positionIntegratedMM.y;
+		shared->controllerIntegralTerm.z = shared->controllerKi.z * shared->Telemetry.positionIntegratedMM.z;
 
 		// Sum terms
 		shared->controllerTotalTerm = ( shared->controllerProportinalTerm + shared->controllerDerivativeTerm + shared->controllerIntegralTerm ) * shared->Controller.rampPercentage;
@@ -63,31 +63,16 @@ void ControllerClass::MapToContributionABC() {
 
 	// Old (no PID)
 	// Calculate error angle for motor selection
-	thTarget = std::atan2( shared->controllerTotalTerm.y, shared->controllerTotalTerm.x );
-	rTarget	 = cv::norm( cv::Vec2f( shared->controllerTotalTerm.x, shared->controllerTotalTerm.y ) );
+	thTarget = std::atan2( shared->Controller.combinedPIDTerms.y, shared->Controller.combinedPIDTerms.x );
+	rTarget	 = cv::norm( cv::Vec2f( shared->Controller.combinedPIDTerms.x, shared->Controller.combinedPIDTerms.y ) );
 
 	// Calculate max strength
-	rMax = std::clamp( float( std::atan2( rTarget, shared->Target.positionFilteredNewMM.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD );
-
-
-	// // Old (no PID)
-	// // Calculate error angle for motor selection
-	// thTarget = std::atan2( shared->targetMarkerPosition3dNew.y, shared->targetMarkerPosition3dNew.x );
-	// rTarget	 = cv::norm( cv::Vec2f( shared->targetMarkerPosition3dNew.x, shared->targetMarkerPosition3dNew.y ) );
-
-	// // Calculate max strength
-	// rMax = std::clamp( float( std::atan2( rTarget, shared->targetMarkerPosition3dNew.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD );
-
+	rMax = std::clamp( float( std::atan2( rTarget, shared->Telemetry.positionFilteredNewMM.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD );
 
 	// Wrap angle within 0-360 deg
 	if ( thTarget < 0 ) {
 		thTarget += ( 360.0f * DEG2RAD );
 	}
-
-	// rMaxXY = rMax;
-	// rMaxZ  = rMax;
-	// rMaxXY = rMax * shared->controllerKp.x;
-	// rMaxZ  = rMax * shared->controllerKp.y;
 
 	// Determine angle and calculate contributions
 	if ( thTarget >= ( 270 * DEG2RAD ) || thTarget < ( 35 * DEG2RAD ) ) {
@@ -130,32 +115,16 @@ void ControllerClass::MapToContributionABC() {
 		// std::cout << "|B+C| Angle: " << shared->FormatDecimal( thTarget * RAD2DEG, 2 ) << "   Contrib: B: " << shared->FormatDecimal( contribution.y, 2 ) << " , C: " << shared->FormatDecimal( contribution.z, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
 	}
 
-	// Update percentage
-	shared->Controller.commandedPercentage = cv::Point3f( contribution ) + shared->Controller.commandedTensionABC;
+	// Update percentage and constrain to max
+	shared->Controller.commandedPercentage.x = std::clamp( ( contribution.x + shared->Controller.commandedTensionABC.x ), 0.0f, shared->Controller.commandedPercentageLimit.x );
+	shared->Controller.commandedPercentage.y = std::clamp( ( contribution.y + shared->Controller.commandedTensionABC.y ), 0.0f, shared->Controller.commandedPercentageLimit.y );
+	shared->Controller.commandedPercentage.z = std::clamp( ( contribution.z + shared->Controller.commandedTensionABC.z ), 0.0f, shared->Controller.commandedPercentageLimit.z );
 
 	// Map to current
 	shared->Controller.commandedCurrentABC = MapToCurrent( shared->Controller.commandedPercentage, CONFIG_DEVICE_NOMINAL_CURRENT );
 
 	// Map to PWM
 	shared->Controller.commandedPwmABC = MapToPWM( shared->Controller.commandedPercentage, 4, 2044 );
-
-
-
-	// Debug output
-	// std::cout << "ControllerClass: E_T: ( " << shared->FormatDecimal( shared->targetMarkerPosition3dNew.x, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerPosition3dNew.y, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerPosition3dNew.z, 2, 1 ) << " ) ";
-	// std::cout << "\t dE_t: ( " << shared->FormatDecimal( shared->targetMarkerVelocity3dNew.x, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerVelocity3dNew.y, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerVelocity3dNew.z, 2, 1 ) << " ) ";
-	// std::cout << "\t iE_t: ( " << shared->FormatDecimal( shared->targetMarkerIntegralError.x, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerIntegralError.y, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerIntegralError.z, 2, 1 ) << " ) ";
-	// std::cout << "\n";
-
-	// std::cout << "ControllerClass: E_T: ( " << shared->FormatDecimal( shared->targetMarkerPosition3dNew.x, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerPosition3dNew.y, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerPosition3dNew.z, 2, 1 ) << " ) ";
-	// std::cout << "\t dE_t: ( " << shared->FormatDecimal( shared->targetMarkerVelocity3dNew.x, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerVelocity3dNew.y, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerVelocity3dNew.z, 2, 1 ) << " ) ";
-	// std::cout << "\t iE_t: ( " << shared->FormatDecimal( shared->targetMarkerIntegralError.x, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerIntegralError.y, 2, 1 ) << " , " << shared->FormatDecimal( shared->targetMarkerIntegralError.z, 2, 1 ) << " ) ";
-	// std::cout << "\n";
-
-	// Map to PWM
-	// shared->controllerPWM.y = std::clamp( 2048 - int( ( shared->controllerPercentage.x ) * 2047 ), 4, 2044 );
-	// shared->controllerPWM.y = std::clamp( 2048 - int( ( shared->controllerPercentage.y ) * 2047 ), 4, 2044 );
-	// shared->controllerPWM.z = std::clamp( 2048 - int( ( shared->controllerPercentage.z ) * 2047 ), 4, 2044 );
 }
 
 
@@ -177,3 +146,51 @@ cv::Point3i ControllerClass::MapToPWM( cv::Point3f percentage, int min, int max 
 	// Return result
 	return pt;
 };
+
+
+void ControllerClass::Update4D() {
+
+	// Reset ramp if target was reset
+	if ( shared->Telemetry.isTargetReset ) {
+
+		shared->Controller.rampPercentage = 0.0f;
+		shared->Controller.rampStartTime  = shared->Timing.elapsedRunningTime;
+	}
+
+	// Ramp-up value
+	if ( shared->Controller.isRampingUp && shared->Telemetry.isTargetFound ) {
+		float elapsed					  = shared->Timing.elapsedRunningTime - shared->Controller.rampStartTime;
+		shared->Controller.rampPercentage = std::clamp( elapsed / shared->Controller.rampDurationTime, 0.0f, 1.0f );
+
+		if ( shared->Controller.rampPercentage >= 1.0f ) {
+			shared->Controller.isRampingUp = false;
+		}
+	}
+
+	if ( shared->Telemetry.isTargetFound ) {
+
+
+		// Proportional AB+AD / FLEX+EXT
+		shared->Telemetry.positionFilteredNewMM.x < 0 ? ( shared->Controller.proportionalTerm.x = shared->Controller.gainKp.abb * shared->Telemetry.positionFilteredNewMM.x ) : ( shared->Controller.proportionalTerm.x = shared->Controller.gainKp.add * shared->Telemetry.positionFilteredNewMM.x );
+		shared->Telemetry.positionFilteredNewMM.y < 0 ? ( shared->Controller.proportionalTerm.y = shared->Controller.gainKp.flex * shared->Telemetry.positionFilteredNewMM.y ) : ( shared->Controller.proportionalTerm.y = shared->Controller.gainKp.ext * shared->Telemetry.positionFilteredNewMM.y );
+
+		// Calculate derivative term
+		shared->Telemetry.velocityFilteredNewMM.x < 0 ? ( shared->Controller.derivativeTerm.x = shared->Controller.gainKd.abb * shared->Telemetry.velocityFilteredNewMM.x ) : ( shared->Controller.derivativeTerm.x = shared->Controller.gainKd.add * shared->Telemetry.velocityFilteredNewMM.x );
+		shared->Telemetry.velocityFilteredNewMM.y < 0 ? ( shared->Controller.derivativeTerm.y = shared->Controller.gainKd.flex * shared->Telemetry.velocityFilteredNewMM.y ) : ( shared->Controller.derivativeTerm.y = shared->Controller.gainKd.ext * shared->Telemetry.velocityFilteredNewMM.y );
+
+		// Calculate integral term
+		shared->Telemetry.positionIntegratedMM.x < 0 ? ( shared->Controller.integralTerm.x = shared->Controller.gainKi.abb * shared->Telemetry.positionIntegratedMM.x ) : ( shared->Controller.integralTerm.x = shared->Controller.gainKi.add * shared->Telemetry.positionIntegratedMM.x );
+		shared->Telemetry.positionIntegratedMM.y < 0 ? ( shared->Controller.integralTerm.y = shared->Controller.gainKi.flex * shared->Telemetry.positionIntegratedMM.y ) : ( shared->Controller.integralTerm.y = shared->Controller.gainKi.ext * shared->Telemetry.positionIntegratedMM.y );
+
+		// Sum terms
+		shared->Controller.combinedPIDTerms = ( shared->Controller.proportionalTerm + shared->Controller.integralTerm + shared->Controller.derivativeTerm ) * shared->Controller.rampPercentage;
+
+	} else {
+		shared->Controller.proportionalTerm *= 0.9f;
+		shared->Controller.integralTerm *= 0.9f;
+		shared->Controller.derivativeTerm *= 0.9f;
+		shared->Controller.combinedPIDTerms = ( shared->Controller.proportionalTerm + shared->Controller.integralTerm + shared->Controller.derivativeTerm ) * shared->Controller.rampPercentage;
+	}
+	// Calculate motor contributions
+	MapToContributionABC();
+}

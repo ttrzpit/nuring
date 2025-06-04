@@ -224,16 +224,15 @@ void ParseAngularError(String newPacket) {
 void BuildOutgoingString() {
   // 0123456789
   // TE0A0B0C0X
-  int A = map(pwmNewA, 1, 2048, 9, 0);
-  int B = map(pwmNewB, 1, 2048, 9, 0);
-  int C = map(pwmNewC, 1, 2048, 9, 0);
+  int A = map(pwmNewA, 1, 2048, 99, 0);
+  int B = map(pwmNewB, 1, 2048, 99, 0);
+  int C = map(pwmNewC, 1, 2048, 99, 0);
   int deg = constrain(int(Encoder.angleDeg), -99, 99);
   int negative = (deg < 0) ? 1 : 0;
 
   // char buffer[3];
   // sprintf(buffer, "%02d", abs(deg));
 
-  snprintf(serialPacketOut, sizeof(serialPacketOut), "TE%dA%dB%dC%dD%d%02dX", Amplifiers.ENABLED ? 1 : 0, A, B, C, negative, abs(deg));
-  // serialPacketOut = String("TE") + (Amplifiers.ENABLED ? "1" : "0") + "A" + String(A) + "B" + String(B) + "C" + String(C) + "D" + String(negative) + String(buffer) + "X";
-  // Serial.println(serialPacketOut);
+  snprintf(serialPacketOut, sizeof(serialPacketOut), "TE%dA%02dB%02dC%02dD%d%02dX", Amplifiers.ENABLED ? 1 : 0, A, B, C, negative, abs(deg));
+  // snprintf(serialPacketOut, sizeof(serialPacketOut), "TE%dA%dB%dC%dD%d%02dX", Amplifiers.ENABLED ? 1 : 0, A, B, C, negative, abs(deg));  // Old safe version
 }

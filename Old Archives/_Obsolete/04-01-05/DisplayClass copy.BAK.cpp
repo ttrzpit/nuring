@@ -217,7 +217,7 @@ void DisplayClass::AddText() {
 	DrawCell( "y", "AC2", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( shared->touchPosition.x + 3440 ), "AB3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( shared->touchPosition.y + 32 ), "AC3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( ( shared->touchDetected == 1 ? "Button 1" : "-" ), "AB4", 2, 2, fontBody, CONFIG_colWhite, ( shared->touchDetected ? CONFIG_colGreDk : CONFIG_colBlack ), true );
+	DrawCell( ( shared->isTouched == 1 ? "Button 1" : "-" ), "AB4", 2, 2, fontBody, CONFIG_colWhite, ( shared->isTouched ? CONFIG_colGreDk : CONFIG_colBlack ), true );
 
 
 	// Calibration Blocks
@@ -247,10 +247,10 @@ void DisplayClass::AddText() {
 	// Serial blocks
 	DrawCell( "Serial0 (Outbound)", "AI1", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( ( shared->FLAG_SERIAL0_ENABLED ? "Online" : "Offline" ), "AL1", 3, 1, fontBody, CONFIG_colWhite, ( shared->FLAG_SERIAL0_ENABLED ? CONFIG_colGreDk : CONFIG_colRedBk ), true );
-	DrawCell( shared->serialPacket0.substr( 0, shared->serialPacket0.size() - 1 ), "AI2", 6, 2, fontHeader * 1.6, CONFIG_colWhite, ( shared->serialPacket0 == "DX\n" ) ? CONFIG_colBlack : CONFIG_colGreDk, true );
+	DrawCell( shared->packetOut.substr( 0, shared->packetOut.size() - 1 ), "AI2", 6, 2, fontHeader * 1.6, CONFIG_colWhite, ( shared->packetOut == "DX\n" ) ? CONFIG_colBlack : CONFIG_colGreDk, true );
 	DrawCell( "Serial1 (Inbound) ", "AI4", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( ( shared->FLAG_SERIAL1_ENABLED ? "Online" : "Offline" ), "AL4", 3, 1, fontBody, CONFIG_colWhite, ( shared->FLAG_SERIAL0_ENABLED ? CONFIG_colGreDk : CONFIG_colRedBk ), true );
-	DrawCell( shared->serialPacket1.substr( 0, shared->serialPacket1.size() - 1 ), "AI5", 6, 2, fontHeader * 1.6, CONFIG_colWhite, ( shared->serialPacket0 == "DX\n" ) ? CONFIG_colBlack : CONFIG_colGreDk, true );
+	DrawCell( shared->packetIn.substr( 0, shared->packetIn.size() - 1 ), "AI5", 6, 2, fontHeader * 1.6, CONFIG_colWhite, ( shared->packetOut == "DX\n" ) ? CONFIG_colBlack : CONFIG_colGreDk, true );
 
 	// Status blocks
 	DrawCell( "Amplifiers", "AG1", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -297,7 +297,7 @@ void DisplayClass::AddText() {
 
 	// // Status Block
 	DrawCell( "System:", "K6", 2, 2, fontHeader * 1.5, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->displayString, "M6", 17, 2, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawCell( shared->statusString, "M6", 17, 2, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, false );
 }
 
 

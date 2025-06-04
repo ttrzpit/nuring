@@ -61,10 +61,16 @@ void		BuildSerialPacket();
  */
 int main() {
 
+
+	// Testing
+	shared->Controller.commandedPercentageLimit = cv::Point3f( 0.4f, 0.7f, 0.9f );
+	shared->Controller.isLimitSet				= true;
+	shared->Controller.gainKi					= { 1.0f, 1.0f, 1.0f, 1.0f };
+
 	// Settings
 	shared->Logging.isLoggingEnabled = true;
 	shared->Task.userID				 = 000;
-	shared->Target.isTargetFound	 = 1;
+	shared->Telemetry.isTargetFound	 = 1;
 
 	// Optimization for C/C++ data types
 	std::ios_base::sync_with_stdio( false );
@@ -124,7 +130,8 @@ int main() {
 		UpdateState();
 
 		// Update controller
-		Controller.Update();
+		// Controller.Update();
+		Controller.Update4D();
 
 
 		// Check touchscreen input
@@ -135,7 +142,7 @@ int main() {
 
 		// Send outgoing serial packet
 		if ( shared->Serial.isSerialSendOpen && shared->Serial.isSerialSending ) {
-			Serial.Send( shared->serialPacket0 );
+			Serial.Send( shared->Serial.packetOut );
 			// std::cout << shared->serialPacket0 << "\n";
 		}
 
@@ -156,7 +163,7 @@ int main() {
 
 		// Update shutdown flags for clean shutdown
 		if ( shared->Main.isShuttingDown ) {
-			shared->serialPacket0 = "DX\n";
+			shared->Serial.packetOut = "DX\n";
 			// shared->FLAG_PACKET_WAITING = true;
 			shared->Main.isMainRunning = false;
 		}
@@ -191,7 +198,7 @@ void TaskCalibrate() {
 			// Disable amplifiers for safety
 			shared->Amplifier.isAmplifierActive = false;
 
-			shared->Target.isTargetFound = 8;
+			shared->Telemetry.isTargetFound = 8;
 
 			// Customize logging header
 			shared->loggingHeader1 = "UserOffsetX";
@@ -309,17 +316,17 @@ void TaskFitts() {
 
 		// Initialize and add initial entry
 		// Start timer for measuring loop frequency
-		Timing.GetTimestamp();
+		Timing.TaskTimerStart();
 		Logging.Initialize();
-		Timing.StartTimer();
+		// Timing.StartTimer();
 		// Logging.AddEntry();
 		shared->Logging.isLoggingActivelyRunning = true;
 
 	} else if ( shared->Logging.isLoggingEnabled && shared->Logging.isLoggingActivelyRunning ) {
 
-		shared->loggingVariable1 = std::to_string( shared->touchDetected );
-		shared->loggingVariable2 = shared->serialPacket0.substr( 0, shared->serialPacket0.length() - 1 );
-		shared->loggingVariable3 = shared->serialPacket1.substr( 0, shared->serialPacket1.length() - 1 );
+		shared->loggingVariable1 = std::to_string( shared->Touchscreen.isTouched );
+		shared->loggingVariable2 = shared->Serial.packetOut.substr( 0, shared->Serial.packetOut.length() - 1 );
+		shared->loggingVariable3 = shared->Serial.packetIn.substr( 0, shared->Serial.packetIn.length() - 1 );
 		shared->loggingVariable4 = std::to_string( shared->Serial.isSerialSending ) + "," + std::to_string( shared->Serial.isSerialSendOpen ) + "," + std::to_string( shared->Serial.isSerialReceiving ) + "," + std::to_string( shared->Serial.isSerialReceiveOpen );
 		shared->loggingVariable5 = shared->FormatDecimal( shared->controllerKp.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKp.y, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.y, 1, 1 ) + ","
 			+ shared->FormatDecimal( shared->controllerKd.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKd.y, 1, 1 );
@@ -331,13 +338,13 @@ void TaskFitts() {
 	// Run task
 	if ( !shared->Task.isRunning ) {
 
-		shared->Task.isRunning		 = true;
-		shared->Task.isComplete		 = false;
-		shared->Target.isTargetFound = 1;
+		shared->Task.isRunning			= true;
+		shared->Task.isComplete			= false;
+		shared->Telemetry.isTargetFound = 1;
 		Fitts.Initialize();
 		Fitts.StartTest( 'z' );	   // x , y , z, t , v, f
 	} else {
-
+		Timing.UpdateTaskTime();
 		Fitts.Update();
 	}
 }
@@ -372,10 +379,10 @@ void TaskFittsAngle() {
 	// Run task
 	if ( !shared->Task.isRunning ) {
 
-		shared->Task.isRunning		 = true;
-		shared->Task.isComplete		 = false;
-		shared->Target.isTargetFound = 1;
-		shared->angleEnabled		 = !shared->angleEnabled;
+		shared->Task.isRunning			= true;
+		shared->Task.isComplete			= false;
+		shared->Telemetry.isTargetFound = 1;
+		shared->angleEnabled			= !shared->angleEnabled;
 		Fitts.StartAngleTest();
 	} else {
 
@@ -413,34 +420,34 @@ std::string BuildPacketAngularError() {
  */
 void UpdateState() {
 
-	if ( shared->Target.isTargetFound && shared->Camera.isFrameReady ) {
+	if ( shared->Telemetry.isTargetFound && shared->Capture.isFrameReady ) {
 
 
-		if ( cv::norm( cv::Point2f( shared->Target.positionUnfilteredMM.x, shared->Target.positionUnfilteredMM.y ) - cv::Point2f( shared->Target.positionFilteredOldMM.x, shared->Target.positionFilteredOldMM.y ) ) > 100.0f ) {
-			shared->Target.isTargetReset = true;
+		if ( cv::norm( cv::Point2f( shared->Telemetry.positionUnfilteredMM.x, shared->Telemetry.positionUnfilteredMM.y ) - cv::Point2f( shared->Telemetry.positionFilteredOldMM.x, shared->Telemetry.positionFilteredOldMM.y ) ) > 100.0f ) {
+			shared->Telemetry.isTargetReset = true;
 			// shared->lostCount++;
 		}
 
 
 		// Save old data
-		shared->Target.positionFilteredOldMM = shared->Target.positionFilteredNewMM;
-		shared->Target.velocityFilteredOldMM = shared->Target.velocityFilteredNewMM;
+		shared->Telemetry.positionFilteredOldMM = shared->Telemetry.positionFilteredNewMM;
+		shared->Telemetry.velocityFilteredOldMM = shared->Telemetry.velocityFilteredNewMM;
 		// shared->targetMarkerAngleOld.x			= shared->angleTheta;
 		// shared->targetMarkerAnglularVelocityOld = shared->targetMarkerAnglularVelocityNew;
 
 		// Update kalman filter
 		if ( shared->calibrationComplete ) {
-			Kalman.Update( shared->Target.positionUnfilteredMM + cv::Point3f( shared->calibrationOffsetMM ), shared->timingTimestamp );
+			Kalman.Update( shared->Telemetry.positionUnfilteredMM + cv::Point3f( shared->calibrationOffsetMM ), shared->Timing.elapsedRunningTime );
 		} else {
-			Kalman.Update( shared->Target.positionUnfilteredMM, shared->timingTimestamp );
+			Kalman.Update( shared->Telemetry.positionUnfilteredMM, shared->Timing.elapsedRunningTime );
 		}
 
 		// Get updated state values
-		shared->Target.positionFilteredNewMM = Kalman.GetPosition();
-		shared->Target.velocityFilteredNewMM = Kalman.GetVelocity();
+		shared->Telemetry.positionFilteredNewMM = Kalman.GetPosition();
+		shared->Telemetry.velocityFilteredNewMM = Kalman.GetVelocity();
 		// shared->targetMarkerAngleNew				= Kalman.GetAngle();
 		// shared->targetMarkerAnglularVelocityNew		= Kalman.GetAnglularVelocity();
-		shared->Controller.accumulatedIntegralError = Kalman.GetIntegralError();
+		shared->Telemetry.positionIntegratedMM = Kalman.GetIntegralError();
 
 		// std::cout << "dE = " << shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x << "dE/dt = " << ( shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x ) / shared->kalmanDt << "\n" ;
 
@@ -455,10 +462,10 @@ void BuildSerialPacket() {
 
 	if ( shared->serialTrigger == "drive" ) {
 		// Build string32
-		shared->serialPacket0
+		shared->Serial.packetOut
 			= std::string( "E" ) + ( shared->Amplifier.isAmplifierActive ? "1" : "0" ) + "A" + shared->PadValues( shared->Controller.commandedPwmABC.x, 4 ) + "B" + shared->PadValues( shared->Controller.commandedPwmABC.y, 4 ) + "C" + shared->PadValues( shared->Controller.commandedPwmABC.z, 4 ) + "X";
 	} else if ( shared->serialTrigger == "reset" ) {
-		shared->serialPacket0 = "E0RX";
-		shared->serialTrigger = "drive";
+		shared->Serial.packetOut = "E0RX";
+		shared->serialTrigger	 = "drive";
 	}
 }

@@ -17,6 +17,7 @@ public:
 	ControllerClass( SystemDataManager& ctx );
 
 	void Update();
+	void Update4D() ;
 	void MapToContributionABC();
 
 private:

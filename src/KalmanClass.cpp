@@ -66,8 +66,8 @@ void KalmanClass::Initialize( const cv::Point3f& initialPos, float tInitial ) {
 
 
 	// Update flag
-	isInitialized				 = true;
-	shared->Target.isTargetReset = false;
+	isInitialized					= true;
+	shared->Telemetry.isTargetReset = false;
 }
 
 
@@ -81,13 +81,13 @@ void KalmanClass::Initialize( const cv::Point3f& initialPos, float tInitial ) {
 void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 
 
-	if ( shared->Target.isTargetReset ) {
+	if ( shared->Telemetry.isTargetReset ) {
 
 		// shared->timingTimestamp = 0.0f;
-		tCurrent					 = 0.0f;
-		tPrevious					 = 0.0f;
-		shared->Target.isTargetReset = false;
-		Initialize( shared->Target.positionUnfilteredMM, shared->timingTimestamp );
+		tCurrent						= 0.0f;
+		tPrevious						= 0.0f;
+		shared->Telemetry.isTargetReset = false;
+		Initialize( shared->Telemetry.positionUnfilteredMM, shared->Timing.elapsedRunningTime );
 		std::cout << "KalmanClass: Reset\n";
 		return;
 	}
@@ -126,14 +126,10 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	}
 
 	// Calculate integral term
-	cv::Point3f error		   = GetPosition();
-	float		errorMagnitude = cv::norm( cv::Point2f( error.x, error.y ) );
-	// std::cout << "Int: " << integralError << "\n" ;
+	cv::Point3f positionEstimate = GetPosition();
+	cv::Point3f error			 = positionEstimate - ( measuredPos * -1 );
+	float		errorMagnitude	 = cv::norm( cv::Point2f( error.x, error.y ) );
 
-	// // Update integral error
-	// integralError.x += error.x * dt;
-	// integralError.y += error.y * dt;
-	// integralError.z += error.z * dt;
 
 	// Only calculate if within a certain radius of the target
 	if ( errorMagnitude < 100.0f ) {

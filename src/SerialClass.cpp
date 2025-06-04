@@ -28,11 +28,9 @@ SerialClass::SerialClass( SystemDataManager& ctx, uint8_t nPorts )
 	nPortsOpen = nPorts;
 	if ( nPortsOpen == 1 ) {
 		InitializePort0();
-		shared->serialPortsOpen = 1;
 	} else if ( nPortsOpen == 2 ) {
 		InitializePort0();
 		InitializePort1();
-		shared->serialPortsOpen = 2;
 	} else {
 		std::cout << "SerialClass: Invalid number of ports to open!";
 	}
@@ -148,8 +146,8 @@ void SerialClass::InitializePort1() {
 
 
 void SerialClass::Send( const std::string& msg ) {
-	shared->serialPacket0 = msg + "\n";
-	ssize_t bytesWritten  = write( serialPort0, shared->serialPacket0.c_str(), shared->serialPacket0.size() );
+	shared->Serial.packetOut = msg + "\n";
+	ssize_t bytesWritten	 = write( serialPort0, shared->Serial.packetOut.c_str(), shared->Serial.packetOut.size() );
 	if ( bytesWritten < 0 ) {
 		std::cerr << "SerialClass:  Serial packet not sent.\n";
 	}
@@ -199,16 +197,19 @@ void SerialClass::CheckForPacket() {
 					// 01234567890123
 					// TE0A0B0C0D000X
 
+					// 01234567890123456
+					// TE0A00B00C00D000X
+
 					// Save packet
-					shared->serialPacket1 = packet;
+					shared->Serial.packetIn = packet;
 
 					// Parse packet
-					shared->Teensy.isTeensyResponding  = true;
-					shared->Teensy.isAmplifierResponding  = bool( std::stoi( packet.substr( 2, 1 ) ) );
-					shared->teensyMeasuredAmplfierOutput.x = std::stoi( packet.substr( 4, 1 ) );
-					shared->teensyMeasuredAmplfierOutput.y = std::stoi( packet.substr( 6, 1 ) );
-					shared->teensyMeasuredAmplfierOutput.z = std::stoi( packet.substr( 8, 1 ) );
-					shared->angleTheta					   = ( std::stoi( packet.substr( 10, 1 ) ) == 1 ? -1 : 1 ) * std::stoi( packet.substr( 11, 2 ) );
+					shared->Teensy.isTeensyResponding		= true;
+					shared->Teensy.isAmplifierResponding	= bool( std::stoi( packet.substr( 2, 1 ) ) );
+					shared->Teensy.measuredAmplfierOutput.x = std::stoi( packet.substr( 4, 2 ) );
+					shared->Teensy.measuredAmplfierOutput.y = std::stoi( packet.substr( 7, 2 ) );
+					shared->Teensy.measuredAmplfierOutput.z = std::stoi( packet.substr( 10, 2 ) );
+					shared->angleTheta						= ( std::stoi( packet.substr( 13, 1 ) ) == 1 ? -1 : 1 ) * std::stoi( packet.substr( 14, 2 ) );
 					// std::cout << "T: " << shared->timingTimestamp << " Theta: " << shared->angleTheta << "\n";
 					// Debug
 					// std::cout << "E:" << shared->teensyEnabled << " A:" << shared->teensyABC.x << " B:" << shared->teensyABC.y << " C:" << shared->teensyABC.z << "\n";
@@ -216,7 +217,7 @@ void SerialClass::CheckForPacket() {
 				} catch ( const std::exception& e ) {
 					// std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << e.what() << "\n";
 					// shared->controllerActive = false;
-					shared->serialPacket1				  = "INVALID!";
+					shared->Serial.packetIn			  = "INVALID!";
 					shared->Teensy.isTeensyResponding = false;
 				}
 
@@ -225,7 +226,7 @@ void SerialClass::CheckForPacket() {
 
 			} else {
 				// std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << "\n";
-				shared->serialPacket1				  = "INVALID!";
+				shared->Serial.packetIn			  = "INVALID!";
 				shared->Teensy.isTeensyResponding = false;
 				// shared->controllerActive = false;
 			}

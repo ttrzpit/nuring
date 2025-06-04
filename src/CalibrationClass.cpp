@@ -32,8 +32,8 @@ void CalibrationClass::Initialize() {
 		// Configure interface
 		cv::namedWindow( winCalibration, cv::WINDOW_AUTOSIZE );
 		cv::moveWindow( winCalibration, 3440, 0 );
-		shared->calibrationLoaded = true;
-		shared->Task.repetitionNumber	  = 0;
+		shared->calibrationLoaded	  = true;
+		shared->Task.repetitionNumber = 0;
 	}
 
 	// Clear window
@@ -58,19 +58,19 @@ void CalibrationClass::Initialize() {
 void CalibrationClass::Update() {
 
 	// Check if touch detected
-	if ( shared->touchDetected ) {
+	if ( shared->Touchscreen.isTouched ) {
 
-		calibrationPoints.push_back( shared->touchPosition - cv::Point3i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2, 0 ) );
-		calibrationZPoints.push_back( shared->Target.positionFilteredNewMM.z );
+		calibrationPoints.push_back( shared->Touchscreen.positionTouched - cv::Point3i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2, 0 ) );
+		calibrationZPoints.push_back( shared->Telemetry.positionFilteredNewMM.z );
 
 		// Debug output
-		std::cout << "Rep: " << shared->Task.repetitionNumber << " X: " << shared->touchPosition.x << " Y: " << shared->touchPosition.y << " Z: " << shared->touchPosition.z << "\n";
+		std::cout << "Rep: " << shared->Task.repetitionNumber << " X: " << shared->Touchscreen.positionTouched.x << " Y: " << shared->Touchscreen.positionTouched.y << " Z: " << shared->Touchscreen.positionTouched.z << "\n";
 
 		// Increment
 		shared->Task.repetitionNumber++;
 
 		// Reset touch flag
-		shared->touchDetected = false;
+		shared->Touchscreen.isTouched = false;
 
 		// Re-initialize
 		Initialize();
@@ -84,7 +84,7 @@ void CalibrationClass::End() {
 
 		std::cout << shared->Task.repetitionNumber << "!!!/n";
 		// Update console
-		shared->displayString = "CalibrationClass: Calibration complete!";
+		shared->Display.statusString = "CalibrationClass: Calibration complete!";
 
 		// Clear matc
 		matCalibration = CONFIG_colWhite;
@@ -153,7 +153,7 @@ void CalibrationClass::End() {
 			if ( !shared->calibrationComplete ) {
 				// Save image
 				std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
-				shared->displayString	  = "Saving file " + imageFilename;
+				shared->Display.statusString	  = "Saving file " + imageFilename;
 				cv::imwrite( imageFilename, matCalibration );
 				std::cout << "CalibrationClass:  Image saved at " << imageFilename << "\n";
 

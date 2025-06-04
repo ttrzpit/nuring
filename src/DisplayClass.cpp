@@ -26,7 +26,7 @@ DisplayClass::DisplayClass( SystemDataManager& ctx )
 		key_fontBody   = 0.55f;
 	} else if ( CONFIG_TYPE == "HighResolution" ) {
 		fontTitle	   = 0.6f;
-		fontHeader	   = 0.5f;
+		fontHeader	   = 0.45f;
 		fontBody	   = 0.45f;
 		key_fontHeader = 0.45f;
 		key_fontBody   = 0.4f;
@@ -45,20 +45,20 @@ void DisplayClass::Update() {
 	// shared->matFrameOverlay = 0;
 
 	// Copy video frame to overlay
-	shared->matFrameUndistorted.copyTo( shared->matFrameOverlay( cv::Rect( 0, 0, shared->matFrameUndistorted.cols, shared->matFrameUndistorted.rows ) ) );
+	shared->Capture.matFrameUndistorted.copyTo( shared->Display.matFrameOverlay( cv::Rect( 0, 0, shared->Capture.matFrameUndistorted.cols, shared->Capture.matFrameUndistorted.rows ) ) );
 
 
 	/** Draw GUI elements **/
 
 	// Draw detector crosshairs, changing colors based on if the target is present
-	cv::circle( shared->matFrameOverlay, CONFIG_CAM_CENTER, CONFIG_DET_RADIUS, ( shared->Target.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
-	cv::line( shared->matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_HEIGHT ), ( shared->Target.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
-	cv::line( shared->matFrameOverlay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_WIDTH, CONFIG_CAM_PRINCIPAL_Y ), ( shared->Target.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
+	cv::circle( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, CONFIG_DET_RADIUS, ( shared->Telemetry.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
+	cv::line( shared->Display.matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_HEIGHT ), ( shared->Telemetry.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
+	cv::line( shared->Display.matFrameOverlay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_WIDTH, CONFIG_CAM_PRINCIPAL_Y ), ( shared->Telemetry.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
 
 	// Draw motor axis
-	cv::line( shared->matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS35 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN35 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
-	cv::line( shared->matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS145 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN145 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
-	cv::line( shared->matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS270 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN270 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
+	cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS35 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN35 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
+	cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS145 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN145 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
+	cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS270 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN270 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
 
 
 
@@ -66,26 +66,27 @@ void DisplayClass::Update() {
 	// if ( shared->FLAG_FINGER_MARKER_FOUND ) {
 
 	// 	// Draw border and axis elements of finger marker
-	// 	cv::polylines( shared->matFrameOverlay, shared->fingerMarkerCorners, true, CONFIG_colCyaMd, 2 );
+	// 	cv::polylines( shared->Display.matFrameOverlay, shared->fingerMarkerCorners, true, CONFIG_colCyaMd, 2 );
 	// 	// cv::drawFrameAxes( shared->matFrameUndistorted, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, shared->fingerMarkerRotationVector, shared->fingerMarkerTranslationVector, CONFIG_MEDIUM_MARKER_WIDTH, 2 );
 	// }
 
 	// Draw information for target marker if present
-	if ( shared->Target.isTargetFound ) {
+	if ( shared->Telemetry.isTargetFound ) {
 
 		//Draw vector to center of target
-		cv::line( shared->matFrameOverlay, CONFIG_CAM_CENTER, shared->Target.screenPositionPX, CONFIG_colCyaMd, 2 );
+		cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, shared->Telemetry.screenPositionPX, CONFIG_colCyaMd, 2 );
 
 		// Draw border and axis elements of target marker
-		cv::polylines( shared->matFrameOverlay, shared->Target.cornersPX, true, CONFIG_colGreMd, 2 );
+		cv::polylines( shared->Display.matFrameOverlay, shared->Telemetry.cornersPX, true, CONFIG_colGreMd, 2 );
 		// cv::drawFrameAxes( shared->matFrameUndistorted, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, shared->targetMarkerRotationVector, shared->targetMarkerTranslationVector, CONFIG_LARGE_MARKER_WIDTH, 15 );
 
 		// Draw velocity
-		// cv::line( shared->matFrameOverlay, shared->targetMarkerScreenPosition, cv::Point2i( shared->targetMarkerScreenPosition.x + shared->targetMarkerVelocity3dNew.x * MM2PX, shared->targetMarkerScreenPosition.y - shared->targetMarkerVelocity3dNew.y * MM2PX ), CONFIG_colMagLt, 2 );
-		cv::line( shared->matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_CENTER.x - shared->Target.velocityFilteredNewMM.x * MM2PX / 2.0f, CONFIG_CAM_CENTER.y + shared->Target.velocityFilteredNewMM.y * MM2PX / 2.0f ), CONFIG_colMagLt, 2 );
+		// cv::line( shared->Display.matFrameOverlay, shared->targetMarkerScreenPosition, cv::Point2i( shared->targetMarkerScreenPosition.x + shared->targetMarkerVelocity3dNew.x * MM2PX, shared->targetMarkerScreenPosition.y - shared->targetMarkerVelocity3dNew.y * MM2PX ), CONFIG_colMagLt, 2 );
+		cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_CENTER.x - shared->Telemetry.velocityFilteredNewMM.x * MM2PX / 2.0f, CONFIG_CAM_CENTER.y + shared->Telemetry.velocityFilteredNewMM.y * MM2PX / 2.0f ), CONFIG_colMagLt, 2 );
 
 		// Graph velocity on screen
-		cv::line( shared->matFrameOverlay, cv::Point2i( shared->Target.screenPositionPX.x + shared->Target.velocityFilteredNewMM.x, CONFIG_CAM_CENTER.y + 100 ), cv::Point2i( shared->Target.screenPositionPX.x - shared->Target.velocityFilteredNewMM.x, CONFIG_CAM_CENTER.y + 100 ), CONFIG_colRedMd, 2 );
+		cv::line( shared->Display.matFrameOverlay, cv::Point2i( shared->Telemetry.screenPositionPX.x + shared->Telemetry.velocityFilteredNewMM.x, CONFIG_CAM_CENTER.y + 100 ), cv::Point2i( shared->Telemetry.screenPositionPX.x - shared->Telemetry.velocityFilteredNewMM.x, CONFIG_CAM_CENTER.y + 100 ),
+				  CONFIG_colRedMd, 2 );
 	}
 
 
@@ -94,8 +95,8 @@ void DisplayClass::Update() {
 	if ( shared->calibrationComplete ) {
 		// int newX = shared->calibrationOffsetPX.x - CONFIG_TOUCHSCREEN_CENTER.x + CONFIG_CAM_PRINCIPAL_X;
 		// int newY = shared->calibrationOffsetPX.y - CONFIG_TOUCHSCREEN_CENTER.y + CONFIG_CAM_PRINCIPAL_Y - 20 * MM2PX;
-		// cv::circle( shared->matFrameOverlay, cv::Point2i( newX, newY ), 10 * MM2PX, CONFIG_colGreLt, 2 );
-		// cv::circle( shared->matFrameOverlay, shared->, 10 * MM2PX, CONFIG_colGreLt, 2 );
+		// cv::circle( shared->Display.matFrameOverlay, cv::Point2i( newX, newY ), 10 * MM2PX, CONFIG_colGreLt, 2 );
+		// cv::circle( shared->Display.matFrameOverlay, shared->, 10 * MM2PX, CONFIG_colGreLt, 2 );
 	}
 
 	// Add text
@@ -115,8 +116,10 @@ void DisplayClass::Update() {
  */
 void DisplayClass::ShowInterface() {
 
+	// Catch mouse
+	cv::setMouseCallback( winInterface, DisplayClass::onMouse, this );
 	// Show image
-	cv::imshow( winInterface, shared->matFrameOverlay );
+	cv::imshow( winInterface, shared->Display.matFrameOverlay );
 	// cv::imshow( "Raw", shared->matFrameUndistorted );
 
 	// Output confirmation
@@ -134,87 +137,266 @@ void DisplayClass::AddText() {
 
 	// Telemetry
 	// Position
-	DrawCell( "TELEMETRY", "A1", 9, 1, fontTitle, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( std::to_string( shared->Target.activeID ), "A2", 1, 2, fontBody * 3, CONFIG_colWhite, ( shared->Target.isTargetFound ? CONFIG_colGreBk : CONFIG_colBlack ), true );
-	DrawCell( "Position", "B2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[mm]", "B3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "x", "A4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "y", "A5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "z", "A6", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "Rxy", "A7", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "Rxyz", "A8", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCellBorder( "A1", 9, 8, 2, CONFIG_colWhite );
-	DrawCell( std::to_string( int( shared->Target.positionFilteredNewMM.x ) ), "B4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Target.positionFilteredNewMM.y ) ), "B5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Target.positionFilteredNewMM.z ) ), "B6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->GetNorm2D( cv::Point2f( shared->Target.positionFilteredNewMM.x, shared->Target.positionFilteredNewMM.y ) ) ) ), "B7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->GetNorm3D( shared->Target.positionFilteredNewMM ) ) ), "B8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "TELEMETRY", "A1", 8, 1, fontTitle, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawCell( std::to_string( shared->Telemetry.activeID ), "A2", 2, 2, fontBody * 3, CONFIG_colWhite, ( shared->Telemetry.isTargetFound ? CONFIG_colGreBk : CONFIG_colBlack ), true );
+	DrawCell( "Position", "C2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[mm]", "C3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "x", "A4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "y", "A5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "z", "A6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Rxy", "A7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Rxyz", "A8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( int( shared->Telemetry.positionFilteredNewMM.x ) ), "C4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->Telemetry.positionFilteredNewMM.y ) ), "C5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->Telemetry.positionFilteredNewMM.z ) ), "C6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->GetNorm2D( cv::Point2f( shared->Telemetry.positionFilteredNewMM.x, shared->Telemetry.positionFilteredNewMM.y ) ) ) ), "C7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->GetNorm3D( shared->Telemetry.positionFilteredNewMM ) ) ), "C8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Velocity
-	DrawCell( "Velocity", "D2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[mm/s]", "D3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->Target.velocityFilteredNewMM.x ) ), "D4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Target.velocityFilteredNewMM.y ) ), "D5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Target.velocityFilteredNewMM.z ) ), "D6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->GetNorm2D( cv::Point2f( shared->Target.velocityFilteredNewMM.x, shared->Target.velocityFilteredNewMM.y ) ) ) ), "D7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->GetNorm3D( shared->Target.velocityFilteredNewMM ) ) ), "D8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Velocity", "E2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[mm/s]", "E3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( int( shared->Telemetry.velocityFilteredNewMM.x ) ), "E4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->Telemetry.velocityFilteredNewMM.y ) ), "E5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->Telemetry.velocityFilteredNewMM.z ) ), "E6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->GetNorm2D( cv::Point2f( shared->Telemetry.velocityFilteredNewMM.x, shared->Telemetry.velocityFilteredNewMM.y ) ) ) ), "E7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->GetNorm3D( shared->Telemetry.velocityFilteredNewMM ) ) ), "E8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
-	// Polar Coordinates
-	DrawCell( "Polar", "F2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "Magnitude", "F3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( RAD2DEG * atan2( shared->Target.positionFilteredNewMM.y, shared->Target.positionFilteredNewMM.x ) ) ), "F4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Target.velocityFilteredNewMM.y ) ), "F5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Target.velocityFilteredNewMM.z ) ), "F6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// Integrated Error
+	DrawCell( "Integr.", "G2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[mm]", "G3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Telemetry.positionIntegratedMM.x, 1, 0 ), "G4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Telemetry.positionIntegratedMM.y, 1, 0 ), "G5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Telemetry.positionIntegratedMM.z, 1, 0 ), "G6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "xx", "G7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "xx", "G8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
-	// Integral
-	DrawCell( "Integral E", "F2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[mm]", "F3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.accumulatedIntegralError.x, 3, 1 ), "F4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.accumulatedIntegralError.y, 3, 1 ), "F5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	// Angle
-	DrawCell( "Theta E", "H2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[deg]", "H3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	// DrawCell( std::to_string( int( shared->targetMarkerAngleNew.x * RAD2DEG ) ), "H4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	// DrawCell( std::to_string( int( shared->targetMarkerAngleNew.y * RAD2DEG ) ), "H5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	// DrawCell( "Theta dE", "H2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	// DrawCell( "[deg/s]", "H3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	// DrawCell( std::to_string( int( shared->targetMarkerAnglularVelocityNew.x * RAD2DEG ) ), "H4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	// DrawCell( std::to_string( int( shared->targetMarkerAnglularVelocityNew.y * RAD2DEG ) ), "H5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	// Frequency
-	DrawCell( "Frequency [Hz]", "F6", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( std::to_string( int( shared->timingFrequency ) ), "F7", 4, 1, fontBody * 1.5, CONFIG_colWhite, ( shared->timingFrequency > 60 ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
+
 
 	// Controller
-	DrawCell( "Controller", "J1", 12, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( "Kp", "J2", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[?]", "J3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerKp.x, 1, 1 ), "J4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerKp.y, 1, 1 ), "J5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Ki", "K2", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[?]", "K3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerKi.x, 2, 1 ), "K4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerKi.y, 2, 1 ), "K5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Kd", "L2", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[?]", "L3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerKd.x, 2, 1 ), "L4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerKd.y, 2, 1 ), "L5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "CONTROLLER", "I1", 17, 1, fontTitle, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawCell( "Freq", "I2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( int( shared->Timing.measuredFrequency ) ), "I3", 2, 1, fontBody, CONFIG_colWhite, ( shared->Timing.measuredFrequency > 60 ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
+	DrawCell( "ABB", "I4", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "ADD", "I5", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "FLEX", "I6", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "EXT", "I7", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Kp", "K2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[u]", "K3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.abb, 1, 1 ), "K4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.add, 1, 1 ), "K5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.flex, 1, 1 ), "K6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.ext, 1, 1 ), "K7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Ki", "M2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[u]", "M3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.abb, 1, 1 ), "M4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.add, 1, 1 ), "M5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.flex, 1, 1 ), "M6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.ext, 1, 1 ), "M7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Kd", "O2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[u]", "O3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.abb, 1, 2 ), "O4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.add, 1, 2 ), "O5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.flex, 1, 2 ), "O6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.ext, 1, 2 ), "O7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "x", "Q4", 1, 2, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "y", "Q6", 1, 2, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Kp*E", "R2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[u]", "R3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.proportionalTerm.x, 1, 1 ), "R4", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.proportionalTerm.y, 1, 1 ), "R6", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Ki*IE", "T2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[u]", "T3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.integralTerm.x, 1, 1 ), "T4", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.integralTerm.y, 1, 1 ), "T6", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Kp*dE", "V2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[u]", "V3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.derivativeTerm.x, 1, 1 ), "V4", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.derivativeTerm.y, 1, 1 ), "V6", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Total", "X2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[u]", "X3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.combinedPIDTerms.x, 1, 1 ), "X4", 2, 2, fontBody * 1.5f, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.combinedPIDTerms.y, 1, 1 ), "X6", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
-	DrawCell( "Kp*E", "M2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[?*mm]", "M3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerProportinalTerm.x, 1, 1 ), "M4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerProportinalTerm.y, 1, 1 ), "M5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Ki*iE", "O2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[?*mm]", "O3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerIntegralTerm.x, 1, 1 ), "O4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerIntegralTerm.y, 1, 1 ), "O5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Kd*dE", "Q2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[?*mm/s]", "Q3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerDerivativeTerm.x, 1, 1 ), "Q4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerDerivativeTerm.y, 1, 1 ), "Q5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Total", "S2", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[?]", "S3", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->controllerTotalTerm.x, 1, 1 ), "S4", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->controllerTotalTerm.y, 1, 1 ), "S5", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// System Flags
+	DrawCell( "Limits", "I8", 2, 1, fontHeader, CONFIG_colWhite, shared->Controller.isLimitSet ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( "Calib:", "K8", 2, 1, fontHeader, CONFIG_colWhite, shared->Controller.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( std::to_string( shared->Controller.calibratedOffetMM.x ), "M8", 1, 1, fontHeader, CONFIG_colWhite, shared->Controller.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( std::to_string( shared->Controller.calibratedOffetMM.y ), "N8", 1, 1, fontHeader, CONFIG_colWhite, shared->Controller.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( std::to_string( shared->Controller.calibratedOffetMM.z ), "O8", 1, 1, fontHeader, CONFIG_colWhite, shared->Controller.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( "Teensy In", "P8", 3, 1, fontHeader, CONFIG_colWhite, shared->Serial.isSerialReceiveOpen ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( "Teensy Out", "S8", 3, 1, fontHeader, CONFIG_colWhite, shared->Serial.isSerialSendOpen ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( "Amplifier ", "V8", 4, 1, fontHeader, CONFIG_colWhite, shared->Amplifier.isAmplifierActive ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+
+
+
+	// Controller
+	DrawCell( "AMPLIFIER", "Z1", 15, 1, fontTitle, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawCell( "A", "Z4", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "B", "Z5", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "C", "Z6", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Tension", "AA2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "%", "AA3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.x * 100.0, 3, 1 ), "AA4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.y * 100.0, 3, 1 ), "AA5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.z * 100.0, 3, 1 ), "AA6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Total", "AC2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "%", "AC3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentage.x * 100.0, 3, 1 ), "AC4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentage.y * 100.0, 3, 1 ), "AC5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentage.z * 100.0, 3, 1 ), "AC6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Max", "AE2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[%]", "AE3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentageLimit.x * 100.0f, 3, 1 ), "AE4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentageLimit.y * 100.0f, 3, 1 ), "AE5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentageLimit.z * 100.0f, 3, 1 ), "AE6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "PWM", "AG2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "[duty]", "AG3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( shared->Controller.commandedPwmABC.x ), "AG4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( shared->Controller.commandedPwmABC.y ), "AG5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( shared->Controller.commandedPwmABC.z ), "AG6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+
+	// Motor Output Block
+	cv::Point2i center( 1184, 1100 + 117 );
+	float		motorR = 80.0f;
+
+	limA = shared->Controller.commandedPercentageLimit.x * motorR;
+	limB = shared->Controller.commandedPercentageLimit.y * motorR;
+	limC = shared->Controller.commandedPercentageLimit.z * motorR;
+
+
+	// Motor limits
+	if ( shared->Controller.isLimitSet ) {
+		cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS35 * limA, center.y - SIN35 * limA ), CONFIG_colGraDk, 10 );
+		cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS145 * limB, center.y - SIN145 * limB ), CONFIG_colGraDk, 10 );
+		cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * limC ), CONFIG_colGraDk, 10 );
+	}
+
+	// Motor segments
+	cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS35 * motorR, center.y - SIN35 * motorR ), CONFIG_colGraLt, 1 );
+	cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS145 * motorR, center.y - SIN145 * motorR ), CONFIG_colGraLt, 1 );
+	cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * motorR ), CONFIG_colGraLt, 1 );
+
+
+	// /// Lines connecting motor pairs
+	// cv::line( shared->Display.matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->Controller.commandedPercentage.x * 60.0f ), center.y - SIN35 * ( shared->Controller.commandedPercentage.x * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->Controller.commandedPercentage.z * 60.0f ) ),
+	// 		  CONFIG_colRedMd, 1 );
+	// cv::line( shared->Display.matFrameOverlay, cv::Point2i( center.x + COS145 * ( shared->Controller.commandedPercentage.y * 60.0f ), center.y - SIN145 * ( shared->Controller.commandedPercentage.y * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->Controller.commandedPercentage.z * 60.0f ) ),
+	// 		  CONFIG_colRedMd, 1 );
+	// cv::line( shared->Display.matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->Controller.commandedPercentage.x * 60.0f ), center.y - SIN35 * ( shared->Controller.commandedPercentage.x * 60.0f ) ),
+	// 		  cv::Point2i( center.x + COS145 * ( shared->Controller.commandedPercentage.y * 60.0f ), center.y - SIN145 * ( shared->Controller.commandedPercentage.y * 60.0f ) ), CONFIG_colRedMd, 1 );
+	// Active lines
+	cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + std::clamp( float( COS35 * ( shared->Controller.commandedPercentage.x * motorR ) ), 0.0f, motorR ), center.y - std::clamp( float( SIN35 * ( shared->Controller.commandedPercentage.x * motorR ) ), 0.0f, motorR ) ),
+			  CONFIG_colRedMd, 10 );
+	cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + std::clamp( float( COS145 * ( shared->Controller.commandedPercentage.y * motorR ) ), -60.0f, motorR ), center.y - std::clamp( float( SIN145 * ( shared->Controller.commandedPercentage.y * motorR ) ), 0.0f, motorR ) ),
+			  CONFIG_colGreDk, 10 );
+	cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( shared->Controller.commandedPercentage.z * motorR ) ), CONFIG_colBluMd, 10 );
+
+	// Teensy response lines
+	if ( shared->Teensy.isAmplifierResponding && shared->Teensy.isTeensyResponding ) {
+		cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS35 * ( ( shared->Teensy.measuredAmplfierOutput.x / 100.0 ) * motorR ), center.y - SIN35 * ( ( shared->Teensy.measuredAmplfierOutput.x / 100.0 ) * motorR ) ), CONFIG_colRedLt, 4 );
+		cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS145 * ( ( shared->Teensy.measuredAmplfierOutput.y / 100.0 ) * motorR ), center.y - SIN145 * ( ( shared->Teensy.measuredAmplfierOutput.y / 100.0 ) * motorR ) ), CONFIG_colGreLt, 4 );
+		cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( ( shared->Teensy.measuredAmplfierOutput.z / 100.0 ) * motorR ) ), CONFIG_colBluLt, 4 );
+	}
+	// Motor output circles
+	cv::circle( shared->Display.matFrameOverlay, center, motorR, ( shared->Amplifier.isAmplifierActive ? CONFIG_colGreDk : CONFIG_colGraDk ), 2 );
+	cv::circle( shared->Display.matFrameOverlay, center, ( shared->Amplifier.isAmplifierActive ? 6 : 2 ), ( shared->Amplifier.isAmplifierActive ? CONFIG_colGreDk : CONFIG_colGraDk ), -1 );
+
+
+
+	// Serial I/O
+	DrawCell( "Sending", "Z7", 3, 1, fontHeader, CONFIG_colWhite, shared->Serial.isSerialSending ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( "Receiving", "Z8", 3, 1, fontHeader, CONFIG_colWhite, shared->Serial.isSerialReceiving ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( shared->Serial.isSerialSending ? shared->Serial.packetOut.substr( 0, shared->Serial.packetOut.length() - 1 ) : "Not sending", "AC7", 6, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->Serial.isSerialReceiving ? shared->Serial.packetIn.substr( 0, shared->Serial.packetIn.length() - 1 ) : "Not receiving", "AC8", 6, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Task
+	DrawCell( "TASK MONITOR", "AO1", 10, 1, fontTitle, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawCell( "Name", "AO2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->Task.isRunning ? shared->Task.name : "No task running", "AQ2", 4, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "User ID", "AU2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( shared->Task.userID ), "AW2", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "Time", "AO3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( shared->FormatDecimal( shared->Task.runningTime, 2, 3 ), "AQ3", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	DrawCell( "Touchscreen", "AO8", 4, 1, fontHeader, CONFIG_colWhite, shared->Touchscreen.isTouched ? CONFIG_colGreBk : CONFIG_colGraBk, true );
+	DrawCell( "x", "AS8", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( shared->Touchscreen.positionTouched.x ), "AT8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "y", "AV8", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( std::to_string( shared->Touchscreen.positionTouched.y ), "AW8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+
+	// DrawCell( shared->FormatDecimal( shared->Controller..abb, 1, 1 ), "U4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.derivativeTerm.add, 1, 1 ), "U5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.derivativeTerm.flex, 1, 1 ), "U6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.derivativeTerm.ext, 1, 1 ), "U7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+
+
+	// DrawCell( "dErr", "S2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "U%", "S2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+
+
+	// DrawCell( shared->FormatDecimal( shared->Controller.accumulatedIntegralError.y, 3, 1 ), "F5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Polar Coordinates
+	// DrawCell( "Polar", "F2", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "R", "F3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( std::to_string( int( RAD2DEG * atan2( shared->Target.positionFilteredNewMM.y, shared->Target.positionFilteredNewMM.x ) ) ), "G3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Th", "F4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( std::to_string( int( shared->Target.velocityFilteredNewMM.y ) ), "F5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( std::to_string( int( shared->Target.velocityFilteredNewMM.z ) ), "F6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// // Integral
+	// DrawCell( "Integral E", "F2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[mm]", "F3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.accumulatedIntegralError.x, 3, 1 ), "F4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.accumulatedIntegralError.y, 3, 1 ), "F5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// // Angle
+	// DrawCell( "Theta E", "H2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[deg]", "H3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// // DrawCell( std::to_string( int( shared->targetMarkerAngleNew.x * RAD2DEG ) ), "H4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// // DrawCell( std::to_string( int( shared->targetMarkerAngleNew.y * RAD2DEG ) ), "H5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// // DrawCell( "Theta dE", "H2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// // DrawCell( "[deg/s]", "H3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// // DrawCell( std::to_string( int( shared->targetMarkerAnglularVelocityNew.x * RAD2DEG ) ), "H4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// // DrawCell( std::to_string( int( shared->targetMarkerAnglularVelocityNew.y * RAD2DEG ) ), "H5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// // Frequency
+	// DrawCell( "Frequency [Hz]", "F6", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
+	// DrawCell( std::to_string( int( shared->timingFrequency ) ), "F7", 4, 1, fontBody * 1.5, CONFIG_colWhite, ( shared->timingFrequency > 60 ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
+
+	// // Controller
+	// DrawCell( "Controller", "J1", 12, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
+	// DrawCell( "Kp", "J2", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[?]", "J3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerKp.x, 1, 1 ), "J4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerKp.y, 1, 1 ), "J5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Ki", "K2", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[?]", "K3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerKi.x, 2, 1 ), "K4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerKi.y, 2, 1 ), "K5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Kd", "L2", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[?]", "L3", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerKd.x, 2, 1 ), "L4", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerKd.y, 2, 1 ), "L5", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// DrawCell( "Kp*E", "M2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[?*mm]", "M3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerProportinalTerm.x, 1, 1 ), "M4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerProportinalTerm.y, 1, 1 ), "M5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Ki*iE", "O2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[?*mm]", "O3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerIntegralTerm.x, 1, 1 ), "O4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerIntegralTerm.y, 1, 1 ), "O5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Kd*dE", "Q2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[?*mm/s]", "Q3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerDerivativeTerm.x, 1, 1 ), "Q4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerDerivativeTerm.y, 1, 1 ), "Q5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Total", "S2", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[?]", "S3", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerTotalTerm.x, 1, 1 ), "S4", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->controllerTotalTerm.y, 1, 1 ), "S5", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 
 	// DrawCell( "Kd*dE", "R2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -227,92 +409,70 @@ void DisplayClass::AddText() {
 	// DrawCell( shared->FormatDecimal( shared->controllerTotalTerm.y, 2, 2 ), "T5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Serial Interface
-	DrawCell( "Serial Out", "J6", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( shared->Serial.isSerialSending ? "Enabled" : "Disabled", "M6", 3, 1, fontBody, CONFIG_colWhite, ( shared->Serial.isSerialSending ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
-	DrawCell( shared->Serial.isSerialSending ? shared->serialPacket0.substr( 0, shared->serialPacket0.length() - 1 ) : "---", "J7", 6, 1, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Serial In", "P6", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( shared->Serial.isSerialReceiving ? "Enabled" : "Disabled", "S6", 3, 1, fontBody, CONFIG_colWhite, ( shared->Serial.isSerialReceiving ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
-	DrawCell( shared->Serial.isSerialReceiving ? shared->serialPacket1.substr( 0, shared->serialPacket1.length() - 1 ) : "---", "P7", 6, 1, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Serial Out", "J6", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
+	// DrawCell( shared->Serial.isSerialSending ? "Enabled" : "Disabled", "M6", 3, 1, fontBody, CONFIG_colWhite, ( shared->Serial.isSerialSending ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
+	// DrawCell( shared->Serial.isSerialSending ? shared->serialPacket0.substr( 0, shared->serialPacket0.length() - 1 ) : "---", "J7", 6, 1, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Serial In", "P6", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
+	// DrawCell( shared->Serial.isSerialReceiving ? "Enabled" : "Disabled", "S6", 3, 1, fontBody, CONFIG_colWhite, ( shared->Serial.isSerialReceiving ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
+	// DrawCell( shared->Serial.isSerialReceiving ? shared->serialPacket1.substr( 0, shared->serialPacket1.length() - 1 ) : "---", "P7", 6, 1, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, true );
 
-	// Amplifier
-	DrawCell( "Amplifier", "V1", 13, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( ( shared->Amplifier.isAmplifierActive && shared->Teensy.isAmplifierResponding ) ? "ON" : "OFF", "V2", 1, 2, fontBody, CONFIG_colWhite, ( shared->Amplifier.isAmplifierActive ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
-	DrawCell( "A", "V4", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "B", "V5", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "C", "V6", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "Tension", "W2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[%I]", "W3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.x, 2, 2 ), "W4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.y, 2, 2 ), "W5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.z, 2, 2 ), "W6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Torque", "Y2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[mN*m]", "Y3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.torqueABC.x, 2, 2 ), "Y4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.torqueABC.y, 2, 2 ), "Y5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.torqueABC.z, 2, 2 ), "Y6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "Current", "AA2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[A]", "AA3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedCurrentABC.x, 2, 2 ), "AA4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedCurrentABC.y, 2, 2 ), "AA5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedCurrentABC.z, 2, 2 ), "AA6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "PWM", "AC2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "[duty]", "AC3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->Controller.commandedPwmABC.x ) ), "AC4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Controller.commandedPwmABC.y ) ), "AC5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Controller.commandedPwmABC.z ) ), "AC6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// // Amplifier
+	// DrawCell( "Amplifier", "V1", 13, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
+	// DrawCell( ( shared->Amplifier.isAmplifierActive && shared->Teensy.isAmplifierResponding ) ? "ON" : "OFF", "V2", 1, 2, fontBody, CONFIG_colWhite, ( shared->Amplifier.isAmplifierActive ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
+	// DrawCell( "A", "V4", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "B", "V5", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "C", "V6", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "Tension", "W2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[%I]", "W3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.x, 2, 2 ), "W4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.y, 2, 2 ), "W5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.z, 2, 2 ), "W6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Torque", "Y2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[mN*m]", "Y3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.torqueABC.x, 2, 2 ), "Y4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.torqueABC.y, 2, 2 ), "Y5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.torqueABC.z, 2, 2 ), "Y6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "Current", "AA2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[A]", "AA3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.commandedCurrentABC.x, 2, 2 ), "AA4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.commandedCurrentABC.y, 2, 2 ), "AA5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( shared->FormatDecimal( shared->Controller.commandedCurrentABC.z, 2, 2 ), "AA6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( "PWM", "AC2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( "[duty]", "AC3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( std::to_string( int( shared->Controller.commandedPwmABC.x ) ), "AC4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( std::to_string( int( shared->Controller.commandedPwmABC.y ) ), "AC5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawCell( std::to_string( int( shared->Controller.commandedPwmABC.z ) ), "AC6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
-	// Teensy
-	DrawCell( "Teensy Status", "V7", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( ( shared->Serial.isSerialSending && shared->Teensy.isTeensyResponding ) ? "Serial Connected" : "Serial Disconnected", "Y7", 3, 1, fontBody, CONFIG_colWhite, ( ( shared->Serial.isSerialSending && shared->Teensy.isTeensyResponding ) ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
-	DrawCell( ( shared->Teensy.isAmplifierResponding ? "Amplifiers On" : "Amplifiers Off" ), "AB7", 3, 1, fontBody, CONFIG_colWhite, ( shared->Teensy.isAmplifierResponding ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
-
-	// Motor Output Block
-	cv::Point2i center( 960 + 64, 1221 + 66 );
-	cv::rectangle( shared->matFrameOverlay, cv::Rect2i( cv::Point2i( 960, 1221 ), cv::Point2i( 1089, 1354 ) ), CONFIG_colWhite, 1 );
-	// Gray background
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS35 * 60, center.y - SIN35 * 60 ), CONFIG_colGraBk, 2 );
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS145 * 60, center.y - SIN145 * 60 ), CONFIG_colGraBk, 2 );
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * 60 ), CONFIG_colGraBk, 2 );
-	// Teensy lines
-	if ( shared->Teensy.isAmplifierResponding && shared->Teensy.isTeensyResponding ) {
-		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS35 * ( ( shared->teensyMeasuredAmplfierOutput.x / 10.0 ) * 60.0f ), center.y - SIN35 * ( ( shared->teensyMeasuredAmplfierOutput.x / 10.0 ) * 60.0f ) ), CONFIG_colRedLt, 8 );
-		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS145 * ( ( shared->teensyMeasuredAmplfierOutput.y / 10.0 ) * 60.0f ), center.y - SIN145 * ( ( shared->teensyMeasuredAmplfierOutput.y / 10.0 ) * 60.0f ) ), CONFIG_colGreLt, 8 );
-		cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( ( shared->teensyMeasuredAmplfierOutput.z / 10.0 ) * 60.0f ) ), CONFIG_colBluLt, 8 );
-	}
-	/// Lines connecting motor pairs
-	cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->Controller.commandedPercentage.x * 60.0f ), center.y - SIN35 * ( shared->Controller.commandedPercentage.x * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->Controller.commandedPercentage.z * 60.0f ) ),
-			  CONFIG_colRedMd, 1 );
-	cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS145 * ( shared->Controller.commandedPercentage.y * 60.0f ), center.y - SIN145 * ( shared->Controller.commandedPercentage.y * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->Controller.commandedPercentage.z * 60.0f ) ),
-			  CONFIG_colRedMd, 1 );
-	cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->Controller.commandedPercentage.x * 60.0f ), center.y - SIN35 * ( shared->Controller.commandedPercentage.x * 60.0f ) ),
-			  cv::Point2i( center.x + COS145 * ( shared->Controller.commandedPercentage.y * 60.0f ), center.y - SIN145 * ( shared->Controller.commandedPercentage.y * 60.0f ) ), CONFIG_colRedMd, 1 );
-	// Active lines
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + std::clamp( float( COS35 * ( shared->Controller.commandedPercentage.x * 60.0f ) ), 0.0f, 60.0f ), center.y - std::clamp( float( SIN35 * ( shared->Controller.commandedPercentage.x * 60.0f ) ), 0.0f, 60.0f ) ), CONFIG_colRedMd,
-			  2 );
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + std::clamp( float( COS145 * ( shared->Controller.commandedPercentage.y * 60.0f ) ), -60.0f, 0.0f ), center.y - std::clamp( float( SIN145 * ( shared->Controller.commandedPercentage.y * 60.0f ) ), 0.0f, 60.0f ) ), CONFIG_colGreDk,
-			  2 );
-	cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( shared->Controller.commandedPercentage.z * 60.0f ) ), CONFIG_colBluMd, 2 );
-	// Motor output circles
-	cv::circle( shared->matFrameOverlay, center, 60, ( shared->Amplifier.isAmplifierActive ? CONFIG_colGreDk : CONFIG_colGraDk ), 1 );
-	cv::circle( shared->matFrameOverlay, center, ( shared->Amplifier.isAmplifierActive ? 6 : 2 ), ( shared->Amplifier.isAmplifierActive ? CONFIG_colGreDk : CONFIG_colGraDk ), -1 );
-
-	// Calibration Block
-	DrawCell( "Calibration", "AI1", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( "X [mm]", "AI2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->calibrationOffsetMM.x ) ), "AK2", 1, 1, fontBody, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
-	DrawCell( "Y [mm]", "AI3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->calibrationOffsetMM.y ) ), "AK3", 1, 1, fontBody, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
-	DrawCell( "Z [mm]", "AI4", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->calibrationOffsetMM.z ) ), "AK4", 1, 1, fontBody, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
+	// // Teensy
+	// DrawCell( "Teensy Status", "V7", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( ( shared->Serial.isSerialSending && shared->Teensy.isTeensyResponding ) ? "Serial Connected" : "Serial Disconnected", "Y7", 3, 1, fontBody, CONFIG_colWhite, ( ( shared->Serial.isSerialSending && shared->Teensy.isTeensyResponding ) ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
+	// DrawCell( ( shared->Teensy.isAmplifierResponding ? "Amplifiers On" : "Amplifiers Off" ), "AB7", 3, 1, fontBody, CONFIG_colWhite, ( shared->Teensy.isAmplifierResponding ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
 
 
-	// // // Status block
-	DrawCell( "System Status", "A9", 4, 2, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( shared->displayString, "E9", 36, 2, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCellBorder( "A9", 40, 2, 2, CONFIG_colWhite );
+	// // Calibration Block
+	// DrawCell( "Calibration", "AI1", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraDk, true );
+	// DrawCell( "X [mm]", "AI2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( std::to_string( int( shared->calibrationOffsetMM.x ) ), "AK2", 1, 1, fontBody, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
+	// DrawCell( "Y [mm]", "AI3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( std::to_string( int( shared->calibrationOffsetMM.y ) ), "AK3", 1, 1, fontBody, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
+	// DrawCell( "Z [mm]", "AI4", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	// DrawCell( std::to_string( int( shared->calibrationOffsetMM.z ) ), "AK4", 1, 1, fontBody, CONFIG_colWhite, ( shared->calibrationComplete ? CONFIG_colGreBk : CONFIG_colRedDk ), true );
+
+
+	// Status block
+	DrawCell( shared->Display.statusString, "A9", 50, 2, fontBody * 1.5, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Section borders
+	DrawCellBorder( "A1", 8, 8, 2, CONFIG_colWhite );	   // Telemetry
+	DrawCellBorder( "I1", 17, 7, 2, CONFIG_colWhite );	   // Controller
+	DrawCellBorder( "Z1", 15, 8, 2, CONFIG_colWhite );	   // Amplifier
+	DrawCellBorder( "AO1", 10, 8, 2, CONFIG_colWhite );	   // Task
+	DrawCellBorder( "A9", 50, 2, 2, CONFIG_colWhite );	   // System status text
+	DrawCellBorder( "I8", 2, 1, 2, CONFIG_colWhite );	   // System flags: Limits
+	DrawCellBorder( "P8", 6, 1, 2, CONFIG_colWhite );	   // System flags: Serial
 
 	// Line on the right side to satisfy my OCD
-	cv::line( shared->matFrameOverlay, cv::Point2i( 1598, CONFIG_PANEL_HEIGHT ), cv::Point2i( 1598, 1360 ), CONFIG_colWhite, 1 );
+	cv::line( shared->Display.matFrameOverlay, cv::Point2i( 1598, CONFIG_PANEL_HEIGHT ), cv::Point2i( 1598, 1360 ), CONFIG_colWhite, 1 );
 }
 
 /**
@@ -526,24 +686,24 @@ void DisplayClass::AddText() {
 // 	// // Motor Output Block
 // 	// cv::Point2i center( 1440 + 80, 1222 + 66 );
 // 	// DrawCell( "Motor Output", "AK1", 4, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-// 	// // cv::rectangle( shared->matFrameOverlay, cv::Rect2i( cv::Point2i( 1440, 1222 ), cv::Point2i( 1600, 1354 ) ), CONFIG_colVioMd, 1 );
-// 	// cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS35 * 60, center.y - SIN35 * 60 ), CONFIG_colGraBk, 2 );
-// 	// cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS145 * 60, center.y - SIN145 * 60 ), CONFIG_colGraBk, 2 );
-// 	// cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * 60 ), CONFIG_colGraBk, 2 );
+// 	// // cv::rectangle( shared->Display.matFrameOverlay, cv::Rect2i( cv::Point2i( 1440, 1222 ), cv::Point2i( 1600, 1354 ) ), CONFIG_colVioMd, 1 );
+// 	// cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS35 * 60, center.y - SIN35 * 60 ), CONFIG_colGraBk, 2 );
+// 	// cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS145 * 60, center.y - SIN145 * 60 ), CONFIG_colGraBk, 2 );
+// 	// cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * 60 ), CONFIG_colGraBk, 2 );
 
-// 	// cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS35 * ( shared->controllerPercentage.x * 60.0f ), center.y - SIN35 * ( shared->controllerPercentage.x * 60.0f ) ), CONFIG_colRedMd, 2 );
-// 	// cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x + COS145 * ( shared->controllerPercentage.y * 60.0f ), center.y - SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), CONFIG_colRedMd, 2 );
-// 	// cv::line( shared->matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 2 );
+// 	// cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS35 * ( shared->controllerPercentage.x * 60.0f ), center.y - SIN35 * ( shared->controllerPercentage.x * 60.0f ) ), CONFIG_colRedMd, 2 );
+// 	// cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS145 * ( shared->controllerPercentage.y * 60.0f ), center.y - SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), CONFIG_colRedMd, 2 );
+// 	// cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 2 );
 
 // 	// /// Lines connecting motor pairs
-// 	// cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->controllerPercentage.x * 60.0f ), center.y - SIN35 * ( shared->controllerPercentage.x * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 1 );
-// 	// cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS145 * ( shared->controllerPercentage.y * 60.0f ), center.y - SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 1 );
-// 	// cv::line( shared->matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->controllerPercentage.x * 60.0f ), center.y - SIN35 * ( shared->controllerPercentage.x * 60.0f ) ),
+// 	// cv::line( shared->Display.matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->controllerPercentage.x * 60.0f ), center.y - SIN35 * ( shared->controllerPercentage.x * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 1 );
+// 	// cv::line( shared->Display.matFrameOverlay, cv::Point2i( center.x + COS145 * ( shared->controllerPercentage.y * 60.0f ), center.y - SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), cv::Point2i( center.x, center.y - SIN270 * ( shared->controllerPercentage.z * 60.0f ) ), CONFIG_colRedMd, 1 );
+// 	// cv::line( shared->Display.matFrameOverlay, cv::Point2i( center.x + COS35 * ( shared->controllerPercentage.x * 60.0f ), center.y - SIN35 * ( shared->controllerPercentage.x * 60.0f ) ),
 // 	// 		  cv::Point2i( center.x + COS145 * ( shared->controllerPercentage.y * 60.0f ), center.y - SIN145 * ( shared->controllerPercentage.y * 60.0f ) ), CONFIG_colRedMd, 1 );
 
 // 	// // Motor output circles
-// 	// cv::circle( shared->matFrameOverlay, center, 60, ( shared->FLAG_CONTROLLER_ACTIVE ? CONFIG_colGreDk : CONFIG_colGraDk ), 1 );
-// 	// cv::circle( shared->matFrameOverlay, center, ( shared->FLAG_CONTROLLER_ACTIVE ? 6 : 2 ), ( shared->FLAG_CONTROLLER_ACTIVE ? CONFIG_colGreDk : CONFIG_colGraDk ), -1 );
+// 	// cv::circle( shared->Display.matFrameOverlay, center, 60, ( shared->FLAG_CONTROLLER_ACTIVE ? CONFIG_colGreDk : CONFIG_colGraDk ), 1 );
+// 	// cv::circle( shared->Display.matFrameOverlay, center, ( shared->FLAG_CONTROLLER_ACTIVE ? 6 : 2 ), ( shared->FLAG_CONTROLLER_ACTIVE ? CONFIG_colGreDk : CONFIG_colGraDk ), -1 );
 
 // 	// // // Trial blocks
 // 	// // Participant Block
@@ -610,8 +770,8 @@ void DisplayClass::DrawCell( std::string str, std::string cell0, short width, sh
 
 
 	// Draw cell frame
-	cv::rectangle( shared->matFrameOverlay, cv::Rect( c0, r0, cW, rH ), fillColor, -1 );
-	cv::rectangle( shared->matFrameOverlay, cv::Rect( c0, r0 - 1, cW + 1, rH + 1 ), CONFIG_colWhite, 1 );
+	cv::rectangle( shared->Display.matFrameOverlay, cv::Rect( c0, r0, cW, rH ), fillColor, -1 );
+	cv::rectangle( shared->Display.matFrameOverlay, cv::Rect( c0, r0 - 1, cW + 1, rH + 1 ), CONFIG_colWhite, 1 );
 
 	// Calculate text dimensions
 	if ( sz == fontBody ) {
@@ -631,9 +791,9 @@ void DisplayClass::DrawCell( std::string str, std::string cell0, short width, sh
 
 	// Place text
 	if ( sz == fontBody ) {
-		cv::putText( shared->matFrameOverlay, str, cv::Point( textX, textY ), cv::FONT_HERSHEY_SIMPLEX, sz, textColor, 1 );
+		cv::putText( shared->Display.matFrameOverlay, str, cv::Point( textX, textY ), cv::FONT_HERSHEY_SIMPLEX, sz, textColor, 1 );
 	} else {
-		cv::putText( shared->matFrameOverlay, str, cv::Point( textX, textY ), cv::FONT_HERSHEY_DUPLEX, sz, textColor, 1 );
+		cv::putText( shared->Display.matFrameOverlay, str, cv::Point( textX, textY ), cv::FONT_HERSHEY_DUPLEX, sz, textColor, 1 );
 	}
 }
 
@@ -656,7 +816,7 @@ void DisplayClass::DrawCellBorder( std::string cell0, short width, short height,
 
 
 	// Draw cell frame
-	cv::rectangle( shared->matFrameOverlay, cv::Rect( c0, r0 - 1, cW + 1, rH + 1 ), CONFIG_colWhite, thickness );
+	cv::rectangle( shared->Display.matFrameOverlay, cv::Rect( c0, r0 - 1, cW + 1, rH + 1 ), CONFIG_colWhite, thickness );
 }
 
 
@@ -829,8 +989,8 @@ void DisplayClass::UpdateVisualizer() {
 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), ProjectIsometric( cv::Point3i( 1000, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
 
 	// Calculate camera + marker positions
-	cv::Point3i p3D		= cv::Point3i( shared->Target.positionFilteredNewMM.x, shared->Target.positionFilteredNewMM.y, shared->Target.positionFilteredNewMM.z );
-	cv::Point3i p3DInv	= cv::Point3i( shared->Target.positionFilteredNewMM.z, -shared->Target.positionFilteredNewMM.y, shared->Target.positionFilteredNewMM.x );
+	cv::Point3i p3D		= cv::Point3i( shared->Telemetry.positionFilteredNewMM.x, shared->Telemetry.positionFilteredNewMM.y, shared->Telemetry.positionFilteredNewMM.z );
+	cv::Point3i p3DInv	= cv::Point3i( shared->Telemetry.positionFilteredNewMM.z, -shared->Telemetry.positionFilteredNewMM.y, shared->Telemetry.positionFilteredNewMM.x );
 	int			ptSizeX = int( float( ( 1000.0 - ( p3D.x + vizLimXY ) ) / 1000.0 ) * 10.0 );
 	int			ptSizeY = int( float( ( 1000.0 - ( -1 * p3D.y + vizLimXY ) ) / 1000.0 ) * 10.0 );
 	int			ptSizeZ = int( float( ( 1000.0 - p3D.z ) / 1000.0 ) * 10.0 );
@@ -846,7 +1006,7 @@ void DisplayClass::UpdateVisualizer() {
 
 
 	// Create color gradient
-	float zClamped = std::clamp( shared->Target.positionFilteredNewMM.z, 0.0f, 1000.0f );
+	float zClamped = std::clamp( shared->Telemetry.positionFilteredNewMM.z, 0.0f, 1000.0f );
 	// float intensity = 128.0f * ( zClamped / 1000.0f );
 
 	// Add current point to trail
@@ -1044,7 +1204,7 @@ void DisplayClass::UpdateAngle() {
 
 	// Velocity Line
 	// cv::Point2i endPtVel( int( cos( ( shared->angleFiltered + shared->angleVelocity + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleFiltered + shared->angleVelocity + 270 ) * DEG2RAD ) * radius ) );
-	cv::Point2i endPtVel( int( shared->Target.velocityFilteredNewMM.x * MM2PX ), int( shared->Target.velocityFilteredNewMM.x * MM2PX ) );
+	cv::Point2i endPtVel( int( shared->Telemetry.velocityFilteredNewMM.x * MM2PX ), int( shared->Telemetry.velocityFilteredNewMM.x * MM2PX ) );
 	cv::line( matAngles, midPt, midPt + endPtVel, CONFIG_colBluWt, 2 );
 
 
@@ -1064,12 +1224,12 @@ void DisplayClass::UpdateAngle() {
 	cv::putText( matAngles, "Error [deg]: ", cv::Point2i( 20, 120 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
 	cv::putText( matAngles, shared->FormatDecimal( shared->angleFiltered - shared->angleDesired, 2, 2 ), cv::Point2i( 300, 120 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
 
-	if ( shared->touchDetected == 1 ) {
+	if ( shared->Touchscreen.isTouched == 1 ) {
 
 		// Save image
 		if ( shared->Logging.isLoggingEnabled ) {
-			std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
-			shared->displayString	  = "Saving file " + imageFilename;
+			std::string imageFilename	 = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
+			shared->Display.statusString = "Saving file " + imageFilename;
 			cv::imwrite( imageFilename, matAngles );
 			std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
 		}
@@ -1118,5 +1278,102 @@ void DisplayClass::CheckOptions() {
 		// 	cv::destroyWindow( winAngle );
 		// 	shared->angleLoaded = false;
 		// }
+	}
+}
+
+void DisplayClass::onMouse( int event, int x, int y, int flags, void* userData ) {
+
+	DisplayClass* self = static_cast<DisplayClass*>( userData );
+
+	// if ( event == cv::EVENT_MOUSEMOVE ) {
+	// 	std::cout << "Mouse: " << x << " , " << y << " \n";
+	// }
+
+
+	if ( event == cv::EVENT_MOUSEWHEEL ) {
+
+		int delta = cv::getMouseWheelDelta( flags ) * -1;
+
+		if ( y > 1178 && y < 1204 ) {	 // AB
+
+			if ( x > 320 && x < 384 ) {	   // P
+				self->shared->Controller.gainKp.abb += delta * 0.1f;
+			} else if ( x > 384 && x < 448 ) {	  // I
+				self->shared->Controller.gainKi.abb += delta * 0.1f;
+			} else if ( x > 448 && x < 512 ) {	  // D
+				self->shared->Controller.gainKd.abb += delta * 0.01f;
+			} else if ( x > 834 && x < 898 ) {	  // Tension
+				self->shared->Controller.commandedTensionABC.x += delta * 0.01f;
+			}
+		} else if ( y > 1204 && y < 1230 ) {	// AD
+			if ( x > 320 && x < 384 ) {			// P
+				self->shared->Controller.gainKp.add += delta * 0.1f;
+			} else if ( x > 384 && x < 448 ) {	  // I
+				self->shared->Controller.gainKi.add += delta * 0.1f;
+			} else if ( x > 448 && x < 512 ) {	  // D
+				self->shared->Controller.gainKd.add += delta * 0.01f;
+			} else if ( x > 834 && x < 898 ) {	  // Tension
+				self->shared->Controller.commandedTensionABC.y += delta * 0.01f;
+			}
+
+		} else if ( y > 1230 && y < 1256 ) {	// FLEX
+			if ( x > 320 && x < 384 ) {			// P
+				self->shared->Controller.gainKp.flex += delta * 0.1f;
+			} else if ( x > 384 && x < 448 ) {	  // I
+				self->shared->Controller.gainKi.flex += delta * 0.1f;
+			} else if ( x > 448 && x < 512 ) {	  // D
+				self->shared->Controller.gainKd.flex += delta * 0.01f;
+			} else if ( x > 834 && x < 898 ) {	  // Tension
+				self->shared->Controller.commandedTensionABC.z += delta * 0.01f;
+			}
+		} else if ( y > 1256 && y < 1286 ) {	// Ext
+			if ( x > 320 && x < 384 ) {			// P
+				self->shared->Controller.gainKp.ext += delta * 0.1f;
+			} else if ( x > 384 && x < 448 ) {	  // I
+				self->shared->Controller.gainKi.ext += delta * 0.1f;
+			} else if ( x > 448 && x < 512 ) {	  // D
+				self->shared->Controller.gainKd.ext += delta * 0.01f;
+			}
+		}
+	}
+
+	// Zero out values
+	if ( event == cv::EVENT_MBUTTONDOWN ) {
+
+		if ( y > 1178 && y < 1204 ) {	 // AB
+
+			if ( x > 320 && x < 384 ) {	   // P
+				self->shared->Controller.gainKp.abb = 0.0f;
+			} else if ( x > 384 && x < 448 ) {	  // I
+				self->shared->Controller.gainKi.abb = 0.0f;
+			} else if ( x > 448 && x < 512 ) {	  // D
+				self->shared->Controller.gainKd.abb = 0.0f;
+			}
+		} else if ( y > 1204 && y < 1230 ) {	// AD
+			if ( x > 320 && x < 384 ) {			// P
+				self->shared->Controller.gainKp.add = 0.0f;
+			} else if ( x > 384 && x < 448 ) {	  // I
+				self->shared->Controller.gainKi.add = 0.0f;
+			} else if ( x > 448 && x < 512 ) {	  // D
+				self->shared->Controller.gainKd.add = 0.0f;
+			}
+
+		} else if ( y > 1230 && y < 1256 ) {	// FLEX
+			if ( x > 320 && x < 384 ) {			// P
+				self->shared->Controller.gainKp.flex = 0.0f;
+			} else if ( x > 384 && x < 448 ) {	  // I
+				self->shared->Controller.gainKi.flex = 0.0f;
+			} else if ( x > 448 && x < 512 ) {	  // D
+				self->shared->Controller.gainKd.flex = 0.0f;
+			}
+		} else if ( y > 1256 && y < 1286 ) {	// Ext
+			if ( x > 320 && x < 384 ) {			// P
+				self->shared->Controller.gainKp.ext = 0.0f;
+			} else if ( x > 384 && x < 448 ) {	  // I
+				self->shared->Controller.gainKi.ext = 0.0f;
+			} else if ( x > 448 && x < 512 ) {	  // D
+				self->shared->Controller.gainKd.ext = 0.0f;
+			}
+		}
 	}
 }

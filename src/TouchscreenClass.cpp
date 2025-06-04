@@ -67,7 +67,7 @@ void TouchscreenClass::ParseClick() {
 			// Discrimination
 			break;
 		case 2:	   // Fitts
-			if ( shared->touchDetected == 1 ) {
+			if ( shared->Touchscreen.isTouched == 1 ) {
 				shared->Task.command = 'c';
 			} else {
 				shared->Task.command = 0;
@@ -100,16 +100,16 @@ void TouchscreenClass::ProcessEvents() {
 				XIDeviceEvent* xie = ( XIDeviceEvent* )event.xcookie.data;
 				// std::cout << "Touch ID " << xie->detail << " @ (" << xie->event_x << ", " << xie->event_y << ")\n";
 
-				shared->touchPosition.x = xie->event_x - 3440;
-				shared->touchPosition.y = xie->event_y - 32;
+				shared->Touchscreen.positionTouched.x = xie->event_x - 3440;
+				shared->Touchscreen.positionTouched.y = xie->event_y - 32;
 
 				// Optional: update Z state
 				if ( event.xcookie.evtype == XI_TouchBegin ) {	  // Touch begin
 					// shared->touchPosition.z = 1;
-					shared->touchDetected = true;
+					shared->Touchscreen.isTouched = true;
 				} else if ( event.xcookie.evtype == XI_TouchEnd ) {	   // Touch end
 					// shared->touchPosition.z = 0;
-					shared->touchDetected = false;
+					shared->Touchscreen.isTouched = false;
 				}
 				// shared->touchPosition.z = ( event.xcookie.evtype == XI_TouchEnd ) ? 0 : 1;
 			}

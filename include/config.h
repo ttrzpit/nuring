@@ -21,7 +21,7 @@ inline const std::string CONFIG_TYPE = "HighResolution";
 inline constexpr unsigned short CONFIG_PANEL_HEIGHT	   = 1100;
 inline constexpr unsigned short CONFIG_DIS_WIDTH	   = 1600;
 inline constexpr unsigned short CONFIG_DIS_HEIGHT	   = 1360;
-inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH  = 40;    // 32
+inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH  = 32;    // 32
 inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT = 26;	// 26
 
 // Display keyboard shortcut panel

@@ -24,11 +24,12 @@ public:
 	TimingClass( SystemDataManager& dataHandle );
 
 	// Public functions
-	void		StartTimer();
-	void		UpdateTimer();
-	void		TaskTimerStart();
-	void		TaskTimerEnd();
+	void StartTimer();
+	void UpdateTimer();
+	void TaskTimerStart();
+	void TaskTimerEnd();
 	void GetTimestamp();
+	void UpdateTaskTime() ; 
 
 private:
 	// Data manager handle
@@ -42,6 +43,9 @@ private:
 	std::chrono::steady_clock::time_point previousTimeFreq;
 	std::chrono::duration<double>		  elapsedTime;
 	std::chrono::duration<double>		  elapsedTimeFreq;
+
+	std::chrono::steady_clock::time_point currentTaskTime;
+	std::chrono::steady_clock::time_point previousTaskTime;
 	std::chrono::steady_clock::time_point taskTimeStart;
 	std::chrono::steady_clock::time_point taskTimeEnd;
 	std::chrono::duration<double>		  taskTimeElapsed;

@@ -61,7 +61,7 @@ void FittsClass::UpdateAngle() {
 	if ( shared->Task.isRunning == true ) {
 
 		// Check if touchscreen pressed
-		if ( shared->touchDetected == 1 ) {
+		if ( shared->Touchscreen.isTouched == 1 ) {
 			EndAngleTest();
 			shared->Task.isRunning = false;
 		}
@@ -79,7 +79,7 @@ void FittsClass::EndAngleTest() {
 	timer.TaskTimerEnd();
 
 	// Update console
-	shared->displayString = "FittsClass: Angle test complete.";
+	shared->Display.statusString = "FittsClass: Angle test complete.";
 
 
 	// Update
@@ -190,7 +190,7 @@ void FittsClass::GenerateRandomY() {
 
 void FittsClass::GenerateRandomXY() {
 
-	shared->Target.isTargetFound = false;
+	shared->Telemetry.isTargetFound = false;
 	// Calculate marker boundaries
 	unsigned short minX = 0 + CONFIG_FITTS_SCREEN_EXCLUSION_ZONE;
 	unsigned short maxX = CONFIG_FITTS_SCREEN_WIDTH - CONFIG_FITTS_SCREEN_EXCLUSION_ZONE - 72;
@@ -211,7 +211,7 @@ void FittsClass::GenerateFixedXY() {
 	unsigned short minY = 0 + 72;
 	unsigned short maxY = CONFIG_FITTS_SCREEN_HEIGHT - CONFIG_FITTS_SCREEN_EXCLUSION_ZONE - 93;
 
-	shared->fittsMarkerPosition = shared->Target.screenPositionPX;
+	shared->fittsMarkerPosition = shared->Telemetry.screenPositionPX;
 
 
 	// shared->fittsMarkerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) ) - matAruco01.cols / 2;
@@ -310,7 +310,7 @@ void FittsClass::GenerateTestVelocity() {
 	shared->fittsMarkerPosition.x = fittsPosition.x;
 	shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows );
 	// std::cout << shared->timingTimestamp << "," << fittsPosition.x * PX2MM << "," << shared->targetMarkerPosition3dRaw.x << "," << shared->targetMarkerPosition3dNew.x << "\n";
-	std::cout << "t:" << shared->timingTimestamp << " \t v:" << shared->Target.velocityFilteredNewMM.x << "\n";
+	std::cout << "t:" << shared->Timing.elapsedRunningTime << " \t v:" << shared->Telemetry.velocityFilteredNewMM.x << "\n";
 
 
 	// Clear the screen
@@ -330,17 +330,17 @@ void FittsClass::EndTest() {
 	timer.TaskTimerEnd();
 
 	// Update console
-	shared->displayString = "FittsClass: Test complete.";
+	shared->Display.statusString = "FittsClass: Test complete.";
 
 	// Save touchpoint
-	touchPosition = cv::Point2i( shared->touchPosition.x, shared->touchPosition.y );
+	touchPosition = cv::Point2i( shared->Touchscreen.positionTouched.x, shared->Touchscreen.positionTouched.y );
 
 	// Draw marker
 	cv::circle( matBackground, touchPosition, 20, CONFIG_colRedMd, 2 );
 
 	// Draw lines from target to touch
 	cv::Point2i tagCenter = cv::Point2i( shared->fittsMarkerPosition.x + ( matAruco01.cols / 2 ), shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) );
-	cv::Point2i tagTouch  = cv::Point( shared->touchPosition.x, shared->touchPosition.y );
+	cv::Point2i tagTouch  = cv::Point( shared->Touchscreen.positionTouched.x, shared->Touchscreen.positionTouched.y );
 	cv::line( matBackground, tagCenter, cv::Point( tagCenter.x, tagTouch.y ), CONFIG_colRedLt, 2 );
 	cv::line( matBackground, cv::Point( tagCenter.x, tagTouch.y ), cv::Point( tagTouch.x, tagTouch.y ), CONFIG_colRedLt, 2 );
 	cv::line( matBackground, tagCenter, tagTouch, CONFIG_colRedMd, 2 );
@@ -378,7 +378,7 @@ void FittsClass::EndTest() {
 	// Save image
 	if ( shared->Logging.isLoggingEnabled ) {
 		std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
-		shared->displayString	  = "Saving file " + imageFilename;
+		shared->Display.statusString	  = "Saving file " + imageFilename;
 		cv::imwrite( imageFilename, matBackground );
 		std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
 	}
@@ -406,7 +406,7 @@ void FittsClass::Update() {
 		if ( shared->fittsActiveAxis == 'v' ) {
 
 			float timestep = 0.01f;
-			currentStep	   = static_cast<int>( shared->timingTimestamp / timestep );
+			currentStep	   = static_cast<int>( shared->Timing.elapsedRunningTime / timestep );
 
 			if ( currentStep != lastTriggerStep ) {
 				lastTriggerStep = currentStep;
@@ -415,7 +415,7 @@ void FittsClass::Update() {
 		}
 
 		// Check if touchscreen pressed
-		if ( shared->touchDetected == 1 ) {
+		if ( shared->Touchscreen.isTouched == 1 ) {
 			EndTest();
 			shared->Task.isRunning = false;
 		}

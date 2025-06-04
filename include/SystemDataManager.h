@@ -26,6 +26,13 @@ struct Point4f {
 	float add  = 0.0f;
 	float flex = 0.0f;
 	float ext  = 0.0f;
+
+	// // Constructor
+	// Point4f( float a, float d, float f, float e )
+	// 	: abb( a )
+	// 	, add( d )
+	// 	, flex( f )
+	// 	, ext( e ) { }
 };
 
 
@@ -39,34 +46,55 @@ struct ArUcoStruct {
 	// bool isArUcoTagFound = false;
 };
 
-struct CameraStruct {
+struct CaptureStruct {
 	bool	isFrameReady = false;
 	cv::Mat frameRaw	 = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
 	cv::Mat frameGray	 = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
+
+	// OpenCV GPU matrices
+	cv::cuda::GpuMat GpuMatFrameRaw			= cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
+	cv::cuda::GpuMat GpuMatFrameGray		= cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC1 );
+	cv::cuda::GpuMat GpuMatFrameUndistorted = cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC1 );
+	cv::cuda::GpuMat GpuMatRemap1;
+	cv::cuda::GpuMat GpuMatRemap2;
+
+	// OpenCV image matrices
+	cv::Mat matFrameUndistorted = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
+	cv::Mat matRemap1;
+	cv::Mat matRemap2;
 };
 
 struct ControllerStruct {
 
-	cv::Point3f accumulatedIntegralError = cv::Point3f( 0.0f, 0.0f, 0.0f );
 	Point4f		gainKp;
 	Point4f		gainKi;
 	Point4f		gainKd;
-	Point4f		proportionalTerm;
-	Point4f		integralTerm;
-	Point4f		derivativeTerm;
-	Point4f		combinedPIDTerm;
-	cv::Point3i commandedPwmABC		= cv::Point3i( 0, 0, 0 );			  // Commanded PWM output
-	cv::Point3f commandedPercentage = cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Commanded percentage output
-	cv::Point3f commandedCurrentABC = cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Commanded current output
-	cv::Point3f commandedTensionABC = cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Commanded tension
-	cv::Point3f torqueABC			= cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Commanded torque
-	float		rampPercentage		= 0.00f;							  // Counter
-	float		rampStartTime		= 0.0f;								  // [s]
-	float		rampDurationTime	= 1.0f;								  // [s]
-	bool		isRampingUp			= false;
+	cv::Point3f proportionalTerm		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined proportional term
+	cv::Point3f integralTerm			 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined integral
+	cv::Point3f derivativeTerm			 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined derivative term
+	cv::Point3f combinedPIDTerms		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined PID terms
+	cv::Point3f combinedPIDTermPrev		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined PID terms
+	cv::Point3i commandedPwmABC			 = cv::Point3i( 0, 0, 0 );			   // Commanded PWM output
+	cv::Point3f commandedPercentage		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded percentage output
+	cv::Point3f commandedPercentageLimit = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Max percentage output
+	cv::Point3f commandedCurrentABC		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded current output
+	cv::Point3f commandedTensionABC		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded tension
+	cv::Point3f torqueABC				 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded torque
+	float		rampPercentage			 = 0.00f;							   // Counter
+	float		rampStartTime			 = 0.0f;							   // [s]
+	float		rampDurationTime		 = 1.0f;							   // [s]
+	bool		isRampingUp				 = false;							   // Is the motor ramping up?
+	bool		isLimitSet				 = false;							   // Are the motor limits set?
+	bool		isCalibrated			 = false;							   // Has the finger been calibrated?
+	cv::Point3i calibratedOffetMM		 = cv::Point3i( 0, 0, 0 );
 };
 
-struct DisplayStruct { };
+struct DisplayStruct {
+
+	// Matrix to display overlay
+	cv::Mat		matFrameOverlay = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_WIDTH, CV_8UC3 );
+	std::string statusString	= "";
+};
 
 struct KalmanFilterStruct {
 	cv::Mat pMatrix;
@@ -85,13 +113,15 @@ struct MainStruct {
 };
 
 struct SerialStruct {
-	bool isSerialSendOpen	 = false;
-	bool isSerialSending	 = false;
-	bool isSerialReceiveOpen = false;
-	bool isSerialReceiving	 = false;
+	bool		isSerialSendOpen	= false;
+	bool		isSerialSending		= false;
+	bool		isSerialReceiveOpen = false;
+	bool		isSerialReceiving	= false;
+	std::string packetOut			= "";
+	std::string packetIn			= "";
 };
 
-struct TargetStruct {
+struct TelemetryStruct {
 	int						 activeID			   = 1;	   // ID of target currently being tracked
 	bool					 isTargetReset		   = false;
 	bool					 isTargetFound		   = false;
@@ -102,10 +132,12 @@ struct TargetStruct {
 	cv::Point3f				 velocityFilteredNewMM = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] New 3D filtered position
 	cv::Point3f				 velocityFilteredOldMM = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] New 3D filtered position
 	std::vector<cv::Point2i> cornersPX			   = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	// Target corners in pixel space
+	cv::Point3f				 positionIntegratedMM  = cv::Point3f( 0.0f, 0.0f, 0.0f );
 };
 
 struct TaskStruct {
 	std::string name			 = "";		 // String name of task
+	float		runningTime		 = 0.0f;	 // Task running time
 	int			userID			 = 000;		 // Participant ID
 	int			repetitionNumber = 0;		 // Task rep number
 	char		command			 = 0;		 // Command
@@ -115,8 +147,23 @@ struct TaskStruct {
 
 
 struct TeensyStruct {
-	bool isTeensyResponding	   = false;
-	bool isAmplifierResponding = false;
+	bool		isTeensyResponding	   = false;
+	bool		isAmplifierResponding  = false;
+	cv::Point3i measuredAmplfierOutput = cv::Point3i( 0, 0, 0 );
+};
+
+struct TimingStruct {
+
+	short measuredFrequency	 = 45;		// Default timing frequency
+	float elapsedRunningTime = 0.0f;	// Elapsed time in seconds
+	float taskTimer			 = 0.0f;	// Elapsed time for current task
+	float timestepDT		 = 0.0f;
+};
+
+struct TouchscreenStruct {
+
+	cv::Point3i positionTouched = cv::Point3i( 0, 0, 0 );
+	bool		isTouched		= false;
 };
 
 
@@ -127,16 +174,85 @@ struct ManagedData {
 	// Structs
 	AmplifierStruct	   Amplifier;
 	ArUcoStruct		   Aruco;
-	CameraStruct	   Camera;
+	CaptureStruct	   Capture;
 	ControllerStruct   Controller;
 	DisplayStruct	   Display;
 	KalmanFilterStruct KalmanFilter;
 	LoggingStruct	   Logging;
 	MainStruct		   Main;
 	SerialStruct	   Serial;
-	TargetStruct	   Target;
+	TelemetryStruct	   Telemetry;
 	TaskStruct		   Task;
 	TeensyStruct	   Teensy;
+	TimingStruct	   Timing;
+	TouchscreenStruct  Touchscreen;
+
+
+
+	// Teensy variables
+
+
+	// Display variables
+
+
+	// Logging variables
+	std::string loggingFilename	 = "NULL";
+	std::string loggingHeader1	 = "Heading1";
+	std::string loggingHeader2	 = "Heading2";
+	std::string loggingHeader3	 = "Heading3";
+	std::string loggingHeader4	 = "Heading4";
+	std::string loggingHeader5	 = "Heading5";
+	std::string loggingVariable1 = "0";
+	std::string loggingVariable2 = "0";
+	std::string loggingVariable3 = "0";
+	std::string loggingVariable4 = "0";
+	std::string loggingVariable5 = "0";
+	std::string loggingTimestamp = "";
+
+	// Task variables
+	cv::Point3i fittsErrorPx		= cv::Point3i( 0, 0, 0 );
+	cv::Point3i fittsErrorMm		= cv::Point3i( 0, 0, 0 );
+	float		fittsCompletionTime = 0.0f;
+	short		fittsTestNumber		= 0;
+	cv::Point2i fittsMarkerPosition = cv::Point2i( 0, 0 );
+	char		fittsActiveAxis		= 'z';
+
+	// 3D Visualization
+	bool vizClear	= false;
+	bool vizEnabled = false;
+	bool vizLoaded	= false;
+
+	// 2D Angle Visualization
+	bool  angleEnabled	= false;
+	bool  angleLoaded	= false;
+	float angleTheta	= 0.0f;
+	float angleDesired	= 0.0f;
+	float angleFiltered = 0.0f;
+	float angleVelocity = 0.0f;
+
+	// Serial triggers
+	std::string serialTrigger = "drive";
+
+	// Calibration
+	bool		calibrationComplete = false;
+	cv::Point3i calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
+	cv::Point3i calibrationOffsetPX = cv::Point3i( 0, 0, 0 );
+	cv::Point2i calibrationScreenPX = cv::Point2i( 0, 0 );
+	bool		calibrationLoaded	= false;
+
+
+
+	// Helper functions
+	float		GetNorm2D( cv::Point2f pt1 );					   // Calculate magnitude of 2D vector
+	float		GetNorm3D( cv::Point3f pt1 );					   // Calculate magnitude of 3D vector
+	float		GetDist2D( cv::Point2f pt1, cv::Point2f pt2 );	   // Calculate magnitude of 2D distance between 2 points
+	float		GetDist3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate magnitude of 2D distance between 2 points
+	cv::Point2f GetDelta2D( cv::Point2f pt1, cv::Point2f pt2 );	   // Calculate the x,y delta beteen two points
+	cv::Point3f GetDelta3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate the x,y,z delta beteen two points
+	std::string FormatDecimal( float x, uint8_t p, uint8_t d );	   // Formats a float to xx.xxx
+	std::string PadValues( int val, int nZeroes );				   // Return a padded string
+	// int			MapInt( int x, int inMin, int inMax, int outMin, int outMax );					// Return a remapped integer
+	float MapFloat( float val, float inMin, float inMax, float outMin, float outMax );	  // Return a remapped float
 
 
 
@@ -200,101 +316,6 @@ struct ManagedData {
 	// char TASK_COMMAND	 = 0;		 // Task.command
 	// bool TASK_RUNNING  = false;	   // Task.isRunning
 	// bool TASK_COMPLETE = false;	   // Task.isComplete Trip when task is complete
-
-	// OpenCV image matrices
-	// cv::Mat matFrameRaw			= cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 ); // Camera.frameRaw
-	cv::Mat matFrameUndistorted = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
-	cv::Mat matFrameOverlay		= cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_WIDTH, CV_8UC3 );
-	cv::Mat matRemap1;
-	cv::Mat matRemap2;
-
-	// OpenCV GPU matrices
-	cv::cuda::GpuMat GpuMatFrameRaw			= cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
-	cv::cuda::GpuMat GpuMatFrameGray		= cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC1 );
-	cv::cuda::GpuMat GpuMatFrameUndistorted = cv::cuda::GpuMat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC1 );
-	cv::cuda::GpuMat GpuMatRemap1;
-	cv::cuda::GpuMat GpuMatRemap2;
-
-	// Timing variables
-	short timingFrequency = 45;
-	float timingTimestamp = 0.0f;
-	float timingTimestep  = 0.0f;
-
-	// Touchscreen variables
-	cv::Point3i touchPosition = cv::Point3i( 0, 0, 0 );
-	bool		touchDetected = false;
-
-	// Serial variables
-	std::string serialPacket0	= "";
-	std::string serialPacket1	= "";
-	uint8_t		serialPortsOpen = 0;
-
-	// Teensy variables
-	cv::Point3i teensyMeasuredAmplfierOutput = cv::Point3i( 0, 0, 0 );
-
-	// Display variables
-	std::string displayString = "";
-
-	// Logging variables
-	std::string loggingFilename	 = "NULL";
-	std::string loggingHeader1	 = "Heading1";
-	std::string loggingHeader2	 = "Heading2";
-	std::string loggingHeader3	 = "Heading3";
-	std::string loggingHeader4	 = "Heading4";
-	std::string loggingHeader5	 = "Heading5";
-	std::string loggingVariable1 = "0";
-	std::string loggingVariable2 = "0";
-	std::string loggingVariable3 = "0";
-	std::string loggingVariable4 = "0";
-	std::string loggingVariable5 = "0";
-	std::string loggingTimestamp = "";
-
-	// Task variables
-	cv::Point3i fittsErrorPx		= cv::Point3i( 0, 0, 0 );
-	cv::Point3i fittsErrorMm		= cv::Point3i( 0, 0, 0 );
-	float		fittsCompletionTime = 0.0f;
-	short		fittsTestNumber		= 0;
-	cv::Point2i fittsMarkerPosition = cv::Point2i( 0, 0 );
-	char		fittsActiveAxis		= 'z';
-
-	// 3D Visualization
-	bool vizClear	= false;
-	bool vizEnabled = false;
-	bool vizLoaded	= false;
-
-	// 2D Angle Visualization
-	bool  angleEnabled	= false;
-	bool  angleLoaded	= false;
-	float angleTheta	= 0.0f;
-	float angleDesired	= 0.0f;
-	float angleFiltered = 0.0f;
-	float angleVelocity = 0.0f;
-
-	// Serial triggers
-	std::string serialTrigger = "drive";
-
-	// Calibration
-	bool		calibrationComplete = false;
-	cv::Point3i calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
-	cv::Point3i calibrationOffsetPX = cv::Point3i( 0, 0, 0 );
-	cv::Point2i calibrationScreenPX = cv::Point2i( 0, 0 );
-	bool		calibrationLoaded	= false;
-
-
-
-	// Helper functions
-	float		GetNorm2D( cv::Point2f pt1 );					   // Calculate magnitude of 2D vector
-	float		GetNorm3D( cv::Point3f pt1 );					   // Calculate magnitude of 3D vector
-	float		GetDist2D( cv::Point2f pt1, cv::Point2f pt2 );	   // Calculate magnitude of 2D distance between 2 points
-	float		GetDist3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate magnitude of 2D distance between 2 points
-	cv::Point2f GetDelta2D( cv::Point2f pt1, cv::Point2f pt2 );	   // Calculate the x,y delta beteen two points
-	cv::Point3f GetDelta3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate the x,y,z delta beteen two points
-	std::string FormatDecimal( float x, uint8_t p, uint8_t d );	   // Formats a float to xx.xxx
-	std::string PadValues( int val, int nZeroes );				   // Return a padded string
-	// int			MapInt( int x, int inMin, int inMax, int outMin, int outMax );					// Return a remapped integer
-	float MapFloat( float val, float inMin, float inMax, float outMin, float outMax );	  // Return a remapped float
-
-
 
 	/** OLD VARIABLES */
 
