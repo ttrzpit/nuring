@@ -31,7 +31,7 @@ void InputClass::ParseInput( int key ) {
 			shared->Amplifier.isAmplifierActive = false;
 			shared->Serial.packetOut			= "DX\n";
 			// shared->FLAG_PACKET_WAITING		= true;
-			shared->Display.statusString			= "InputClass: Shutting down...";
+			shared->Display.statusString	= "InputClass: Shutting down...";
 			shared->Serial.isSerialSending	= false;
 			shared->Serial.isSerialSendOpen = false;
 
@@ -40,42 +40,42 @@ void InputClass::ParseInput( int key ) {
 			std::cout << "shutdown initiated.\n";
 			shared->Serial.packetOut = "DX\n";
 			// shared->FLAG_PACKET_WAITING = true;
-			shared->Main.isShuttingDown = true;
+			shared->System.isShuttingDown = true;
 			break;
 		}
 		case '0': {	   // '0'
-			shared->Telemetry.activeID = 0;
-			shared->Display.statusString	   = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 0 ? "0." : "0." );
+			shared->Telemetry.activeID	 = 0;
+			shared->Display.statusString = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 0 ? "0." : "0." );
 			break;
 		}
 		case '1': {	   // '1'
-			shared->Telemetry.activeID = 1;
-			shared->Display.statusString	   = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 1 ? "1." : "0." );
+			shared->Telemetry.activeID	 = 1;
+			shared->Display.statusString = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 1 ? "1." : "0." );
 			break;
 		}
 		case '2': {	   // '2'
-			shared->Telemetry.activeID = 2;
-			shared->Display.statusString	   = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 2 ? "2." : "0." );
+			shared->Telemetry.activeID	 = 2;
+			shared->Display.statusString = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 2 ? "2." : "0." );
 			break;
 		}
 		case '3': {	   // '3'
-			shared->Telemetry.activeID = 3;
-			shared->Display.statusString	   = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 3 ? "3." : "0." );
+			shared->Telemetry.activeID	 = 3;
+			shared->Display.statusString = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 3 ? "3." : "0." );
 			break;
 		}
 		case '4': {	   // '4'
-			shared->Telemetry.activeID = 4;
-			shared->Display.statusString	   = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 4 ? "4." : "0." );
+			shared->Telemetry.activeID	 = 4;
+			shared->Display.statusString = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 4 ? "4." : "0." );
 			break;
 		}
 		case '5': {	   // '5'
-			shared->Telemetry.activeID = 5;
-			shared->Display.statusString	   = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 5 ? "5." : "0." );
+			shared->Telemetry.activeID	 = 5;
+			shared->Display.statusString = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 5 ? "5." : "0." );
 			break;
 		}
 		case '`': {	   // ` (tilde)
-			shared->Display.statusString	   = "InputClass: Disabling all active markers.";
-			shared->Telemetry.activeID = 0;
+			shared->Display.statusString = "InputClass: Disabling all active markers.";
+			shared->Telemetry.activeID	 = 0;
 			break;
 		}
 		case 'a': {	   // 'e'
@@ -83,10 +83,12 @@ void InputClass::ParseInput( int key ) {
 			if ( shared->Amplifier.isAmplifierActive ) {
 				// shared->serialPacket		= "e\n";
 				// shared->FLAG_PACKET_WAITING = true;
+				shared->System.state		 = stateEnum::DRIVING_PWM;
 				shared->Display.statusString = "InputClass: Amplifiers enabled.";
 			} else {
-				shared->Serial.packetOut = "DX\n";
+				// shared->Serial.packetOut = "DX\n";
 				// shared->FLAG_PACKET_WAITING = true;
+				shared->System.state		 = stateEnum::IDLE;
 				shared->Display.statusString = "InputClass: Amplifiers disabled.";
 			}
 			break;
@@ -96,7 +98,7 @@ void InputClass::ParseInput( int key ) {
 			shared->Serial.isSerialSending	 = !shared->Serial.isSerialSending;
 			shared->Serial.isSerialReceiving = !shared->Serial.isSerialReceiving;
 			if ( shared->Serial.isSerialSending ) {
-				shared->Display.statusString				 = "InputClass: Enabling serial IO.";
+				shared->Display.statusString		 = "InputClass: Enabling serial IO.";
 				shared->Serial.isSerialSending		 = true;
 				shared->Serial.isSerialReceiving	 = true;
 				shared->Teensy.isAmplifierResponding = false;
@@ -106,7 +108,7 @@ void InputClass::ParseInput( int key ) {
 				shared->Serial.isSerialSending		 = false;
 				shared->Serial.isSerialReceiving	 = false;
 				shared->Teensy.isAmplifierResponding = false;
-				shared->Display.statusString				 = "InputClass: Disabling serial IO.";
+				shared->Display.statusString		 = "InputClass: Disabling serial IO.";
 			}
 			break;
 		}
@@ -122,9 +124,9 @@ void InputClass::ParseInput( int key ) {
 
 		// Reset gains
 		case 116: {	   // 'y'
-			shared->controllerKp = cv::Point3f( 0.0f, 0.0f, 0.0f );
-			shared->controllerKi = cv::Point3f( 0.0f, 0.0f, 0.0f );
-			shared->controllerKd = cv::Point3f( 0.0f, 0.0f, 0.0f );
+			shared->controllerKp		 = cv::Point3f( 0.0f, 0.0f, 0.0f );
+			shared->controllerKi		 = cv::Point3f( 0.0f, 0.0f, 0.0f );
+			shared->controllerKd		 = cv::Point3f( 0.0f, 0.0f, 0.0f );
 			shared->Display.statusString = "InputClass: Setting gains to 0";
 			break;
 		}
@@ -237,18 +239,18 @@ void InputClass::ParseInput( int key ) {
 			break;
 		}
 		case 122: {	   // 'z'
-			shared->vizClear	 = true;
+			shared->vizClear			 = true;
 			shared->Display.statusString = "InputClass: Resetting visualization trails.";
 			break;
 		}
 		case 99: {	  // 'c'
-			shared->Task.name			= "CALIB";
-			shared->calibrationComplete = false;
-			shared->Display.statusString		= "InputClass: Starting calibration.";
+			shared->Task.name			 = "CALIB";
+			shared->calibrationComplete	 = false;
+			shared->Display.statusString = "InputClass: Starting calibration.";
 			break;
 		}
 		case 118: {	   // 'v'
-			shared->vizEnabled	 = !shared->vizEnabled;
+			shared->vizEnabled			 = !shared->vizEnabled;
 			shared->Display.statusString = "InputClass: 3D Visualization " + std::string( shared->vizEnabled ? "enabled." : "disabled." );
 			break;
 		}
@@ -283,12 +285,12 @@ void InputClass::ParseInput( int key ) {
 		}
 		case 98: {	  // 'b'
 			shared->Touchscreen.isTouched = 1;
-			shared->Display.statusString		  = "InputClass: Ending angle test.";
+			shared->Display.statusString  = "InputClass: Ending angle test.";
 			break;
 		}
 		case 113: {	   // 'q'
-			shared->serialTrigger = "reset";
-			shared->Display.statusString  = "InputClass: Encoder reset.";
+			shared->System.state		 = stateEnum::MEASURING_LIMITS ;
+			shared->Display.statusString = "InputClass: Encoder reset.";
 			break;
 		}
 		default: {

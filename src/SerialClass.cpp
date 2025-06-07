@@ -16,6 +16,11 @@
 // System data manager
 #include "SystemDataManager.h"
 
+// Initialize buffer
+uint8_t SerialClass::buffer[32];
+
+
+
 /**
  * @brief Construct a new Serial Class:: Serial Class object
  * 
@@ -86,10 +91,6 @@ void SerialClass::InitializePort0() {
 	if ( tcsetattr( serialPort0, TCSANOW, &tty0 ) != 0 ) {
 		printf( "SerialClass:  Error %i from tcsetattr: %s\n", errno, strerror( errno ) );
 	}
-
-	// Send handshake packet to Teensy serial
-	std::string msg	   = "C_READY\n";
-	ssize_t		packet = write( serialPort0, msg.c_str(), msg.size() );
 }
 
 
@@ -137,21 +138,6 @@ void SerialClass::InitializePort1() {
 	if ( tcsetattr( serialPort1, TCSANOW, &tty1 ) != 0 ) {
 		printf( "SerialClass:  Error %i from tcsetattr: %s\n", errno, strerror( errno ) );
 	}
-
-	// Send handshake packet to Teensy serial
-	// std::string msg	   = "C_READY\n";
-	// ssize_t		packet = write( serialPort0, msg.c_str(), msg.size() );
-}
-
-
-
-void SerialClass::Send( const std::string& msg ) {
-	shared->Serial.packetOut = msg + "\n";
-	ssize_t bytesWritten	 = write( serialPort0, shared->Serial.packetOut.c_str(), shared->Serial.packetOut.size() );
-	if ( bytesWritten < 0 ) {
-		std::cerr << "SerialClass:  Serial packet not sent.\n";
-	}
-	// shared->serialPacket0 = "";
 }
 
 
@@ -161,83 +147,393 @@ void SerialClass::Close() {
 }
 
 
-int8_t SerialClass::Sign( int val ) {
-	return ( ( val < 0 ) ? 1 : 0 );
-}
+
+/** ==================================================
+ *  ================================================== 
+ * 
+ *  UU   UU  PPPPP    DDDDD      AAA    TTTTTT  EEEEEE 
+ *  UU   UU  PP   PP  DD   DD   AA AA     TT    EE    
+ *  UU   UU  PP   PP  DD   DD   AA AA     TT    EE  
+ *  UU   UU  PPPPP    DD   DD  AAAAAAA    TT    EEEEE    
+ *  UU   UU  PP       DD   DD  AA   AA    TT    EE    
+ *  UU   UU  PP       DD   DD  AA   AA    TT    EE    
+ *   UUUUU   PP       DDDDD    AA   AA    TT    EEEEEE 
+ * 
+ *  ================================================== 
+ *  ================================================== 
+*/
 
 
-void SerialClass::CheckForPacket() {
 
-	// Pre-allocate memory
-	// memset( buffer, 0, sizeof( buffer ) );	  // Unnecessary
+/**
+ * @brief Update serial interface
+ * 
+ */
+void SerialClass::Update() {
 
-	// Read serial bytes
-	int16_t bytesRead = read( serialPort1, buffer, sizeof( buffer ) - 1 );
+	// Make sure outgoing serial port is open and running
+	if ( shared->Serial.isSerialSendOpen && shared->Serial.isSerialSending ) {
 
-	// Check for valid packet
-	if ( bytesRead > 0 ) {
+		// Send packet
+		SendPacketToTeensy();
+	}
 
-		// Append
-		readBuffer.append( buffer, bytesRead );
-
-		// Look for new line character
-		size_t newLinePosition = readBuffer.find( '\n' );
-
-		// Read packet if terminator '\n' found
-		if ( newLinePosition != std::string::npos ) {
-
-			std::string packet = readBuffer.substr( 0, newLinePosition );
-			// std::cout << "Size: " << packet.size() << "   Head: " << packet[0] << "   Term: " << packet[packet.size() - 2] << "   A: " << packet.substr( 1, 2 ) << "   B: " << packet.substr( 4, 2 ) << "   C: " << packet.substr( 7, 2 ) << "\n";
-
-			// Make sure packet is valid before trying anything
-			if ( packet.size() >= 1 && packet[0] == 'T' && packet[packet.size() - 2] == 'X' ) {
-
-				try {
-
-					// 01234567890123
-					// TE0A0B0C0D000X
-
-					// 01234567890123456
-					// TE0A00B00C00D000X
-
-					// Save packet
-					shared->Serial.packetIn = packet;
-
-					// Parse packet
-					shared->Teensy.isTeensyResponding		= true;
-					shared->Teensy.isAmplifierResponding	= bool( std::stoi( packet.substr( 2, 1 ) ) );
-					shared->Teensy.measuredAmplfierOutput.x = std::stoi( packet.substr( 4, 2 ) );
-					shared->Teensy.measuredAmplfierOutput.y = std::stoi( packet.substr( 7, 2 ) );
-					shared->Teensy.measuredAmplfierOutput.z = std::stoi( packet.substr( 10, 2 ) );
-					shared->angleTheta						= ( std::stoi( packet.substr( 13, 1 ) ) == 1 ? -1 : 1 ) * std::stoi( packet.substr( 14, 2 ) );
-					// std::cout << "T: " << shared->timingTimestamp << " Theta: " << shared->angleTheta << "\n";
-					// Debug
-					// std::cout << "E:" << shared->teensyEnabled << " A:" << shared->teensyABC.x << " B:" << shared->teensyABC.y << " C:" << shared->teensyABC.z << "\n";
-
-				} catch ( const std::exception& e ) {
-					// std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << e.what() << "\n";
-					// shared->controllerActive = false;
-					shared->Serial.packetIn			  = "INVALID!";
-					shared->Teensy.isTeensyResponding = false;
-				}
-
-				// Remove processed packet
-				readBuffer.erase( 0, newLinePosition + 1 );	   // 🟡 spacing cleaned
-
-			} else {
-				// std::cerr << "SerialClass:  Error parsing packet [" << readBuffer.substr( 0, newLinePosition ) << "] on serial1: " << "\n";
-				shared->Serial.packetIn			  = "INVALID!";
-				shared->Teensy.isTeensyResponding = false;
-				// shared->controllerActive = false;
-			}
-
-			// Remove processed packet
-			readBuffer.erase( 0, newLinePosition + 1 );
-		}
-
-	} else if ( bytesRead < 0 && errno != EAGAIN ) {
-		std::cerr << "SerialClass:  Serial1 read error: " << strerror( errno ) << "\n";
+	// Make sure incoming serial port is open and running
+	if ( shared->Serial.isSerialReceiveOpen && shared->Serial.isSerialReceiving ) {
+		CheckForPacketFromTeensy();
 	}
 }
 
-void SerialClass::ParseIncomingPacket( std::string packet ) { }
+
+
+/** =============================================== 
+ *  =============================================== 
+ * 
+ *  SSSS   EEEEEE  NN   NN   DDDD  
+ * SS      EE      NNN  NN   DD  DD 
+ * SS      EE      NNN  NN   DD  DD 
+ *  SSSS   EEEE    NN NNNN   DD  DD 
+ *     SS  EE      NN  NNN   DD  DD 
+ *     SS  EE      NN   NN   DD  DD 
+ *  SSSS   EEEEEE  NN   NN   DDDD  
+ * 
+ *  =============================================== 
+ *  =============================================== 
+*/
+
+
+
+/**
+ * @brief Send outgoing packet
+ * 
+ */
+void SerialClass::SendPacketToTeensy() {
+
+	// Create new buffer
+	uint8_t buffer[32];
+
+	// Create new packet
+	PacketStruct outgoingPacket;
+	uint8_t		 outgoingType;
+
+
+	// Update packet counter
+	if ( shared->Amplifier.packetCounter == 99 ) {
+		shared->Amplifier.packetCounter = 0;
+	} else {
+		shared->Amplifier.packetCounter++;
+	}
+
+	// Build appropriate packet
+	switch ( shared->System.state ) {
+
+		// Idle
+		case stateEnum::IDLE: {
+
+			// Build packet
+			outgoingType   = 'I';
+			outgoingPacket = BuildOutgoingPacket( outgoingType );
+
+			break;
+		}
+
+		// Driving
+		case stateEnum::DRIVING_PWM: {
+
+			// Build packet
+			outgoingType   = 'D';
+			outgoingPacket = BuildOutgoingPacket( outgoingType );
+
+			break;
+		}
+
+		// Measuring limits
+		case stateEnum::MEASURING_LIMITS: {
+
+			// Build packet
+			outgoingType   = 'L';
+			outgoingPacket = BuildOutgoingPacket( outgoingType );
+
+			break;
+		}
+
+		// Current
+		case stateEnum::MEASURING_CURRENT: {
+
+			// Build packet
+			outgoingType   = 'C';
+			outgoingPacket = BuildOutgoingPacket( outgoingType );
+
+			break;
+		}
+	}
+
+	// Calculate length
+	const int8_t packetStructLength = sizeof( outgoingPacket );
+
+	// Initialize checksum
+	int8_t checkSum = outgoingType ^ packetStructLength;
+
+	// Flatten packet
+	uint8_t* rawBytes = reinterpret_cast<uint8_t*>( &outgoingPacket );
+
+	// XOR over all bytes to build checksum
+	for ( int8_t i = 0; i < packetStructLength; ++i ) {
+		checkSum ^= rawBytes[i];
+	}
+
+	// Initialize header with buffer
+	buffer[0] = 0xAA;				 // Start byte
+	buffer[1] = sizeof( buffer );	 // Packet length
+
+	// Copy packet into buffer
+	memcpy( &buffer[3], &outgoingPacket, sizeof( outgoingPacket ) );
+
+	// Copy checksum into buffer
+	buffer[2] = checkSum;
+
+	buffer[31] = '\n';
+
+	// Send over serial port 0
+	ssize_t bytesWritten = write( serialPort0, buffer, sizeof( buffer ) );
+
+	// Check if successful
+	if ( bytesWritten < 0 ) {
+
+		shared->Serial.packetOut = "FAILED!";
+		std::cerr << "SerialClass: Failed to send drive packet!\n";
+
+	} else {
+
+		std::cout << "Written: " << std::dec << bytesWritten << "  ||  ";
+		// Print for debugging
+		PrintBuffer( buffer, sizeof( buffer ) );
+		std::cout << "\n";
+	}
+}
+
+
+void SerialClass::PrintBuffer( const uint8_t* buffer, size_t length ) {
+	std::cout << "Hex: ";
+	for ( size_t i = 0; i < length; i++ ) {
+		std::cout << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buffer[i] ) << " ";
+	}
+	// std::cout << "  |||   Dec: ";
+	// for ( size_t i = 0; i <= length; i++ ) {
+	// 	std::cout << std::dec << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buffer[i] ) << " ";
+	// }
+}
+
+
+PacketStruct SerialClass::BuildOutgoingPacket( uint8_t type ) {
+
+	// Create new packet
+	PacketStruct newPacket;
+
+	// Populate
+	newPacket.packetType	 = type;
+	newPacket.packetCounter	 = shared->Amplifier.packetCounter;
+	newPacket.amplifierState = static_cast<uint8_t>( shared->Amplifier.isAmplifierActive );
+	newPacket.pwmA			 = static_cast<uint16_t>( shared->Controller.commandedPwmABC.x );
+	newPacket.pwmB			 = static_cast<uint16_t>( shared->Controller.commandedPwmABC.y );
+	newPacket.pwmC			 = static_cast<uint16_t>( shared->Controller.commandedPwmABC.z );
+	newPacket.encoderA		 = 0;
+	newPacket.encoderB		 = 0;
+	newPacket.encoderC		 = 0;
+	newPacket.currentA		 = 0;
+	newPacket.currentB		 = 0;
+	newPacket.currentC		 = 0;
+
+	// Convert to string
+	ConvertPacketToSerialString( newPacket );
+
+	return newPacket;
+}
+
+
+
+/** =========================================================== 
+ *  ===========================================================  
+ * 
+ *  RRRRR    EEEEEE    CCCCC  EEEEEE  IIIIII  VV     VV  EEEEEE 
+ *  RR   RR  EE      CC       EE        II    VV     VV  EE     
+ *  RR   RR  EE      CC       EE        II     VV   VV   EE   
+ *  RRRRR    EEEEE   CC       EEEEE     II     VV   VV   EEEEE     
+ *  RR   RR  EE      CC       EE        II      VV VV    EE     
+ *  RR   RR  EE      CC       EE        II      VV VV    EE     
+ *  RR   RR  EEEEEE    CCCCC  EEEEEE  IIIIII     VVV     EEEEEE 
+ * 
+ *  ===========================================================  
+ *  ===========================================================  
+*/
+
+/**
+ * @brief Check for new incoming packet
+ * 
+ */
+void SerialClass::CheckForPacketFromTeensy() {
+
+	// Read bytes from the serial port
+	int bytesRead = read( serialPort1, buffer, sizeof( buffer ) );
+
+	// Iterate over buffer
+	while ( readBuffer.size() >= 4 ) {	  // At least startByte, type, length, and checksum
+
+		// Look for start byte
+		if ( ( uint8_t )readBuffer[0] != 0xAA ) {
+			readBuffer.erase( readBuffer.begin() );	   // Discard invalid header byte
+			continue;
+		}
+
+		// Wait for enough data
+		uint8_t packetType	 = readBuffer[1];
+		uint8_t packetLength = readBuffer[2];
+		size_t	totalLength	 = 3 + packetLength + 1;
+
+		// Wait for more data
+		if ( readBuffer.size() < totalLength ) {
+			return;
+		}
+
+		// Validate checksum
+		const uint8_t* data				= reinterpret_cast<const uint8_t*>( readBuffer.data() );
+		uint8_t		   computedChecksum = packetType ^ packetLength;
+		for ( uint8_t i = 0; i < packetLength; ++i ) {
+			computedChecksum ^= data[3 + i];
+		}
+
+		if ( computedChecksum != data[totalLength - 1] ) {
+			std::cerr << "SerialClass: Checksum failed\n";
+			readBuffer.erase( readBuffer.begin(), readBuffer.begin() + totalLength );
+			continue;
+		}
+
+		// Build and populate temp packet
+		PacketStruct packet;
+		std::memcpy( &packet, &data[3], sizeof( PacketStruct ) );
+
+		// Parse packet
+		ParsePacketFromTeensy( packet );
+
+		// Remove parsed packet from buffer
+		readBuffer.erase( readBuffer.begin(), readBuffer.begin() + totalLength );
+
+
+
+		// }
+	}
+}
+
+
+
+/** ==================================================
+ *  ================================================== 
+ * 
+ *  PPPPPP      AAA    RRRRR     SSSS   EEEEEE 
+ *  PP    PP   AA AA   RR   RR  SS   	EE    
+ *  PP    PP   AA AA   RR   RR  SS      EE  
+ *  PPPPPP    AAAAAAA  RRRRR     SSSS   EEEEE    
+ *  PP        AA   AA  RR   RR      SS  EE    
+ *  PP        AA   AA  RR   RR      SS  EE    
+ *  PP        AA   AA  RR   RR   SSSS   EEEEEE 
+ * 
+ *  ================================================== 
+ *  ================================================== 
+
+
+
+/**
+ * @brief Parse incoming packet
+ * 
+ * @param type Packet type
+ * @param length Length of packet
+ * @param bytes Bytes to convert
+ */
+void SerialClass::ParsePacketFromTeensy( PacketStruct pkt ) {
+
+	// Store values
+	shared->Amplifier.packetType	   = pkt.packetType;
+	shared->Amplifier.packetCounter	   = pkt.packetCounter;
+	shared->Amplifier.packetDriveState = pkt.amplifierState;
+	shared->Amplifier.measuredPwmA	   = pkt.pwmA;
+	shared->Amplifier.measuredPwmB	   = pkt.pwmB;
+	shared->Amplifier.measuredPwmC	   = pkt.pwmC;
+	shared->Amplifier.measuredCurrentA = pkt.currentA;
+	shared->Amplifier.measuredCurrentB = pkt.currentB;
+	shared->Amplifier.measuredCurrentC = pkt.currentC;
+	shared->Amplifier.measuredEncoderA = pkt.encoderA;
+	shared->Amplifier.measuredEncoderB = pkt.encoderB;
+	shared->Amplifier.measuredEncoderC = pkt.encoderC;
+
+	// Save as string
+	ConvertPacketToSerialString( pkt );
+}
+
+
+
+/**
+ * @brief Converts and saves the packet to a string
+ */
+void SerialClass::ConvertPacketToSerialString( PacketStruct packet ) {
+
+	// Create output string
+	std::ostringstream oss;
+
+	// Extract type
+	uint8_t type = packet.packetType;
+
+	// Build header
+	if ( type == 'I' || type == 'i' ) {
+		oss << ( std::isupper( type ) ? "IDLE" : "idle" ) << " [ ";
+	} else if ( type == 'D' || type == 'd' ) {
+		oss << ( std::isupper( type ) ? "DRIVE" : "drive" ) << " [ ";
+	} else if ( type == 'L' || type == 'l' ) {
+		oss << ( std::isupper( type ) ? "LIMITS" : "limits" ) << " [ ";
+	} else if ( type == 'C' || type == 'c' ) {
+		oss << ( std::isupper( type ) ? "CURRENT" : "current" ) << " [ ";
+	} else {
+		oss << "!ERROR!" << " [ ";
+	}
+
+	// Build string
+	oss << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( packet.packetCounter ) << " ] [ ";
+	oss << std::setw( 1 ) << std::setfill( '0' ) << static_cast<int>( packet.amplifierState ) << " ] [ ";
+	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.pwmA ) << " ";
+	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.pwmB ) << " ";
+	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.pwmC ) << " ] [ ";
+	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.currentA ) << " ";
+	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.currentB ) << " ";
+	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.currentC ) << " ] [ ";
+	oss << std::setw( 6 ) << std::setfill( '0' ) << static_cast<int>( packet.encoderA ) << " ";
+	oss << std::setw( 6 ) << std::setfill( '0' ) << static_cast<int>( packet.encoderB ) << " ";
+	oss << std::setw( 6 ) << std::setfill( '0' ) << static_cast<int>( packet.encoderC ) << " ]";
+
+	if ( std::isupper( type ) ) {
+		// std::cout << "  << OUT >>  ";
+		shared->Serial.packetOut = oss.str();
+	} else {
+		// std::cout << "  << IN >>  ";
+		shared->Serial.packetIn = oss.str();
+	}
+}
+
+
+
+/** =============================================== **/
+/** HELPERS HELPERS HELPERS HELPERS HELPERS HELPERS **/
+/** HELPERS HELPERS HELPERS HELPERS HELPERS HELPERS **/
+/** HELPERS HELPERS HELPERS HELPERS HELPERS HELPERS **/
+/** =============================================== **/
+
+/**
+ * @brief Print the given byte
+ * 
+ * @param pktBytes Vector of bytes
+ */
+void SerialClass::PrintByte( std::vector<uint8_t> pktBytes ) {
+
+	for ( size_t i = 0; i < pktBytes.size(); ++i ) {
+		std::cout << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( pktBytes[i] ) << " ";
+	}
+	std::cout << std::dec << "\n";
+}

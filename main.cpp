@@ -53,6 +53,7 @@ std::string BuildPacketAngularError();
 void		UpdateState();
 void		SendSerialPacket();
 void		BuildSerialPacket();
+void		UpdateSerial();
 
 /**
  * @brief Main program loop
@@ -90,16 +91,17 @@ int main() {
 	Canvas.ShowShortcuts();
 
 	// Send initial command
-	Serial.Send( "E0A2048B2048C2048X" );
+	// Serial.Send( "E0A2048B2048C2048X" );
 
 	// Initialize kalman filter
 	shared->KalmanFilter.pMatrix = cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
 	// Kalman.Initialize( cv::Point3f( 0.0f, 0.0f, 0.0f ), shared->timingTimestamp );
 
-
+	// Set default system state
+	shared->System.state = stateEnum::IDLE;
 
 	// Main loop
-	while ( shared->Main.isMainRunning ) {
+	while ( shared->System.isMainRunning ) {
 
 		// Update timer (for measuring loop frequency)
 		Timing.UpdateTimer();
@@ -133,23 +135,11 @@ int main() {
 		// Controller.Update();
 		Controller.Update4D();
 
-
 		// Check touchscreen input
 		Touch.GetCursorPosition();
 
-		// Build serial packet
-		BuildSerialPacket();
-
-		// Send outgoing serial packet
-		if ( shared->Serial.isSerialSendOpen && shared->Serial.isSerialSending ) {
-			Serial.Send( shared->Serial.packetOut );
-			// std::cout << shared->serialPacket0 << "\n";
-		}
-
-		// Check for new incoming serial packet
-		if ( shared->Serial.isSerialReceiveOpen && shared->Serial.isSerialReceiving ) {
-			Serial.CheckForPacket();
-		}
+		// Update serial messages
+		Serial.Update() ;
 
 		// Update display
 		Canvas.Update();
@@ -162,10 +152,10 @@ int main() {
 		}
 
 		// Update shutdown flags for clean shutdown
-		if ( shared->Main.isShuttingDown ) {
+		if ( shared->System.isShuttingDown ) {
 			shared->Serial.packetOut = "DX\n";
 			// shared->FLAG_PACKET_WAITING = true;
-			shared->Main.isMainRunning = false;
+			shared->System.isMainRunning = false;
 		}
 	}
 	cv::destroyAllWindows();
@@ -179,7 +169,7 @@ int main() {
  */
 void SignalHandler( int signum ) {
 	std::cout << "\nMain:         Interrupt signal (" << signum << ") received.\n";
-	shared->Main.isMainRunning = false;
+	shared->System.isMainRunning = false;
 	Touch.Close();
 	exit( signum );
 }
@@ -458,14 +448,43 @@ void UpdateState() {
 
 
 
-void BuildSerialPacket() {
+// void BuildSerialPacket() {
 
-	if ( shared->serialTrigger == "drive" ) {
-		// Build string32
-		shared->Serial.packetOut
-			= std::string( "E" ) + ( shared->Amplifier.isAmplifierActive ? "1" : "0" ) + "A" + shared->PadValues( shared->Controller.commandedPwmABC.x, 4 ) + "B" + shared->PadValues( shared->Controller.commandedPwmABC.y, 4 ) + "C" + shared->PadValues( shared->Controller.commandedPwmABC.z, 4 ) + "X";
-	} else if ( shared->serialTrigger == "reset" ) {
-		shared->Serial.packetOut = "E0RX";
-		shared->serialTrigger	 = "drive";
-	}
-}
+// 	if ( shared->serialTrigger == "drive" ) {
+// 		// Build string32
+// 		shared->Serial.packetOut
+// 			= std::string( "E" ) + ( shared->Amplifier.isAmplifierActive ? "1" : "0" ) + "A" + shared->PadValues( shared->Controller.commandedPwmABC.x, 4 ) + "B" + shared->PadValues( shared->Controller.commandedPwmABC.y, 4 ) + "C" + shared->PadValues( shared->Controller.commandedPwmABC.z, 4 ) + "X";
+// 	} else if ( shared->serialTrigger == "reset" ) {
+// 		shared->Serial.packetOut = "E0RX";
+// 		shared->serialTrigger	 = "drive";
+// 	}
+// }
+
+
+
+// void UpdateSerial() {
+
+// 		// Make sure serial comms are open and running
+// 		if ( shared->Serial.isSerialSendOpen && shared->Serial.isSerialSending ) {
+
+// 			// Send appropriate packet
+// 			if ( shared->System.state == "RUNNING" ) {	// Send drive commands
+
+// 				// Send drive packet
+// 				Serial.SendDrivePacket();
+
+// 			} else if ( shared->System.state == "MEASURE_LIMITS" ) { 	// Send encoder measurement commands
+				
+// 				// Send limits packet
+// 				Serial.SendLimitsPacket() ;
+
+// 			} else if ( shared->System.state == "WAITING" ) { 
+// 				Serial.SendWaitingPacket() ;
+// 			}
+// 		}
+
+// 		// Check for new incoming serial packet
+// 		if ( shared->Serial.isSerialReceiveOpen && shared->Serial.isSerialReceiving ) {
+// 			Serial.CheckForPacket();
+// 		}
+// }

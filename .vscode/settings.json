@@ -75,6 +75,8 @@
         "format": "cpp",
         "iomanip": "cpp",
         "numeric": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "__hash_table": "cpp",
+        "__tree": "cpp"
     }
 }

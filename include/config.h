@@ -94,6 +94,7 @@ inline constexpr float CONFIG_DEVICE_NOMINAL_TORQUE	 = 28.6;	 // Nominal torque 
 
 // Serial properties
 inline std::string CONFIG_SERIAL_PORT_0 = "/dev/ttyACM0";
+// inline std::string CONFIG_SERIAL_PORT_0 = "/dev/pts/10";
 inline std::string CONFIG_SERIAL_PORT_1 = "/dev/ttyACM1";
 
 // Marker constants

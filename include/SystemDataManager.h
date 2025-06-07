@@ -15,9 +15,15 @@
 // Runtime configuration
 #include "config.h"
 
+// Packet
+#include "PacketTypes.h"
+
 // Constants
 #define RAD2DEG 57.2958
 #define DEG2RAD 0.01745
+
+// Enum for system state
+enum class stateEnum { IDLE, DRIVING_PWM, MEASURING_LIMITS, MEASURING_CURRENT };
 
 
 // Structure for 4-point vector
@@ -38,7 +44,23 @@ struct Point4f {
 
 
 struct AmplifierStruct {
+
+	// Flags
 	bool isAmplifierActive = false;
+
+	// Measured balues
+	uint8_t	 packetType		  = 0;
+	uint8_t	 packetCounter	  = 0;
+	uint8_t	 packetDriveState = 0;
+	uint16_t measuredPwmA	  = 0;
+	uint16_t measuredPwmB	  = 0;
+	uint16_t measuredPwmC	  = 0;
+	int16_t	 measuredCurrentA = 0;
+	int16_t	 measuredCurrentB = 0;
+	int16_t	 measuredCurrentC = 0;
+	int32_t	 measuredEncoderA = 0;
+	int32_t	 measuredEncoderB = 0;
+	int32_t	 measuredEncoderC = 0;
 };
 
 struct ArUcoStruct {
@@ -106,19 +128,27 @@ struct LoggingStruct {
 };
 
 
-struct MainStruct {
+struct SystemStruct {
 
+	// Flags
 	bool isMainRunning	= true;		// Global flag to shut-down safely
 	bool isShuttingDown = false;	// Trigger safe shutdown
+
+	// State enum
+	stateEnum state = stateEnum::IDLE;
 };
 
 struct SerialStruct {
-	bool		isSerialSendOpen	= false;
-	bool		isSerialSending		= false;
-	bool		isSerialReceiveOpen = false;
-	bool		isSerialReceiving	= false;
-	std::string packetOut			= "";
-	std::string packetIn			= "";
+
+	// Flags
+	bool isSerialSendOpen	 = false;
+	bool isSerialSending	 = false;
+	bool isSerialReceiveOpen = false;
+	bool isSerialReceiving	 = false;
+
+	// Plaintext packet
+	std::string packetOut = "";
+	std::string packetIn  = "";
 };
 
 struct TelemetryStruct {
@@ -179,7 +209,7 @@ struct ManagedData {
 	DisplayStruct	   Display;
 	KalmanFilterStruct KalmanFilter;
 	LoggingStruct	   Logging;
-	MainStruct		   Main;
+	SystemStruct	   System;
 	SerialStruct	   Serial;
 	TelemetryStruct	   Telemetry;
 	TaskStruct		   Task;
