@@ -161,12 +161,8 @@ void T_AmplifierClass::Update() {
 
 	switch ( shared->System.state ) {
 
-
 		// Idle
 		case stateEnum::IDLE: {
-
-			// Update LED
-			shared->LED.isDrivingMotors = false;
 
 			break;
 		}
@@ -180,9 +176,6 @@ void T_AmplifierClass::Update() {
 				// Drive PWM
 				DrivePWM();
 
-				// Update LED
-				shared->LED.isDrivingMotors	  = true;
-				shared->LED.isMeasuringLimits = false;
 			}
 
 			break;
@@ -205,8 +198,8 @@ void T_AmplifierClass::Update() {
 			queryState = queryStateEnum::REQUEST_ENCODER_POSITION;
 
 			// Update LED
-			shared->LED.isDrivingMotors	  = false;
-			shared->LED.isMeasuringLimits = true;
+			// shared->LED.isDrivingMotors	  = false;
+			// shared->LED.isMeasuringLimits = true;
 
 			break;
 		}
@@ -221,8 +214,8 @@ void T_AmplifierClass::Update() {
 			queryState = queryStateEnum::REQUEST_CURRENT;
 
 			// Update LED
-			shared->LED.isDrivingMotors	  = true;
-			shared->LED.isMeasuringLimits = true;
+			// shared->LED.isDrivingMotors	  = true;
+			// shared->LED.isMeasuringLimits = true;
 
 			break;
 		}
@@ -234,8 +227,8 @@ void T_AmplifierClass::Update() {
 			queryState = queryStateEnum::IDLE;
 
 			// Update LED
-			shared->LED.isDrivingMotors	  = false;
-			shared->LED.isMeasuringLimits = false;
+			// shared->LED.isDrivingMotors	  = false;
+			// shared->LED.isMeasuringLimits = false;
 
 			break;
 		}

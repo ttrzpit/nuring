@@ -27,7 +27,7 @@ struct AmplifierStruct {
 
 	// Packet variables
 	uint8_t	 packetType		  = 'W';	// Waiting initially
-	uint8_t	 driveState		  = 0;
+	uint8_t	 commandedState	  = 0;
 	uint8_t	 packetCounter	  = 0;
 	uint16_t commandedPwmA	  = AMPLIFIER_PWM_ZERO;
 	uint16_t commandedPwmB	  = AMPLIFIER_PWM_ZERO;
@@ -89,8 +89,9 @@ struct SystemStruct {
 struct TimingStruct {
 
 	// Interval timer periods
-	uint16_t periodAmplifier = 1000000 / TIMING_FREQ_AMPLIFIER_DRIVE;
-	uint16_t periodHWSerial	 = 1000000 / TIMING_FREQ_AMPLIFIER_SERIAL;
+	uint16_t periodAmplifier	  = 1000000 / TIMING_FREQ_AMPLIFIER_DRIVE;
+	uint16_t periodHWSerial		  = 1000000 / TIMING_FREQ_AMPLIFIER_HWSERIAL;
+	uint16_t periodSoftwareSerial = 1000000 / TIMING_FREQ_AMPLIFIER_SOFTWARESERIAL;
 };
 
 

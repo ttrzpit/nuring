@@ -26,10 +26,12 @@ auto shared = DataHandle.getData();
 
 // Interval Timer
 IntervalTimer IT_Amplifiers;
+IntervalTimer IT_SerialPC;
 
 
 /** FUNCTION PROTOTYPES **/
-void IT_AmplifierCallback();
+void IT_Callback_Amplifier();
+void IT_Callback_SerialPC();
 void UpdateSystemState();
 
 
@@ -39,17 +41,21 @@ void UpdateSystemState();
  */
 void setup() {
 
-	// Initialize serial ports
-	SerialPort.Begin();
 
 	// Initialize LEDs
 	LEDs.Begin();
+
+	// Initialize serial ports
+	SerialPort.Begin();
 
 	// Initialize amplifiers
 	Amplifier.Begin();
 
 	// Start interval timers
-	IT_Amplifiers.begin( IT_AmplifierCallback, shared->Timing.periodAmplifier );
+	IT_Amplifiers.begin( IT_Callback_Amplifier, shared->Timing.periodAmplifier );
+	IT_SerialPC.begin( IT_Callback_SerialPC, shared->Timing.periodSoftwareSerial );
+
+	shared->System.state = stateEnum::WAITING;
 }
 
 
@@ -61,11 +67,10 @@ void setup() {
  */
 void loop() {
 
-	// Update serial port
-	SerialPort.Update();
 
 	// Update LEDs
 	LEDs.Update();
+
 
 	// Update system state
 	UpdateSystemState();
@@ -73,10 +78,19 @@ void loop() {
 
 
 
-void IT_AmplifierCallback() {
+void IT_Callback_Amplifier() {
+
 
 	// Update amplifier
 	Amplifier.Update();
+}
+
+
+
+void IT_Callback_SerialPC() {
+
+	// Update serial port
+	SerialPort.Update();
 }
 
 
@@ -87,13 +101,13 @@ void IT_AmplifierCallback() {
 void UpdateSystemState() {
 
 	// Select state
-	switch ( shared->Amplifier.packetType ) {
+	switch ( shared->System.state ) {
 
 		// Waiting (PC not yet connected)
-		case 'W': {
+		case stateEnum::WAITING: {
 
-			// Update state
-			shared->System.state = stateEnum::WAITING;
+			// Update amplifier state
+			shared->Amplifier.isEnabled = false;
 
 			// Update LEDs
 			shared->LED.isCommunicatingWithPC = false;
@@ -103,11 +117,11 @@ void UpdateSystemState() {
 			break;
 		}
 
-		// Idle
-		case 'I': {
+		// Idle (PC connected, not driving)
+		case stateEnum::IDLE: {
 
-			// Update state
-			shared->System.state = stateEnum::IDLE;
+			// Update amplifier state
+			shared->Amplifier.isEnabled = false;
 
 			// Update LEDs
 			shared->LED.isCommunicatingWithPC = true;
@@ -117,11 +131,11 @@ void UpdateSystemState() {
 			break;
 		}
 
-		// Driving
-		case 'D': {
+		// Driving PWM
+		case stateEnum::DRIVING_PWM: {
 
-			// Update state
-			shared->System.state = stateEnum::DRIVING_PWM;
+			// Update amplifier state
+			shared->Amplifier.isEnabled = true;
 
 			// Update LEDs
 			shared->LED.isCommunicatingWithPC = true;
@@ -131,11 +145,11 @@ void UpdateSystemState() {
 			break;
 		}
 
-		// Measure limits
-		case 'L': {
+		// Measuring limits / current
+		case stateEnum::MEASURING_LIMITS: {
 
-			// Update state
-			shared->System.state = stateEnum::MEASURING_LIMITS;
+			// Update amplifier state
+			shared->Amplifier.isEnabled = true;
 
 			// Update LEDs
 			shared->LED.isCommunicatingWithPC = true;
@@ -145,30 +159,11 @@ void UpdateSystemState() {
 			break;
 		}
 
-		// Measure currents
-		case 'C': {
+		default: {
 
-			// Update state
-			shared->System.state = stateEnum::MEASURING_CURRENTS;
-
-			// Update LEDs
-			shared->LED.isCommunicatingWithPC = true;
-			shared->LED.isDrivingMotors		  = true;
-			shared->LED.isMeasuringLimits	  = true;
+			// Nothing
 
 			break;
 		}
-
-		// Default
-		default:
-			// Update state
-			shared->System.state = stateEnum::WAITING;
-
-			// Update LEDs
-			shared->LED.isCommunicatingWithPC = false;
-			shared->LED.isDrivingMotors		  = false;
-			shared->LED.isMeasuringLimits	  = false;
-
-			break;
 	}
 }

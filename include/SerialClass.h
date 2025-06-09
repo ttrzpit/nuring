@@ -35,6 +35,8 @@ public:
 	void Close();
 	void Update();
 
+
+
 private:
 	// Data manager handle
 	SystemDataManager&			 dataHandle;
@@ -45,22 +47,19 @@ private:
 	void InitializePort1();
 
 	// Port Variables
-	int			   serialPort0;
-	int			   serialPort1;
+	int			   SerialOut;
+	int			   SerialIn;
 	struct termios tty0;
 	struct termios tty1;
 	int8_t		   nPortsOpen = 1;
 
-	// Serial packet functions
-	void		 SendPacketToTeensy();									// Send outgoing packet
-	PacketStruct BuildOutgoingPacket( uint8_t type );					// Build and format outgoing packet
-	void		 CheckForPacketFromTeensy();							// Check for new packets
-	void		 ParsePacketFromTeensy( PacketStruct pkt );				// Parse packet from teensy and save data
-	void		 ConvertPacketToSerialString( PacketStruct packet );	// Convert packet to string for debugging
-	void		 PrintByte( std::vector<uint8_t> pktBytes );			// Print contents of a byte vector
-	void		 PrintBuffer( const uint8_t* buffer, size_t length );	// Print contents of uint8_t array
+	// Serial functions
+	void SendPacketToTeensy();
+	// void ReadPacketFromTeensy();
+	bool ReadTeensyPacket( PacketStruct& outPacket );
+	void ParsePacketFromTeensy( PacketStruct pkt );				// Parse packet from teensy and save data
+	void ConvertPacketToSerialString( PacketStruct packet );	// Convert packet to string for debugging
+	void PrintByte( std::vector<uint8_t> pktBytes );			// Print contents of a byte vector
+	void StringOutput( const uint8_t* buff );
 
-	// Packet variables
-	static uint8_t		 buffer[32];
-	std::vector<uint8_t> readBuffer;
 };

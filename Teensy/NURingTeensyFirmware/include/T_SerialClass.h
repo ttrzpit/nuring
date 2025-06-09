@@ -31,22 +31,19 @@ public:
 	void Begin();
 	void Update();
 
+
+
 private:
 	// Data manager handle
 	SharedDataManager&			 dataHandle;
 	std::shared_ptr<ManagedData> shared;
 
-	// Serial send/receive
-	void CheckForPacketFromPC();
-	void SendResponsePacketToPC( uint8_t type );
-
-	// Packet builders
-	PacketStruct PopulatePacket( uint8_t type );
-	PacketStruct BuildOutgoingPacket( uint8_t type );
-
-	// Packet parsers
-	void ParsePacketFromPC(  PacketStruct* pkt );
+	// Serial receive/parse/send
+	void ReadPacketFromPC();
+	void ParsePacketFromPC( PacketStruct* pkt );
+	void SendPacketToPC();
 
 	// Packet variables
-	static uint8_t buffer[64];
+	const uint8_t startByte = 0xAA;
+	const uint8_t endByte	= 0x55;
 };

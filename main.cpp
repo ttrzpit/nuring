@@ -41,8 +41,6 @@ FittsClass		 Fitts( dataHandle, Timing, Logging );	  // For fitts-law testing
 CalibrationClass Calibration( dataHandle );				  // For calibration of user to touchscreen
 ControllerClass	 Controller( dataHandle );				  // Controller
 KalmanClass		 Kalman( dataHandle );					  // Kalman filter for target
-// KalmanClass		 KalmanFinger( dataHandle );			  // Kalman filter
-// KalmanClass		 KalmanAngle( dataHandle );
 
 // Function prototypes
 void		SignalHandler( int signum );
@@ -55,13 +53,14 @@ void		SendSerialPacket();
 void		BuildSerialPacket();
 void		UpdateSerial();
 
+
+
 /**
  * @brief Main program loop
  * 
  * @return int 
  */
 int main() {
-
 
 	// Testing
 	shared->Controller.commandedPercentageLimit = cv::Point3f( 0.4f, 0.7f, 0.9f );
@@ -90,12 +89,8 @@ int main() {
 	// Add shortcut panel
 	Canvas.ShowShortcuts();
 
-	// Send initial command
-	// Serial.Send( "E0A2048B2048C2048X" );
-
 	// Initialize kalman filter
 	shared->KalmanFilter.pMatrix = cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
-	// Kalman.Initialize( cv::Point3f( 0.0f, 0.0f, 0.0f ), shared->timingTimestamp );
 
 	// Set default system state
 	shared->System.state = stateEnum::IDLE;
@@ -108,7 +103,6 @@ int main() {
 
 		// Parse any input and use OpenCV WaitKey()
 		Input.ParseInput( cv::pollKey() & 0xFF );
-
 
 		// Capture frame
 		Capture.GetFrame();
@@ -126,7 +120,6 @@ int main() {
 		} else if ( shared->Task.name == "FITTS_ANGLE" ) {
 			TaskFittsAngle();
 		}
-
 
 		// Update system state
 		UpdateState();
@@ -474,11 +467,11 @@ void UpdateState() {
 // 				Serial.SendDrivePacket();
 
 // 			} else if ( shared->System.state == "MEASURE_LIMITS" ) { 	// Send encoder measurement commands
-				
+
 // 				// Send limits packet
 // 				Serial.SendLimitsPacket() ;
 
-// 			} else if ( shared->System.state == "WAITING" ) { 
+// 			} else if ( shared->System.state == "WAITING" ) {
 // 				Serial.SendWaitingPacket() ;
 // 			}
 // 		}

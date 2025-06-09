@@ -16,9 +16,6 @@
 // System data manager
 #include "SystemDataManager.h"
 
-// Initialize buffer
-uint8_t SerialClass::buffer[32];
-
 
 
 /**
@@ -50,10 +47,10 @@ SerialClass::SerialClass( SystemDataManager& ctx, uint8_t nPorts )
 void SerialClass::InitializePort0() {
 
 	// Open serial port
-	serialPort0 = open( CONFIG_SERIAL_PORT_0.c_str(), O_RDWR | O_NONBLOCK );
+	SerialOut = open( CONFIG_SERIAL_PORT_0.c_str(), O_RDWR | O_NONBLOCK );
 
 	// Get existing settings
-	if ( tcgetattr( serialPort0, &tty0 ) != 0 ) {
+	if ( tcgetattr( SerialOut, &tty0 ) != 0 ) {
 		printf( "SerialClass:  Error %i from tctgetattr: %s\n", errno, strerror( errno ) );
 		shared->Serial.isSerialSendOpen = false;
 	} else {
@@ -62,25 +59,22 @@ void SerialClass::InitializePort0() {
 	}
 
 	// Configure port
-	tty0.c_cflag &= ~PARENB;		   // Clear parity bit, disabling parity (most common)
-	tty0.c_cflag &= ~CSTOPB;		   // Clear stop field, only one stop bit used in communication (most common)
-	tty0.c_cflag &= ~CSIZE;			   // Clear all bits that set the data size
-	tty0.c_cflag |= CS8;			   // 8 bits per byte (most common)
-	tty0.c_cflag &= ~CRTSCTS;		   // Disable RTS/CTS hardware flow control (most common)
-	tty0.c_cflag |= CREAD | CLOCAL;	   // Turn on READ & ignore ctrl lines (CLOCAL = 1)
-
-	tty0.c_lflag &= ~ICANON;
+	tty0.c_cflag &= ~PARENB;														   // Clear parity bit, disabling parity (most common)
+	tty0.c_cflag &= ~CSTOPB;														   // Clear stop field, only one stop bit used in communication (most common)
+	tty0.c_cflag &= ~CSIZE;															   // Clear all bits that set the data size
+	tty0.c_cflag |= CS8;															   // 8 bits per byte (most common)
+	tty0.c_cflag &= ~CRTSCTS;														   // Disable RTS/CTS hardware flow control (most common)
+	tty0.c_cflag |= CREAD | CLOCAL;													   // Turn on READ & ignore ctrl lines (CLOCAL = 1)
+	tty0.c_lflag &= ~ICANON;														   //
 	tty0.c_lflag &= ~ECHO;															   // Disable echo
 	tty0.c_lflag &= ~ECHOE;															   // Disable erasure
 	tty0.c_lflag &= ~ECHONL;														   // Disable new-line echo
 	tty0.c_lflag &= ~ISIG;															   // Disable interpretation of INTR, QUIT and SUSP
 	tty0.c_iflag &= ~( IXON | IXOFF | IXANY );										   // Turn off s/w flow ctrl
 	tty0.c_iflag &= ~( IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL );	   // Disable any special handling of received bytes
-
-	tty0.c_oflag &= ~OPOST;	   // Prevent special interpretation of output bytes (e.g. newline chars)
-	tty0.c_oflag &= ~ONLCR;	   // Prevent conversion of newline to carriage return/line feed
-
-	tty0.c_cc[VTIME] = 2;	 // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
+	tty0.c_oflag &= ~OPOST;															   // Prevent special interpretation of output bytes (e.g. newline chars)
+	tty0.c_oflag &= ~ONLCR;															   // Prevent conversion of newline to carriage return/line feed
+	tty0.c_cc[VTIME] = 2;															   // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
 	tty0.c_cc[VMIN]	 = 0;
 
 	// Set in/out baud rate to be 9600
@@ -88,7 +82,7 @@ void SerialClass::InitializePort0() {
 	cfsetospeed( &tty0, B1000000 );
 
 	// Save tty0 settings, also checking for error
-	if ( tcsetattr( serialPort0, TCSANOW, &tty0 ) != 0 ) {
+	if ( tcsetattr( SerialOut, TCSANOW, &tty0 ) != 0 ) {
 		printf( "SerialClass:  Error %i from tcsetattr: %s\n", errno, strerror( errno ) );
 	}
 }
@@ -100,10 +94,10 @@ void SerialClass::InitializePort0() {
  */
 void SerialClass::InitializePort1() {
 	// Open serial port
-	serialPort1 = open( CONFIG_SERIAL_PORT_1.c_str(), O_RDWR | O_NONBLOCK );
+	SerialIn = open( CONFIG_SERIAL_PORT_1.c_str(), O_RDWR | O_NONBLOCK );
 
 	// Get existing settings
-	if ( tcgetattr( serialPort1, &tty1 ) != 0 ) {
+	if ( tcgetattr( SerialIn, &tty1 ) != 0 ) {
 		printf( "SerialClass:  Error %i from tctgetattr: %s\n", errno, strerror( errno ) );
 		shared->Serial.isSerialReceiveOpen = false;
 	} else {
@@ -135,7 +129,7 @@ void SerialClass::InitializePort1() {
 	cfsetospeed( &tty1, B1000000 );
 
 	// Save tty0 settings, also checking for error
-	if ( tcsetattr( serialPort1, TCSANOW, &tty1 ) != 0 ) {
+	if ( tcsetattr( SerialIn, TCSANOW, &tty1 ) != 0 ) {
 		printf( "SerialClass:  Error %i from tcsetattr: %s\n", errno, strerror( errno ) );
 	}
 }
@@ -143,7 +137,8 @@ void SerialClass::InitializePort1() {
 
 
 void SerialClass::Close() {
-	close( serialPort0 );
+	close( SerialOut );
+	close( SerialIn );
 }
 
 
@@ -180,7 +175,16 @@ void SerialClass::Update() {
 
 	// Make sure incoming serial port is open and running
 	if ( shared->Serial.isSerialReceiveOpen && shared->Serial.isSerialReceiving ) {
-		CheckForPacketFromTeensy();
+
+		PacketStruct incomingPacket;
+
+		if ( ReadTeensyPacket( incomingPacket ) ) {
+
+			ParsePacketFromTeensy( incomingPacket );
+
+		} else {
+			std::cerr << "Failed to read or parse packet." << std::endl;
+		}
 	}
 }
 
@@ -203,151 +207,70 @@ void SerialClass::Update() {
 
 
 
-/**
- * @brief Send outgoing packet
- * 
- */
 void SerialClass::SendPacketToTeensy() {
 
-	// Create new buffer
-	uint8_t buffer[32];
-
-	// Create new packet
+	// Local
+	uint8_t		 buffer[32];
+	size_t		 idx = 0;
 	PacketStruct outgoingPacket;
-	uint8_t		 outgoingType;
+	uint8_t		 newType;
+
+	if ( shared->System.state == stateEnum::IDLE ) {
+		newType = 'I';
+	} else if ( shared->System.state == stateEnum::DRIVING_PWM ) {
+		newType = 'D';
+	} else if ( shared->System.state == stateEnum::MEASURING_LIMITS ) {
+		newType = 'L';
+	} else {
+		// Nope
+	}
 
 
-	// Update packet counter
+	const uint8_t startByte	   = 0xAA;
+	const uint8_t endByte	   = 0x55;
+	const uint8_t packetLength = sizeof( outgoingPacket );
+
 	if ( shared->Amplifier.packetCounter == 99 ) {
 		shared->Amplifier.packetCounter = 0;
 	} else {
 		shared->Amplifier.packetCounter++;
 	}
 
-	// Build appropriate packet
-	switch ( shared->System.state ) {
+	// Populate packet
+	outgoingPacket.packetType	  = newType;
+	outgoingPacket.packetCounter  = shared->Amplifier.packetCounter;
+	outgoingPacket.amplifierState = shared->Amplifier.isAmplifierActive;
+	outgoingPacket.pwmA			  = shared->Controller.commandedPwmABC.x;
+	outgoingPacket.pwmB			  = shared->Controller.commandedPwmABC.y;
+	outgoingPacket.pwmC			  = shared->Controller.commandedPwmABC.z;
 
-		// Idle
-		case stateEnum::IDLE: {
-
-			// Build packet
-			outgoingType   = 'I';
-			outgoingPacket = BuildOutgoingPacket( outgoingType );
-
-			break;
-		}
-
-		// Driving
-		case stateEnum::DRIVING_PWM: {
-
-			// Build packet
-			outgoingType   = 'D';
-			outgoingPacket = BuildOutgoingPacket( outgoingType );
-
-			break;
-		}
-
-		// Measuring limits
-		case stateEnum::MEASURING_LIMITS: {
-
-			// Build packet
-			outgoingType   = 'L';
-			outgoingPacket = BuildOutgoingPacket( outgoingType );
-
-			break;
-		}
-
-		// Current
-		case stateEnum::MEASURING_CURRENT: {
-
-			// Build packet
-			outgoingType   = 'C';
-			outgoingPacket = BuildOutgoingPacket( outgoingType );
-
-			break;
-		}
+	// Compute checksum
+	uint8_t	 checkSum = newType ^ packetLength;
+	uint8_t* raw	  = reinterpret_cast<uint8_t*>( &outgoingPacket );
+	for ( uint8_t i = 0; i < packetLength; ++i ) {
+		checkSum ^= raw[i];
 	}
 
-	// Calculate length
-	const int8_t packetStructLength = sizeof( outgoingPacket );
+	// Build packet buffer
+	buffer[idx++] = startByte;		 // 0xAA
+	buffer[idx++] = packetLength;	 // sizeof(outgoingPacket)
+	buffer[idx++] = checkSum;		 // sizeof(outgoingPacket)
 
-	// Initialize checksum
-	int8_t checkSum = outgoingType ^ packetStructLength;
-
-	// Flatten packet
-	uint8_t* rawBytes = reinterpret_cast<uint8_t*>( &outgoingPacket );
-
-	// XOR over all bytes to build checksum
-	for ( int8_t i = 0; i < packetStructLength; ++i ) {
-		checkSum ^= rawBytes[i];
-	}
-
-	// Initialize header with buffer
-	buffer[0] = 0xAA;				 // Start byte
-	buffer[1] = sizeof( buffer );	 // Packet length
-
-	// Copy packet into buffer
-	memcpy( &buffer[3], &outgoingPacket, sizeof( outgoingPacket ) );
-
-	// Copy checksum into buffer
-	buffer[2] = checkSum;
-
-	buffer[31] = '\n';
+	memcpy( &buffer[idx], &outgoingPacket, packetLength );
+	idx += packetLength;
+	buffer[idx++] = 0x00;		// sizeof(outgoingPacket)
+	buffer[idx++] = endByte;	// sizeof(outgoingPacket)
 
 	// Send over serial port 0
-	ssize_t bytesWritten = write( serialPort0, buffer, sizeof( buffer ) );
-
-	// Check if successful
+	ssize_t bytesWritten = write( SerialOut, buffer, idx );
 	if ( bytesWritten < 0 ) {
-
 		shared->Serial.packetOut = "FAILED!";
-		std::cerr << "SerialClass: Failed to send drive packet!\n";
-
+		std::cout << "SerialClass: Failed to send packet!\n";
 	} else {
 
-		std::cout << "Written: " << std::dec << bytesWritten << "  ||  ";
-		// Print for debugging
-		PrintBuffer( buffer, sizeof( buffer ) );
-		std::cout << "\n";
+		// StringOutput( buffer );
+		ConvertPacketToSerialString( outgoingPacket );
 	}
-}
-
-
-void SerialClass::PrintBuffer( const uint8_t* buffer, size_t length ) {
-	std::cout << "Hex: ";
-	for ( size_t i = 0; i < length; i++ ) {
-		std::cout << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buffer[i] ) << " ";
-	}
-	// std::cout << "  |||   Dec: ";
-	// for ( size_t i = 0; i <= length; i++ ) {
-	// 	std::cout << std::dec << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buffer[i] ) << " ";
-	// }
-}
-
-
-PacketStruct SerialClass::BuildOutgoingPacket( uint8_t type ) {
-
-	// Create new packet
-	PacketStruct newPacket;
-
-	// Populate
-	newPacket.packetType	 = type;
-	newPacket.packetCounter	 = shared->Amplifier.packetCounter;
-	newPacket.amplifierState = static_cast<uint8_t>( shared->Amplifier.isAmplifierActive );
-	newPacket.pwmA			 = static_cast<uint16_t>( shared->Controller.commandedPwmABC.x );
-	newPacket.pwmB			 = static_cast<uint16_t>( shared->Controller.commandedPwmABC.y );
-	newPacket.pwmC			 = static_cast<uint16_t>( shared->Controller.commandedPwmABC.z );
-	newPacket.encoderA		 = 0;
-	newPacket.encoderB		 = 0;
-	newPacket.encoderC		 = 0;
-	newPacket.currentA		 = 0;
-	newPacket.currentB		 = 0;
-	newPacket.currentC		 = 0;
-
-	// Convert to string
-	ConvertPacketToSerialString( newPacket );
-
-	return newPacket;
 }
 
 
@@ -367,61 +290,55 @@ PacketStruct SerialClass::BuildOutgoingPacket( uint8_t type ) {
  *  ===========================================================  
 */
 
-/**
- * @brief Check for new incoming packet
- * 
- */
-void SerialClass::CheckForPacketFromTeensy() {
-
-	// Read bytes from the serial port
-	int bytesRead = read( serialPort1, buffer, sizeof( buffer ) );
-
-	// Iterate over buffer
-	while ( readBuffer.size() >= 4 ) {	  // At least startByte, type, length, and checksum
-
-		// Look for start byte
-		if ( ( uint8_t )readBuffer[0] != 0xAA ) {
-			readBuffer.erase( readBuffer.begin() );	   // Discard invalid header byte
-			continue;
-		}
-
-		// Wait for enough data
-		uint8_t packetType	 = readBuffer[1];
-		uint8_t packetLength = readBuffer[2];
-		size_t	totalLength	 = 3 + packetLength + 1;
-
-		// Wait for more data
-		if ( readBuffer.size() < totalLength ) {
-			return;
-		}
-
-		// Validate checksum
-		const uint8_t* data				= reinterpret_cast<const uint8_t*>( readBuffer.data() );
-		uint8_t		   computedChecksum = packetType ^ packetLength;
-		for ( uint8_t i = 0; i < packetLength; ++i ) {
-			computedChecksum ^= data[3 + i];
-		}
-
-		if ( computedChecksum != data[totalLength - 1] ) {
-			std::cerr << "SerialClass: Checksum failed\n";
-			readBuffer.erase( readBuffer.begin(), readBuffer.begin() + totalLength );
-			continue;
-		}
-
-		// Build and populate temp packet
-		PacketStruct packet;
-		std::memcpy( &packet, &data[3], sizeof( PacketStruct ) );
-
-		// Parse packet
-		ParsePacketFromTeensy( packet );
-
-		// Remove parsed packet from buffer
-		readBuffer.erase( readBuffer.begin(), readBuffer.begin() + totalLength );
 
 
+bool SerialClass::ReadTeensyPacket( PacketStruct& outPacket ) {
 
-		// }
+	constexpr uint8_t START_BYTE = 0xAA;
+	constexpr uint8_t END_BYTE	 = 0x55;	// Assumed
+
+	uint8_t buffer[32];
+	size_t	bufferIndex = 0;
+
+	// Sync: look for START_BYTE
+	while ( true ) {
+		uint8_t byte;
+		if ( read( SerialIn, &byte, 1 ) <= 0 )
+			return false;	 // Read fail
+		if ( byte == START_BYTE )
+			break;
 	}
+
+	// Read packetLength and checksum
+	if ( read( SerialIn, buffer, 2 ) != 2 )
+		return false;
+	uint8_t packetLength	 = buffer[0];
+	uint8_t expectedChecksum = buffer[1];
+
+	// Read payload + 2 footer bytes (0x00 + END_BYTE)
+	if ( read( SerialIn, buffer, packetLength + 2 ) != static_cast<ssize_t>( packetLength + 2 ) )
+		return false;
+
+	// Validate checksum
+	uint8_t actualChecksum = buffer[0] ^ packetLength;
+	for ( size_t i = 0; i < packetLength; ++i ) {
+		actualChecksum ^= buffer[i];
+	}
+
+	if ( actualChecksum != expectedChecksum ) {
+		std::cerr << "Checksum mismatch!" << std::endl;
+		return false;
+	}
+
+	// Validate footer
+	if ( buffer[packetLength] != 0x00 || buffer[packetLength + 1] != END_BYTE ) {
+		std::cerr << "Invalid footer!" << std::endl;
+		return false;
+	}
+
+	// Copy payload into struct
+	std::memcpy( &outPacket, buffer, sizeof( PacketStruct ) );
+	return true;
 }
 
 
@@ -471,6 +388,76 @@ void SerialClass::ParsePacketFromTeensy( PacketStruct pkt ) {
 
 
 
+void SerialClass::StringOutput( const uint8_t* buff ) {
+
+	std::cout << "t:" << shared->FormatDecimal( shared->Timing.elapsedRunningTime, 4, 3 );
+	std::cout << "HEX:   ";
+	std::cout << "[HD]:" << std::hex << static_cast<int>( buff[0] ) << "  ";
+	std::cout << "[SZ]:" << std::hex << static_cast<int>( buff[1] ) << "  ";
+	std::cout << "[CK]:" << std::setw( 2 ) << std::setfill( '0' ) << std::hex << static_cast<int>( buff[2] );
+	std::cout << " --- ";
+	std::cout << "[TP]:" << std::hex << static_cast<int>( buff[3] ) << "  ";
+	std::cout << "[CT]:" << std::setw( 2 ) << std::setfill( '0' ) << std::hex << static_cast<int>( buff[4] ) << "  ";
+	std::cout << "[ST]:" << std::hex << static_cast<int>( buff[5] );
+	std::cout << " --- PWM: ";
+	std::cout << "A[" << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[7] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[6] ) << "]  ";
+	std::cout << "B[" << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[9] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[8] ) << "]  ";
+	std::cout << "C[" << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[11] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[10] ) << "]  ";
+	std::cout << " --- Cur: ";
+	std::cout << "A[" << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[13] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[12] ) << "]  ";
+	std::cout << "B[" << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[15] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[14] ) << "]  ";
+	std::cout << "C[" << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[17] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[16] ) << "]  ";
+	std::cout << " --- Enc: ";
+	std::cout << "A[" << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[21] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[20] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[19] ) << " " << std::setw( 2 )
+			  << std::setfill( '0' ) << static_cast<int>( buff[18] ) << "]  ";
+	std::cout << "B[" << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[25] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[24] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[23] ) << " " << std::setw( 2 )
+			  << std::setfill( '0' ) << static_cast<int>( buff[22] ) << "]  ";
+	std::cout << "C[" << std::hex << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[29] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[28] ) << " " << std::setw( 2 ) << std::setfill( '0' ) << static_cast<int>( buff[27] ) << " " << std::setw( 2 )
+			  << std::setfill( '0' ) << static_cast<int>( buff[26] ) << "]  ";
+	std::cout << " --- [30]:" << std::hex << static_cast<int>( buff[30] ) << "  ";
+	std::cout << "[31]:" << std::hex << static_cast<int>( buff[31] );
+	std::cout << "\n";
+
+
+	uint16_t pwmA = static_cast<uint16_t>( buff[6] ) | ( static_cast<uint16_t>( buff[7] ) << 8 );
+	uint16_t pwmB = static_cast<uint16_t>( buff[8] ) | ( static_cast<uint16_t>( buff[9] ) << 8 );
+	uint16_t pwmC = static_cast<uint16_t>( buff[10] ) | ( static_cast<uint16_t>( buff[11] ) << 8 );
+	int16_t	 curA = static_cast<int16_t>( static_cast<uint16_t>( buff[12] ) | ( static_cast<uint16_t>( buff[13] ) << 8 ) );
+	int16_t	 curB = static_cast<int16_t>( static_cast<uint16_t>( buff[14] ) | ( static_cast<uint16_t>( buff[15] ) << 8 ) );
+	int16_t	 curC = static_cast<int16_t>( static_cast<uint16_t>( buff[16] ) | ( static_cast<uint16_t>( buff[17] ) << 8 ) );
+	int32_t	 encA = static_cast<int32_t>( static_cast<uint32_t>( buff[18] ) | ( static_cast<uint32_t>( buff[19] ) << 8 ) | ( static_cast<uint32_t>( buff[20] ) << 16 ) | ( static_cast<uint32_t>( buff[21] ) << 24 ) );
+	int32_t	 encB = static_cast<int32_t>( static_cast<uint32_t>( buff[22] ) | ( static_cast<uint32_t>( buff[23] ) << 8 ) | ( static_cast<uint32_t>( buff[24] ) << 16 ) | ( static_cast<uint32_t>( buff[25] ) << 24 ) );
+	int32_t	 encC = static_cast<int32_t>( static_cast<uint32_t>( buff[26] ) | ( static_cast<uint32_t>( buff[27] ) << 8 ) | ( static_cast<uint32_t>( buff[28] ) << 16 ) | ( static_cast<uint32_t>( buff[29] ) << 24 ) );
+
+	std::cout << "t:" << shared->FormatDecimal( shared->Timing.elapsedRunningTime, 4, 3 );
+	std::cout << "DEC:   ";
+	std::cout << "[HD]:" << std::hex << static_cast<int>( buff[0] ) << "  ";
+	std::cout << "[SZ]:" << std::dec << static_cast<int>( buff[1] ) << "  ";
+	std::cout << "[CK]:" << std::setw( 2 ) << std::setfill( '0' ) << std::hex << static_cast<int>( buff[2] );
+	std::cout << " --- ";
+	std::cout << "[TP]:" << std::hex << std::setw( 2 ) << std::setfill( ' ' ) << static_cast<char>( buff[3] ) << "  ";
+	std::cout << "[CT]:" << std::setw( 2 ) << std::setfill( '0' ) << std::dec << static_cast<int>( buff[4] ) << "  ";
+	std::cout << "[ST]:" << std::dec << static_cast<int>( buff[5] );
+	std::cout << " --- PWM: ";
+	std::cout << "A[ " << std::dec << std::setw( 4 ) << std::setfill( '0' ) << pwmA << "]  ";
+	std::cout << "A[ " << std::dec << std::setw( 4 ) << std::setfill( '0' ) << pwmB << "]  ";
+	std::cout << "A[ " << std::dec << std::setw( 4 ) << std::setfill( '0' ) << pwmC << "]  ";
+	std::cout << " --- Cur: ";
+	std::cout << "A[ " << std::dec << std::setw( 4 ) << std::setfill( '0' ) << curA << "]  ";
+	std::cout << "B[ " << std::dec << std::setw( 4 ) << std::setfill( '0' ) << curB << "]  ";
+	std::cout << "C[ " << std::dec << std::setw( 4 ) << std::setfill( '0' ) << curC << "]  ";
+	std::cout << " --- Enc: ";
+	std::cout << "A[   " << std::dec << std::setw( 8 ) << std::setfill( '0' ) << encA << "]  ";
+	std::cout << "B[   " << std::dec << std::setw( 8 ) << std::setfill( '0' ) << encB << "]  ";
+	std::cout << "C[   " << std::dec << std::setw( 8 ) << std::setfill( '0' ) << encC << "]  ";
+	std::cout << " --- [30]:" << std::dec << static_cast<int>( buff[30] ) << "  ";
+	std::cout << "[31]:" << std::dec << static_cast<int>( buff[31] );
+
+	std::cout << "\n\n";
+}
+
+
+
 /**
  * @brief Converts and saves the packet to a string
  */
@@ -509,10 +496,11 @@ void SerialClass::ConvertPacketToSerialString( PacketStruct packet ) {
 	oss << std::setw( 6 ) << std::setfill( '0' ) << static_cast<int>( packet.encoderC ) << " ]";
 
 	if ( std::isupper( type ) ) {
-		// std::cout << "  << OUT >>  ";
+
+		std::cout << "OUT: " << oss.str() << "\n";
 		shared->Serial.packetOut = oss.str();
 	} else {
-		// std::cout << "  << IN >>  ";
+		std::cout << "IN: " << oss.str() << "\n";
 		shared->Serial.packetIn = oss.str();
 	}
 }
