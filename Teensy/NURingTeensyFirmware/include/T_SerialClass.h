@@ -16,6 +16,7 @@ struct ManagedData;
 
 #define SerialIn Serial
 #define SerialOut SerialUSB1
+#define SerialDebug SerialUSB2
 
 
 /** 
@@ -30,7 +31,8 @@ public:
 	// Public functions
 	void Begin();
 	void Update();
-
+	// void UpdateDebug();
+	void PrintDebug( const String& msg );
 
 
 private:
@@ -42,6 +44,7 @@ private:
 	void ReadPacketFromPC();
 	void ParsePacketFromPC( PacketStruct* pkt );
 	void SendPacketToPC();
+
 
 	// Packet variables
 	const uint8_t startByte = 0xAA;

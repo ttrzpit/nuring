@@ -132,7 +132,7 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 
 
 	// Only calculate if within a certain radius of the target
-	if ( errorMagnitude < 100.0f ) {
+	if ( errorMagnitude < shared->Controller.integrationRadius ) {
 
 		// Add decay
 		if ( errorMagnitude < 10.0f ) {

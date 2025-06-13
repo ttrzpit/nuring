@@ -19,7 +19,6 @@
 inline constexpr unsigned short AMPLIFIER_PWM_ZERO = 2047;	  // Minimum PWM value
 inline constexpr unsigned short AMPLIFIER_PWM_MAX  = 1;		  // Maximum PWM value
 
-
 /**
  * @brief LED config values 
  * 
@@ -35,6 +34,6 @@ inline constexpr unsigned short AMPLIFIER_PWM_MAX  = 1;		  // Maximum PWM value
  * @brief Timing config values
  * 
  */
-inline constexpr unsigned short TIMING_FREQ_AMPLIFIER_DRIVE	 = 1000;	// Hz
-inline constexpr unsigned short TIMING_FREQ_AMPLIFIER_HWSERIAL = 60;		// Hz
+inline constexpr unsigned short TIMING_FREQ_AMPLIFIER_DRIVE			 = 1000;	// Hz
+inline constexpr unsigned short TIMING_FREQ_AMPLIFIER_HWSERIAL		 = 20;		// Hz
 inline constexpr unsigned short TIMING_FREQ_AMPLIFIER_SOFTWARESERIAL = 200;		// Hz

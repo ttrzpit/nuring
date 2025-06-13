@@ -182,8 +182,13 @@ void SerialClass::Update() {
 
 			ParsePacketFromTeensy( incomingPacket );
 
+			// Calculate time
+			elapsedTimeNow			   = shared->Timing.elapsedRunningTime;
+			shared->Serial.packetDelay = ( elapsedTimeNow - elapsedTimeLast ) * 1000.0f;
+			elapsedTimeLast			   = elapsedTimeNow;
+
+
 		} else {
-			std::cerr << "Failed to read or parse packet." << std::endl;
 		}
 	}
 }
@@ -221,6 +226,8 @@ void SerialClass::SendPacketToTeensy() {
 		newType = 'D';
 	} else if ( shared->System.state == stateEnum::MEASURING_LIMITS ) {
 		newType = 'L';
+	} else if ( shared->System.state == stateEnum::ZERO_ENCODER ) {
+		newType = 'Z';
 	} else {
 		// Nope
 	}
@@ -240,9 +247,17 @@ void SerialClass::SendPacketToTeensy() {
 	outgoingPacket.packetType	  = newType;
 	outgoingPacket.packetCounter  = shared->Amplifier.packetCounter;
 	outgoingPacket.amplifierState = shared->Amplifier.isAmplifierActive;
-	outgoingPacket.pwmA			  = shared->Controller.commandedPwmABC.x;
-	outgoingPacket.pwmB			  = shared->Controller.commandedPwmABC.y;
-	outgoingPacket.pwmC			  = shared->Controller.commandedPwmABC.z;
+
+
+	if ( shared->System.state == stateEnum::IDLE ) {
+		outgoingPacket.pwmA = 2048;
+		outgoingPacket.pwmB = 2048;
+		outgoingPacket.pwmC = 2048;
+	} else {
+		outgoingPacket.pwmA = shared->Controller.commandedPwmABC.x;
+		outgoingPacket.pwmB = shared->Controller.commandedPwmABC.y;
+		outgoingPacket.pwmC = shared->Controller.commandedPwmABC.z;
+	}
 
 	// Compute checksum
 	uint8_t	 checkSum = newType ^ packetLength;
@@ -268,6 +283,7 @@ void SerialClass::SendPacketToTeensy() {
 		std::cout << "SerialClass: Failed to send packet!\n";
 	} else {
 
+		// std::cout << "Outgoing Packet: " << outgoingPacket.packetType << "\n";
 		// StringOutput( buffer );
 		ConvertPacketToSerialString( outgoingPacket );
 	}
@@ -299,25 +315,38 @@ bool SerialClass::ReadTeensyPacket( PacketStruct& outPacket ) {
 
 	uint8_t buffer[32];
 	size_t	bufferIndex = 0;
+	// std::cout << "Attempt read...";
 
 	// Sync: look for START_BYTE
 	while ( true ) {
+
 		uint8_t byte;
-		if ( read( SerialIn, &byte, 1 ) <= 0 )
+
+		if ( read( SerialIn, &byte, 1 ) <= 0 ) {
+
+			// std::cout << "ReadTeensyPacket: Empty!     ";
 			return false;	 // Read fail
-		if ( byte == START_BYTE )
-			break;
+		}
+		if ( byte == START_BYTE ) {
+			// std::cout << "Byte detected     ";
+		}
+		break;
 	}
 
 	// Read packetLength and checksum
-	if ( read( SerialIn, buffer, 2 ) != 2 )
+	if ( read( SerialIn, buffer, 2 ) != 2 ) {
+		// std::cout << "ReadTeensyPacket: Not equal 2";
 		return false;
+	}
+
 	uint8_t packetLength	 = buffer[0];
 	uint8_t expectedChecksum = buffer[1];
 
 	// Read payload + 2 footer bytes (0x00 + END_BYTE)
-	if ( read( SerialIn, buffer, packetLength + 2 ) != static_cast<ssize_t>( packetLength + 2 ) )
+	if ( read( SerialIn, buffer, packetLength + 2 ) != static_cast<ssize_t>( packetLength + 2 ) ) {
+		// std::cout << "ReadTeensyPacket: Wrong size";
 		return false;
+	}
 
 	// Validate checksum
 	uint8_t actualChecksum = buffer[0] ^ packetLength;
@@ -326,13 +355,13 @@ bool SerialClass::ReadTeensyPacket( PacketStruct& outPacket ) {
 	}
 
 	if ( actualChecksum != expectedChecksum ) {
-		std::cerr << "Checksum mismatch!" << std::endl;
+		// std::cout << "ReadTeensyPacket: Checksum mismatch!" << std::endl;
 		return false;
 	}
 
 	// Validate footer
 	if ( buffer[packetLength] != 0x00 || buffer[packetLength + 1] != END_BYTE ) {
-		std::cerr << "Invalid footer!" << std::endl;
+		// std::cout << "ReadTeensyPacket: Invalid footer!" << std::endl;
 		return false;
 	}
 
@@ -369,18 +398,31 @@ bool SerialClass::ReadTeensyPacket( PacketStruct& outPacket ) {
 void SerialClass::ParsePacketFromTeensy( PacketStruct pkt ) {
 
 	// Store values
-	shared->Amplifier.packetType	   = pkt.packetType;
-	shared->Amplifier.packetCounter	   = pkt.packetCounter;
-	shared->Amplifier.packetDriveState = pkt.amplifierState;
-	shared->Amplifier.measuredPwmA	   = pkt.pwmA;
-	shared->Amplifier.measuredPwmB	   = pkt.pwmB;
-	shared->Amplifier.measuredPwmC	   = pkt.pwmC;
-	shared->Amplifier.measuredCurrentA = pkt.currentA;
-	shared->Amplifier.measuredCurrentB = pkt.currentB;
-	shared->Amplifier.measuredCurrentC = pkt.currentC;
-	shared->Amplifier.measuredEncoderA = pkt.encoderA;
-	shared->Amplifier.measuredEncoderB = pkt.encoderB;
-	shared->Amplifier.measuredEncoderC = pkt.encoderC;
+	shared->Amplifier.packetType			= pkt.packetType;
+	shared->Amplifier.packetCounter			= pkt.packetCounter;
+	shared->Amplifier.packetDriveState		= pkt.amplifierState;
+	shared->Amplifier.measuredPwmA			= pkt.pwmA;
+	shared->Amplifier.measuredPwmB			= pkt.pwmB;
+	shared->Amplifier.measuredPwmC			= pkt.pwmC;
+	shared->Amplifier.currentMeasuredRawA	= pkt.currentA;
+	shared->Amplifier.currentMeasuredRawB	= pkt.currentB;
+	shared->Amplifier.currentMeasuredRawC	= pkt.currentC;
+	shared->Amplifier.encoderMeasuredCountA = pkt.encoderA;
+	shared->Amplifier.encoderMeasuredCountB = pkt.encoderB;
+	shared->Amplifier.encoderMeasuredCountC = pkt.encoderC;
+
+	// Below moved to controller update
+	// shared->Amplifier.currentMeasuredAmpsA	= shared->Amplifier.currentMeasuredRawA * 0.01f;
+	// shared->Amplifier.currentMeasuredAmpsB	= shared->Amplifier.currentMeasuredRawB * 0.01f;
+	// shared->Amplifier.currentMeasuredAmpsC	= shared->Amplifier.currentMeasuredRawC * 0.01f;
+	// shared->Amplifier.encoderMeasuredDegA	= ( shared->Amplifier.encoderMeasuredCountA / 4096.0f ) * 360.0f;
+	// shared->Amplifier.encoderMeasuredDegB	= ( shared->Amplifier.encoderMeasuredCountB / 4096.0f ) * 360.0f;
+	// shared->Amplifier.encoderMeasuredDegC	= ( shared->Amplifier.encoderMeasuredCountC / 4096.0f ) * 360.0f;
+
+	// set back to idle
+	if ( pkt.packetType == 'z' ) {
+		shared->System.state = stateEnum::IDLE;
+	}
 
 	// Save as string
 	ConvertPacketToSerialString( pkt );
@@ -471,13 +513,15 @@ void SerialClass::ConvertPacketToSerialString( PacketStruct packet ) {
 
 	// Build header
 	if ( type == 'I' || type == 'i' ) {
-		oss << ( std::isupper( type ) ? "IDLE" : "idle" ) << " [ ";
+		oss << ( std::isupper( type ) ? "IDLE" : "idle " ) << " [ ";
 	} else if ( type == 'D' || type == 'd' ) {
 		oss << ( std::isupper( type ) ? "DRIVE" : "drive" ) << " [ ";
 	} else if ( type == 'L' || type == 'l' ) {
 		oss << ( std::isupper( type ) ? "LIMITS" : "limits" ) << " [ ";
 	} else if ( type == 'C' || type == 'c' ) {
 		oss << ( std::isupper( type ) ? "CURRENT" : "current" ) << " [ ";
+	} else if ( type == 'Z' || type == 'z' ) {
+		oss << ( std::isupper( type ) ? "ZERO" : "zero" ) << " [ ";
 	} else {
 		oss << "!ERROR!" << " [ ";
 	}
@@ -488,19 +532,19 @@ void SerialClass::ConvertPacketToSerialString( PacketStruct packet ) {
 	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.pwmA ) << " ";
 	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.pwmB ) << " ";
 	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.pwmC ) << " ] [ ";
-	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.currentA ) << " ";
-	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.currentB ) << " ";
-	oss << std::setw( 4 ) << std::setfill( '0' ) << static_cast<int>( packet.currentC ) << " ] [ ";
-	oss << std::setw( 6 ) << std::setfill( '0' ) << static_cast<int>( packet.encoderA ) << " ";
-	oss << std::setw( 6 ) << std::setfill( '0' ) << static_cast<int>( packet.encoderB ) << " ";
-	oss << std::setw( 6 ) << std::setfill( '0' ) << static_cast<int>( packet.encoderC ) << " ]";
+	oss << std::setw( 4 ) << std::setfill( ' ' ) << static_cast<int>( packet.currentA ) << " ";
+	oss << std::setw( 4 ) << std::setfill( ' ' ) << static_cast<int>( packet.currentB ) << " ";
+	oss << std::setw( 4 ) << std::setfill( ' ' ) << static_cast<int>( packet.currentC ) << " ] [ ";
+	oss << std::setw( 6 ) << std::setfill( ' ' ) << static_cast<int>( packet.encoderA ) << " ";
+	oss << std::setw( 6 ) << std::setfill( ' ' ) << static_cast<int>( packet.encoderB ) << " ";
+	oss << std::setw( 6 ) << std::setfill( ' ' ) << static_cast<int>( packet.encoderC ) << " ]";
 
 	if ( std::isupper( type ) ) {
 
-		std::cout << "OUT: " << oss.str() << "\n";
+		// std::cout << "OUT: " << oss.str() << "\n";
 		shared->Serial.packetOut = oss.str();
 	} else {
-		std::cout << "IN: " << oss.str() << "\n";
+		// std::cout << "IN: " << shared->Timing.elapsedRunningTime << "   " << oss.str() << "\n";
 		shared->Serial.packetIn = oss.str();
 	}
 }

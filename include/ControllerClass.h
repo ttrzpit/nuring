@@ -17,8 +17,9 @@ public:
 	ControllerClass( SystemDataManager& ctx );
 
 	void Update();
-	void Update4D() ;
-	void MapToContributionABC();
+	void Update4D();
+	void MapToContributionABC(cv::Point3f terms);
+	void UpdateAmplifier();
 
 private:
 	SystemDataManager&			 dataHandle;
@@ -48,6 +49,8 @@ private:
 	float		integralDecay = 0.9f;	 // 0.9 = slow, 0.0 = instant
 
 	// Functions
-	cv::Point3f MapToCurrent( cv::Point3f percentage , float iNominal );
+	cv::Point3f MapToCurrent( cv::Point3f percentage, float iNominal );
 	cv::Point3i MapToPWM( cv::Point3f percentage, int min, int max );
+
+	void MapToContributionTerm(cv::Point3f terms);
 };

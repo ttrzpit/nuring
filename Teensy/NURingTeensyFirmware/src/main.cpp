@@ -8,11 +8,11 @@ SharedDataManager DataHandle;
 
 
 // Custom libraries
+
 #include "T_AmplifierClass.h"	 // Amplifier header
 #include "T_Config.h"			 // Global config constants
 #include "T_LEDClass.h"			 // LED header
 #include "T_SerialClass.h"		 // Serial header
-
 
 // Custom classes
 T_AmplifierClass Amplifier( DataHandle );
@@ -23,15 +23,16 @@ T_SerialClass	 SerialPort( DataHandle );
 // Handle to shared data
 auto shared = DataHandle.getData();
 
-
 // Interval Timer
-IntervalTimer IT_Amplifiers;
-IntervalTimer IT_SerialPC;
+IntervalTimer IT_DriveAmplifiers;
+IntervalTimer IT_SendSerialToPC;
+IntervalTimer IT_ReadAmplifiers;
 
 
 /** FUNCTION PROTOTYPES **/
-void IT_Callback_Amplifier();
-void IT_Callback_SerialPC();
+void IT_Callback_WriteToAmplifiers();
+void IT_Callback_SendSerialToPC();
+void IT_Callback_ReadFromAmplifiers();
 void UpdateSystemState();
 
 
@@ -41,20 +42,28 @@ void UpdateSystemState();
  */
 void setup() {
 
-
 	// Initialize LEDs
 	LEDs.Begin();
 
 	// Initialize serial ports
 	SerialPort.Begin();
+	DataHandle.getData()->PrintDebug( "Debugger initialized" );
+
+	// Toggle debug on 3rd serial port
+	shared->Serial.useDebugText = false;
 
 	// Initialize amplifiers
 	Amplifier.Begin();
 
-	// Start interval timers
-	IT_Amplifiers.begin( IT_Callback_Amplifier, shared->Timing.periodAmplifier );
-	IT_SerialPC.begin( IT_Callback_SerialPC, shared->Timing.periodSoftwareSerial );
+	// Initialize amplifier serial interface
 
+
+	// Start interval timers
+	IT_DriveAmplifiers.begin( IT_Callback_WriteToAmplifiers, shared->Timing.periodAmplifier );
+	IT_SendSerialToPC.begin( IT_Callback_SendSerialToPC, shared->Timing.periodSoftwareSerial );
+	IT_ReadAmplifiers.begin( IT_Callback_ReadFromAmplifiers, shared->Timing.periodHWSerial );
+
+	// Set default state
 	shared->System.state = stateEnum::WAITING;
 }
 
@@ -71,15 +80,13 @@ void loop() {
 	// Update LEDs
 	LEDs.Update();
 
-
 	// Update system state
 	UpdateSystemState();
 }
 
 
 
-void IT_Callback_Amplifier() {
-
+void IT_Callback_WriteToAmplifiers() {
 
 	// Update amplifier
 	Amplifier.Update();
@@ -87,7 +94,13 @@ void IT_Callback_Amplifier() {
 
 
 
-void IT_Callback_SerialPC() {
+void IT_Callback_ReadFromAmplifiers() {
+	Amplifier.UpdateHWSerial();
+}
+
+
+
+void IT_Callback_SendSerialToPC() {
 
 	// Update serial port
 	SerialPort.Update();
@@ -99,6 +112,7 @@ void IT_Callback_SerialPC() {
  * 
  */
 void UpdateSystemState() {
+
 
 	// Select state
 	switch ( shared->System.state ) {
@@ -140,7 +154,7 @@ void UpdateSystemState() {
 			// Update LEDs
 			shared->LED.isCommunicatingWithPC = true;
 			shared->LED.isDrivingMotors		  = true;
-			shared->LED.isMeasuringLimits	  = false;
+			shared->LED.isMeasuringLimits	  = true;
 
 			break;
 		}
@@ -154,10 +168,27 @@ void UpdateSystemState() {
 			// Update LEDs
 			shared->LED.isCommunicatingWithPC = true;
 			shared->LED.isDrivingMotors		  = true;
-			shared->LED.isMeasuringLimits	  = true;
+
 
 			break;
 		}
+
+		// Zeroing encoder
+		case stateEnum::ZERO_ENCODER: {
+
+			// Update amplifier state
+			shared->Amplifier.isEnabled = true;
+			
+
+			// Update LEDs
+			shared->LED.isCommunicatingWithPC = true;
+			shared->LED.isDrivingMotors		  = true;
+
+
+			break;
+		}
+
+
 
 		default: {
 

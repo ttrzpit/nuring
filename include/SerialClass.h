@@ -62,4 +62,7 @@ private:
 	void PrintByte( std::vector<uint8_t> pktBytes );			// Print contents of a byte vector
 	void StringOutput( const uint8_t* buff );
 
+	float elapsedTimeNow = 0.0f; 
+	float elapsedTimeLast = 0.0f; 
+
 };

@@ -29,7 +29,9 @@ public:
 	void TaskTimerStart();
 	void TaskTimerEnd();
 	void GetTimestamp();
-	void UpdateTaskTime() ; 
+	void UpdateTaskTime();
+
+
 
 private:
 	// Data manager handle
@@ -41,8 +43,11 @@ private:
 	std::chrono::steady_clock::time_point currentTime;
 	std::chrono::steady_clock::time_point previousTime;
 	std::chrono::steady_clock::time_point previousTimeFreq;
-	std::chrono::duration<double>		  elapsedTime;
-	std::chrono::duration<double>		  elapsedTimeFreq;
+
+
+	std::chrono::duration<double> elapsedTime;
+	std::chrono::duration<double> elapsedTimeFreq;
+
 
 	std::chrono::steady_clock::time_point currentTaskTime;
 	std::chrono::steady_clock::time_point previousTaskTime;

@@ -6,13 +6,36 @@
 
 
 T_AmplifierClass::T_AmplifierClass( SharedDataManager& ctx )
-	: dataHandle( ctx )
-	, shared( ctx.getData() ) {
+	: shared( ctx.getData() )
+	, dataHandle( ctx ) {
 
-	// Set query state
-	queryState = queryStateEnum::IDLE;
-};
+	  };
 
+
+
+/**
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  ==================================================
+ *  ================================================== 
+ * 
+ *    AAA    MM      MM  PPPPP
+ *   AA AA   MMMM  MMMM  PP  PP
+ *   AA AA   MM MMMM MM  PP  PP
+ *  AAAAAAA  MM  MM  MM  PPPPP
+ *  AA   AA  MM      MM  PP
+ *  AA   AA  MM      MM  PP
+ *  AA   AA  MM      MM  PP
+ * 
+ *  ================================================== 
+ *  ================================================== 
+*/
 
 /**
  * @brief Initialize the incoming and outgoing serial ports
@@ -34,20 +57,30 @@ void T_AmplifierClass::Begin() {
 	// Set analog resolution
 	analogWriteResolution( 12 );
 
-	// Set initial state at zero
 	ZeroAmplifierOutput();
 
 	// Establish hardware serial connection to amplifiers
-	SerialA.begin( 9600 );
-	SerialB.begin( 9600 );
-	SerialC.begin( 9600 );
-	delay( 1000 );
+	HWSerialA.begin( 9600 );
+	delay( 100 );
+	HWSerialB.begin( 9600 );
+	delay( 100 );
+	HWSerialC.begin( 9600 );
+	delay( 100 );
 
-	// Reset amplifiers into PWM mode (for cogging compensation)
+	// shared->PrintDebug( "Amplifier: HWSerial initialized." );
+	dataHandle.getData()->PrintDebug( "HWSerial Initialized." );
+
+	// Reset into PWM mode (for cogging)
 	ResetIntoPwmMode();
 
 	// Enable amplifiers
 	Enable();
+
+	// shared->PrintDebug("Amplifier: Ready!") ;
+	// HWSerial_EnqueueQueryA( asciiGetName );
+
+	// Delay to ensure reset successful
+	delay( 500 );
 }
 
 
@@ -65,25 +98,6 @@ void T_AmplifierClass::Disable() {
 
 	// Update enable flags
 	shared->Amplifier.isEnabled = false;
-}
-
-
-
-/**
- * @brief Sends PWM signals to amplifier
- * 
- */
-void T_AmplifierClass::DrivePWM() {
-
-	// Constrain values as a precaution
-	shared->Amplifier.commandedPwmA = constrain( shared->Amplifier.commandedPwmA, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
-	shared->Amplifier.commandedPwmB = constrain( shared->Amplifier.commandedPwmB, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
-	shared->Amplifier.commandedPwmC = constrain( shared->Amplifier.commandedPwmC, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
-
-	// Send command to amplifiers
-	analogWrite( AMPLIFIER_PIN_PWM_A, shared->Amplifier.commandedPwmA );
-	analogWrite( AMPLIFIER_PIN_PWM_B, shared->Amplifier.commandedPwmB );
-	analogWrite( AMPLIFIER_PIN_PWM_C, shared->Amplifier.commandedPwmC );
 }
 
 
@@ -132,25 +146,87 @@ void T_AmplifierClass::Reset() {
 
 
 
-/**
- * @brief Reset the amplifiers into PWM Current mode
- *        ( needed for cogging compensation )
- * 
- */
 void T_AmplifierClass::ResetIntoPwmMode() {
 
-	// Sent reset commands
 	Reset();
 
-	// Sent serial command to use PWM current mode
-	SerialA.print( asciiSetCurrentMode );
-	delay( 500 );
-	SerialB.print( asciiSetCurrentMode );
-	delay( 500 );
-	SerialC.print( asciiSetCurrentMode );
-	delay( 500 );
+	// Send reset codes
+	HWSerial_EnqueueQueryA( asciiSetCurrentMode );
+	delay( 600 );
+	HWSerial_EnqueueQueryB( asciiSetCurrentMode );
+	delay( 600 );
+	HWSerial_EnqueueQueryC( asciiSetCurrentMode );
+	delay( 600 );
 }
 
+
+
+void T_AmplifierClass::ZeroEncoder() {
+
+	// Send encoder zero commands
+	HWSerial_EnqueueQueryA( asciiSetEncoderZero );
+	HWSerial_EnqueueQueryB( asciiSetEncoderZero );
+	HWSerial_EnqueueQueryC( asciiSetEncoderZero );
+}
+
+/**
+ * @brief Sends PWM signals to amplifier
+ * 
+ */
+void T_AmplifierClass::DrivePWM() {
+
+	// Constrain values as a precaution
+	shared->Amplifier.commandedPwmA = constrain( shared->Amplifier.commandedPwmA, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
+	shared->Amplifier.commandedPwmB = constrain( shared->Amplifier.commandedPwmB, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
+	shared->Amplifier.commandedPwmC = constrain( shared->Amplifier.commandedPwmC, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
+
+	// Send command to amplifiers
+	analogWrite( AMPLIFIER_PIN_PWM_A, shared->Amplifier.commandedPwmA );
+	analogWrite( AMPLIFIER_PIN_PWM_B, shared->Amplifier.commandedPwmB );
+	analogWrite( AMPLIFIER_PIN_PWM_C, shared->Amplifier.commandedPwmC );
+}
+
+
+
+/**
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  ==================================================
+ *  ================================================== 
+ * 
+ *  UU   UU  PPPPP    DDDDD      AAA    TTTTTT  EEEEEE 
+ *  UU   UU  PP   PP  DD   DD   AA AA     TT    EE    
+ *  UU   UU  PP   PP  DD   DD   AA AA     TT    EE  
+ *  UU   UU  PPPPP    DD   DD  AAAAAAA    TT    EEEEE    
+ *  UU   UU  PP       DD   DD  AA   AA    TT    EE    
+ *  UU   UU  PP       DD   DD  AA   AA    TT    EE    
+ *   UUUUU   PP       DDDDD    AA   AA    TT    EEEEEE 
+ * 
+ *  ================================================== 
+ *  ================================================== 
+*/
+
+
+
+/**
+ * @brief Main update functions, handles amplifier operations
+ * 
+ */
+void T_AmplifierClass::UpdateHWSerial() {
+
+	HWSerial_EnqueueQueryA( asciiGetEncoderCount );
+	HWSerial_EnqueueQueryB( asciiGetEncoderCount );
+	HWSerial_EnqueueQueryC( asciiGetEncoderCount );
+	HWSerial_EnqueueQueryA( asciiGetCurrent );
+	HWSerial_EnqueueQueryB( asciiGetCurrent );
+	HWSerial_EnqueueQueryC( asciiGetCurrent );
+}
 
 
 /**
@@ -161,9 +237,19 @@ void T_AmplifierClass::Update() {
 
 	switch ( shared->System.state ) {
 
+		// Waiting
+		case stateEnum::WAITING: {
+			ZeroAmplifierOutput();
+			shared->Amplifier.isEnabled = false;
+			break;
+		}
+
 		// Idle
 		case stateEnum::IDLE: {
 
+			// Drive PWM
+			ZeroAmplifierOutput();
+			DrivePWM();
 			break;
 		}
 
@@ -175,7 +261,6 @@ void T_AmplifierClass::Update() {
 
 				// Drive PWM
 				DrivePWM();
-
 			}
 
 			break;
@@ -184,38 +269,21 @@ void T_AmplifierClass::Update() {
 		// Measure limits
 		case stateEnum::MEASURING_LIMITS: {
 
-			// Disable amplifier
-			shared->Amplifier.isEnabled = false;
-
-			// // Check if encoders have been zeroed
-			// if ( !shared->Amplifier.isEncoderReset ) {
-
-			// 	// Set state to zero encoders
-			// 	queryState = queryStateEnum::REQUEST_ENCODER_RESET;
-			// }
-
-			// Read encoder data
-			queryState = queryStateEnum::REQUEST_ENCODER_POSITION;
-
-			// Update LED
-			// shared->LED.isDrivingMotors	  = false;
-			// shared->LED.isMeasuringLimits = true;
-
 			break;
 		}
 
 		// Measure current
 		case stateEnum::MEASURING_CURRENTS: {
 
-			// Enablle amplifiers
-			Enable();
+			break;
+		}
 
-			// Measure current
-			queryState = queryStateEnum::REQUEST_CURRENT;
+		// Reset encoder
+		case stateEnum::ZERO_ENCODER: {
 
-			// Update LED
-			// shared->LED.isDrivingMotors	  = true;
-			// shared->LED.isMeasuringLimits = true;
+			// Send zero command
+			ZeroEncoder();
+			shared->System.state = stateEnum::IDLE;
 
 			break;
 		}
@@ -223,20 +291,30 @@ void T_AmplifierClass::Update() {
 		// Default
 		default: {
 
-			// Update state
-			queryState = queryStateEnum::IDLE;
-
-			// Update LED
-			// shared->LED.isDrivingMotors	  = false;
-			// shared->LED.isMeasuringLimits = false;
 
 			break;
 		}
 	}
 
-	// Poll amplifier
-	QueryAmplifierSerial();
+	// Callback to HWSerialA
+	HWSerial_ProcessQueryA();
+	if ( HWSerialA.available() ) {
+		T_AmplifierClass::HWSerial_ReadQueryA();
+	}
+
+	// Callback to HWSerialB
+	HWSerial_ProcessQueryB();
+	if ( HWSerialB.available() ) {
+		T_AmplifierClass::HWSerial_ReadQueryB();
+	}
+
+	// Callback to HWSerialC
+	HWSerial_ProcessQueryC();
+	if ( HWSerialC.available() ) {
+		T_AmplifierClass::HWSerial_ReadQueryC();
+	}
 }
+
 
 
 /**
@@ -247,411 +325,405 @@ void T_AmplifierClass::ZeroAmplifierOutput() {
 	shared->Amplifier.commandedPwmA = AMPLIFIER_PWM_ZERO;
 	shared->Amplifier.commandedPwmB = AMPLIFIER_PWM_ZERO;
 	shared->Amplifier.commandedPwmC = AMPLIFIER_PWM_ZERO;
+
+	// Send command to amplifiers
+	analogWrite( AMPLIFIER_PIN_PWM_A, shared->Amplifier.commandedPwmA );
+	analogWrite( AMPLIFIER_PIN_PWM_B, shared->Amplifier.commandedPwmB );
+	analogWrite( AMPLIFIER_PIN_PWM_C, shared->Amplifier.commandedPwmC );
 }
 
 
+
 /**
- * @brief Sends a request to the amplifier and handles the response
+ *
  * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  ===================================================================
+ *  ===================================================================
+ * 
+ *  H   H  W     W     SSSS   EEEEEE  RRRRR    IIIIII   AAAAA   LL
+ *  H   H  W     W    SS      EE      RR  RR     II    AA   AA  LL
+ *  H   H  W     W    SS      EE      RR  RR     II    AA   AA  LL
+ *  HHHHH  W  W  W     SSSS   EEEE    RRRRR      II    AAAAAAA  LL
+ *  H   H  W W W W        SS  EE      RR  RR     II    AA   AA  LL
+ *  H   H  WW WW W        SS  EE      RR  RR     II    AA   AA  LL
+ *  H   H   W   W      SSSS   EEEEEE  RR   RR  IIIIII  AA   AA  LLLLL
+ * 
+ *  =================================================================== 
+ *  =================================================================== 
  */
-void T_AmplifierClass::QueryAmplifierSerial() {
 
-	// Capture current time
-	unsigned long now = millis();
 
-	// Select action based on state
-	switch ( queryState ) {
 
-		// System is idle
-		case queryStateEnum::IDLE: {
+/***************************
+ *  HWSerial_EnqueueQuery  *
+ ***************************/
 
-			// Do nothing
+/**
+ * @brief Add a new HWSerial query the queue for amplifier A
+ * 
+ * @param cmd ASCII command string to send to A
+ */
+void T_AmplifierClass::HWSerial_EnqueueQueryA( const String& cmd ) {
+	queryQueueA.push( cmd );
+}
 
-			break;
-		}
 
-		// Send encoder position request
-		case queryStateEnum::REQUEST_ENCODER_POSITION: {
 
-			// Check if time elapsed
-			if ( now - queryTimeLast > queryInterval ) {
+/**
+ * @brief Add a new HWSerial query the queue for amplifier B
+ * 
+ * @param cmd ASCII command string to send to B
+ */
+void T_AmplifierClass::HWSerial_EnqueueQueryB( const String& cmd ) {
+	queryQueueB.push( cmd );
+}
 
-				// Send position request
-				SerialA.print( asciiGetEncoderCount );
 
-				// Update state and reset buffer
-				queryState		 = queryStateEnum::WAIT_ENCODER_POSITION;
-				queryBufferIndex = 0;
-				queryTimeLast	 = now;
-			}
 
-			break;
-		}
+/**
+ * @brief Add a new HWSerial query the queue for amplifier C
+ * 
+ * @param cmd ASCII command string to send to C
+ */
+void T_AmplifierClass::HWSerial_EnqueueQueryC( const String& cmd ) {
+	queryQueueC.push( cmd );
+}
 
-		// Receive encoder position
-		case queryStateEnum::WAIT_ENCODER_POSITION: {
 
-			// Check if data received
-			if ( ReadAmplifierSerialA() ) {
 
-				// Check if packet is valid
-				if ( queryBuffer[0] == 'v' && queryBuffer[1] == ' ' ) {
+/***************************
+ *  HWSerial_ProcessQuery  *
+ ***************************/
 
-					// Save motor position
-					shared->Amplifier.encoderCountA = atol( &queryBuffer[2] );
+/**
+  * @brief Process the next query in queue A
+  * 
+  */
+void T_AmplifierClass::HWSerial_ProcessQueryA() {
 
-					// Update state
-					queryState = queryStateEnum::IDLE;
-				}
-			}
+	// Check if there isn't already a request in waiting, and the queue isn't empty
+	if ( !isAwaitingResponseA && !queryQueueA.empty() ) {
 
-			break;
-		}
+		// Extract first query
+		queryStateA = queryQueueA.front();
+		queryQueueA.pop();
 
-		// Send current measurement request
-		case queryStateEnum::REQUEST_CURRENT: {
+		// Update
+		queryResponseA		= "";
+		isAwaitingResponseA = true;
 
-			// Check if time elapsed
-			if ( now - queryTimeLast > queryInterval ) {
-
-				// Send current request
-				SerialA.print( asciiGetCurrent );
-
-				// Update state and reset buffer
-				queryState		 = queryStateEnum::WAIT_CURRENT;
-				queryBufferIndex = 0;
-				queryTimeLast	 = now;
-			}
-
-			break;
-		}
-
-		// Receive current measurement
-		case queryStateEnum::WAIT_CURRENT: {
-
-			// Check if data received
-			if ( ReadAmplifierSerialA() ) {
-
-				// Check if packet is valid
-				if ( queryBuffer[0] == 'v' && queryBuffer[1] == ' ' ) {
-
-					// Save motor position
-					shared->Amplifier.measuredCurrentA = atoi( &queryBuffer[2] );
-
-					// Update state
-					queryState = queryStateEnum::REQUEST_ENCODER_POSITION;
-				}
-			}
-
-			break;
-		}
-
-		// Send name request
-		case queryStateEnum::REQUEST_NAME: {
-
-			// Check if time elapsed
-			if ( now - queryTimeLast > queryInterval ) {
-
-				// Send current request
-				SerialA.print( asciiGetName );
-
-				// Update state and reset buffer
-				queryState		 = queryStateEnum::WAIT_NAME;
-				queryBufferIndex = 0;
-				queryTimeLast	 = now;
-			}
-
-			break;
-		}
-
-		// Receive name
-		case queryStateEnum::WAIT_NAME: {
-
-			// Check if data received
-			if ( ReadAmplifierSerialA() ) {
-
-				// Check if packet is valid
-				if ( queryBuffer[0] == 'v' && queryBuffer[1] == ' ' ) {
-
-					// Save motor name
-					shared->Amplifier.nameA = String( &queryBuffer[2] );
-
-					// Update state
-					queryState = queryStateEnum::IDLE;
-				}
-			}
-
-			break;
-		}
-
-		// Send name request
-		case queryStateEnum::REQUEST_ENCODER_RESET: {
-
-			// Check if time elapsed
-			if ( now - queryTimeLast > queryInterval ) {
-
-				// Send reset request
-				SerialA.print( asciiSetEncoderCount );
-
-				// Update state and reset buffer
-				queryState		 = queryStateEnum::WAIT_ENCODER_RESET;
-				queryBufferIndex = 0;
-				queryTimeLast	 = now;
-			}
-
-			break;
-		}
-
-		// Receive confirmation of reset request
-		case queryStateEnum::WAIT_ENCODER_RESET: {
-
-			// Check if data received
-			if ( ReadAmplifierSerialA() ) {
-
-				// Strip newline and carriage return
-				queryBuffer[strcspn( queryBuffer, "\r\n" )] = 0;
-
-				// Check if packet is valid
-				if ( strcmp( queryBuffer, "ok" ) == 0 ) {
-
-					// Update flag
-					shared->Amplifier.isEncoderReset = true;
-
-					// Update state
-					queryState = queryStateEnum::IDLE;
-				}
-			}
-
-			break;
-		}
-
-
-		// Send name request
-		case queryStateEnum::REQUEST_BAUD_UPDATE: {
-
-			// Check if time elapsed
-			if ( now - queryTimeLast > queryInterval ) {
-
-				// Send reset request
-				SerialA.print( asciiSetBaud115237 );
-
-				// Update state and reset buffer
-				queryState		 = queryStateEnum::WAIT_BAUD_UPDATE;
-				queryBufferIndex = 0;
-				queryTimeLast	 = now;
-			}
-
-			break;
-		}
-
-		// Receive confirmation of reset request
-		case queryStateEnum::WAIT_BAUD_UPDATE: {
-
-			// Check if data received
-			if ( ReadAmplifierSerialA() ) {
-
-				// Strip newline and carriage return
-				queryBuffer[strcspn( queryBuffer, "\r\n" )] = 0;
-
-				// Check if packet is valid
-				if ( strcmp( queryBuffer, "ok" ) == 0 ) {
-
-					// Update flag
-					shared->Amplifier.isBaudUpdated = true;
-
-					// Update state
-					queryState = queryStateEnum::IDLE;
-				}
-			}
-
-			break;
-		}
-
-		// Send current measurement request
-		case queryStateEnum::REQUEST_BAUD: {
-
-			// Check if time elapsed
-			if ( now - queryTimeLast > queryInterval ) {
-
-				// Send current request
-				SerialA.print( asciiGetBaud );
-
-				// Update state and reset buffer
-				queryState		 = queryStateEnum::WAIT_BAUD;
-				queryBufferIndex = 0;
-				queryTimeLast	 = now;
-			}
-
-			break;
-		}
-
-		// Receive current measurement
-		case queryStateEnum::WAIT_BAUD: {
-
-			// Check if data received
-			if ( ReadAmplifierSerialA() ) {
-
-				// Check if packet is valid
-				if ( queryBuffer[0] == 'v' && queryBuffer[1] == ' ' ) {
-
-					// Save value
-
-
-					// Update state
-					queryState = queryStateEnum::IDLE;
-				}
-			}
-
-			break;
-		}
-
-		// Default case
-		default: {
-
-			// Set default state
-			queryState = queryStateEnum::IDLE;
-			break;
-		}
+		// Send query
+		HWSerialA.print( queryStateA );
 	}
 }
 
 
+
 /**
- * @brief Read amplifier serial port response
- * 
- */
-bool T_AmplifierClass::ReadAmplifierSerialA() {
+  * @brief Process the next query in queue B
+  * 
+  */
+void T_AmplifierClass::HWSerial_ProcessQueryB() {
 
-	// Loop while data available
-	while ( SerialA.available() ) {
+	// Check if there isn't already a request in waiting, and the queue isn't empty
+	if ( !isAwaitingResponseB && !queryQueueB.empty() ) {
 
-		char c = SerialA.read();
+		// Extract first query
+		queryStateB = queryQueueB.front();
+		queryQueueB.pop();
 
-		// Look for terminating character
-		if ( c == '\n' ) {
+		// Update
+		queryResponseB		= "";
+		isAwaitingResponseB = true;
 
-			// Replace terminator with escape key
-			queryBuffer[queryBufferIndex] = '\0';
+		// Send query
+		HWSerialB.print( queryStateB );
+	}
+}
 
-			// Replace return char
-			if ( queryBufferIndex > 0 && queryBuffer[queryBufferIndex - 1] == '\r' ) {
-				queryBuffer[queryBufferIndex - 1] = '\0';
-			}
 
-			// Return true
-			return true;
-		}
 
-		if ( queryBufferIndex < 63 ) {
-			queryBuffer[queryBufferIndex++] = c;
+/**
+  * @brief Process the next query in queue C
+  * 
+  */
+void T_AmplifierClass::HWSerial_ProcessQueryC() {
+
+	// Check if there isn't already a request in waiting, and the queue isn't empty
+	if ( !isAwaitingResponseC && !queryQueueC.empty() ) {
+
+		// Extract first query
+		queryStateC = queryQueueC.front();
+		queryQueueC.pop();
+
+		// Update
+		queryResponseC		= "";
+		isAwaitingResponseC = true;
+
+		// Send query
+		HWSerialC.print( queryStateC );
+	}
+}
+
+
+
+/************************
+ *  HWSerial_ReadQuery  *
+ ************************/
+
+/**
+  * @brief Read the response for amplifier A 
+  * 
+  */
+void T_AmplifierClass::HWSerial_ReadQueryA() {
+
+
+	while ( HWSerialA.available() > 0 ) {
+
+		// Read character
+		char incomingChar = ( char )HWSerialA.read();
+
+		// Look for line return
+		if ( incomingChar == '\r' ) {
+
+			// Parse string
+			HWSerial_ParseResponseA();
+
 		} else {
-			queryBufferIndex = 0;
+
+			// Build string
+			queryResponseA += incomingChar;
 		}
 	}
-
-	// Return false
-	return false;
 }
 
 
 
-// /**
-//  * @brief Zero motor encoder values
-//  *
-//  */
-// void T_AmplifierClass::ResetMotorEncoders() {
-
-// 	// Disable motors for safety
-// 	shared->Amplifier.isEnabled = false;
-
-// 	// Send encoder reset command and update flag that data is ready
-// 	SerialA.print( asciiSetEncoderCountZero );
-// 	shared->Amplifier.isEncoderWaitingA = true;
-// 	ParseEncoderPacketA();
-// 	SerialB.print( asciiSetEncoderCountZero );
-// 	shared->Amplifier.isEncoderWaitingB = true;
-// 	SerialC.print( asciiSetEncoderCountZero );
-// 	shared->Amplifier.isEncoderWaitingC = true;
-
-// 	// Update reset flag
-// 	shared->Amplifier.isEncoderReset = true;
-// }
+/**
+  * @brief Read the response for amplifier B
+  * 
+  */
+void T_AmplifierClass::HWSerial_ReadQueryB() {
 
 
+	while ( HWSerialB.available() > 0 ) {
 
-// /**
-//  * @brief Read motor encoders
-//  *
-//  */
-// void T_AmplifierClass::ReadMotorEncoders() {
+		// Read character
+		char incomingChar = ( char )HWSerialB.read();
 
-// 	// Read encoderA
-// 	SerialA.print( asciiGetEncoderCount );
-// 	shared->Amplifier.isEncoderWaitingA = true;
-// 	ParseEncoderPacketA();
+		// Look for line return
+		if ( incomingChar == '\r' ) {
 
-// 	// // Read encoderB
-// 	// SerialB.print( asciiGetEncoderCount );
-// 	// shared->Amplifier.isEncoderWaitingB = true;
-// 	// ParseEncoderPacketB();
+			// Parse string
+			HWSerial_ParseResponseB();
 
-// 	// // Read encoderC
-// 	// SerialC.print( asciiGetEncoderCount );
-// 	// shared->Amplifier.isEncoderWaitingC = true;
-// 	// ParseEncoderPacketC();
-// }
+		} else {
+
+			// Build string
+			queryResponseB += incomingChar;
+		}
+	}
+}
 
 
-// void T_AmplifierClass::ParseEncoderPacketA() {
 
-// 	// Variables for reading
-// 	static char	   encoderBuffer[32];
-// 	static uint8_t idx = 0;
-
-// 	// Check if data waiting via serial
-// 	if ( shared->Amplifier.isEncoderWaitingA ) {
-
-// 		// Cycle over data
-// 		while ( SerialA.available() ) {
-
-// 			// Replace with read-string until
+/**
+  * @brief Read the response for amplifier C
+  * 
+  */
+void T_AmplifierClass::HWSerial_ReadQueryC() {
 
 
-// 			// Read character
-// 			char c = SerialA.read();
+	while ( HWSerialC.available() > 0 ) {
 
-// 			// Parse string when terminating character appears
-// 			if ( c == '\n' ) {
-// 				encoderBuffer[idx] = '\0';
+		// Read character
+		char incomingChar = ( char )HWSerialC.read();
 
-// 				if ( idx > 0 && encoderBuffer[idx - 1] == '\r' ) {
-// 					encoderBuffer[idx - 1] = '\0';
-// 				}
+		// Look for line return
+		if ( incomingChar == '\r' ) {
+
+			// Parse string
+			HWSerial_ParseResponseC();
+
+		} else {
+
+			// Build string
+			queryResponseC += incomingChar;
+		}
+	}
+}
 
 
-// 				// Verify valid packet
-// 				if ( encoderBuffer[0] == 'v' && encoderBuffer[1] == ' ' ) {
 
-// 					// Store value
-// 					shared->Amplifier.encoderCountA = atol( &encoderBuffer[2] );
+/****************************
+ *  HWSerial_ParseResponse  *
+ ****************************/
 
-// 					// Update flag
-// 					shared->Amplifier.isEncoderWaitingA = false;
-// 				}
+/**
+  * @brief Parse serial response and save values
+  * 
+  */
+void T_AmplifierClass::HWSerial_ParseResponseA() {
 
-// 				// Reset index
-// 				idx = 0;
+	// Remove "> " if it exists
+	if ( queryResponseA.startsWith( "v " ) ) {
+		queryResponseA.remove( 0, 2 );
+	}
 
-// 			} else if ( idx < sizeof( encoderBuffer ) - 1 ) {
+	// Extract response
+	String response = queryResponseA;
 
-// 				// Store character while within buffer size
-// 				encoderBuffer[idx++] = c;
+	// GetBaud
+	if ( queryStateA == asciiGetBaud ) {
+		shared->Amplifier.baudA = response.toInt();
+		dataHandle.getData()->PrintDebug( "GetBaud[A]: " + String( shared->Amplifier.baudA ) );
 
-// 			} else {
+	}
+	// SetCurrentMode
+	else if ( queryStateA == asciiSetCurrentMode ) {
+		dataHandle.getData()->PrintDebug( "SetCurrentMode[A]: " + response );
+	}
+	// GetName
+	else if ( queryStateA == asciiGetName ) {
+		shared->Amplifier.nameA = response.substring( 2, queryResponseA.length() );
+		dataHandle.getData()->PrintDebug( "GetName[A]: " + shared->Amplifier.nameA );
+	}
+	// GetEncoderCount
+	else if ( queryStateA == asciiGetEncoderCount ) {
+		shared->Amplifier.encoderMeasuredCountA = response.toInt();
+		// dataHandle.getData()->PrintDebug( "GetCount[A]: " + String( shared->Amplifier.encoderMeasuredCountA ) );
+	}
+	// GetCurrent
+	else if ( queryStateA == asciiGetCurrent ) {
+		shared->Amplifier.currentMeasuredRawA = response.toInt();
+		// dataHandle.getData()->PrintDebug( "GetCurrent[A]: " + String( shared->Amplifier.currentMeasuredRawA ) );
+	}
+	// Set encoder zero
+	else if ( queryStateA == asciiSetEncoderZero ) {
 
-// 				// Reset in case of buffer overflow
-// 				idx = 0;
-// 			}
-// 		}
-// 	}
-// }
+		dataHandle.getData()->PrintDebug( "SetEncoderZero[A]: " + String( queryResponseA ) );
+	}
+
+	queryStateA			= "";
+	queryResponseA		= "";
+	isAwaitingResponseA = false;
+}
+
+
+
+/**
+  * @brief Parse serial response and save values for amplifier B
+  * 
+  */
+void T_AmplifierClass::HWSerial_ParseResponseB() {
+
+	// Remove "> " if it exists
+	if ( queryResponseB.startsWith( "v " ) ) {
+		queryResponseB.remove( 0, 2 );
+	}
+
+	// Extract response
+	String response = queryResponseB;
+
+	// GetBaud
+	if ( queryStateB == asciiGetBaud ) {
+
+		shared->Amplifier.baudB = response.toInt();
+		dataHandle.getData()->PrintDebug( "GetBaud[B]: " + String( shared->Amplifier.baudB ) );
+	}
+	// SetCurrentMode
+	else if ( queryStateB == asciiSetCurrentMode ) {
+
+		dataHandle.getData()->PrintDebug( "SetCurrentMode[B]: " + response );
+	}
+	// GetName
+	else if ( queryStateB == asciiGetName ) {
+
+		shared->Amplifier.nameB = response.substring( 2, queryResponseB.length() );
+		dataHandle.getData()->PrintDebug( "GetName[B]: " + shared->Amplifier.nameB );
+	}
+	// GetEncoderCount
+	else if ( queryStateB == asciiGetEncoderCount ) {
+
+		shared->Amplifier.encoderMeasuredCountB = response.toInt();
+		// dataHandle.getData()->PrintDebug( "GetCount[B]: " + String( shared->Amplifier.encoderMeasuredCountB ) );
+	}
+	// GetCurrent
+	else if ( queryStateB == asciiGetCurrent ) {
+
+		shared->Amplifier.currentMeasuredRawB = response.toInt();
+		// dataHandle.getData()->PrintDebug( "GetCurrent[B]: " + String( shared->Amplifier.currentMeasuredRawB ) );
+	}
+	// Set encoder zero
+	else if ( queryStateB == asciiSetEncoderZero ) {
+
+		dataHandle.getData()->PrintDebug( "SetEncoderZero[B]: " + String( queryResponseB ) );
+	}
+
+	queryStateB			= "";
+	queryResponseB		= "";
+	isAwaitingResponseB = false;
+}
+
+
+
+/**
+  * @brief Parse serial response and save values for amplifier C
+  * 
+  */
+void T_AmplifierClass::HWSerial_ParseResponseC() {
+
+	// Remove "> " if it exists
+	if ( queryResponseC.startsWith( "v " ) ) {
+		queryResponseC.remove( 0, 2 );
+	}
+
+	// Extract response
+	String response = queryResponseC;
+
+	// GetBaud
+	if ( queryStateC == asciiGetBaud ) {
+
+		shared->Amplifier.baudC = response.toInt();
+		dataHandle.getData()->PrintDebug( "GetBaud[C]: " + String( shared->Amplifier.baudC ) );
+	}
+	// SetCurrentMode
+	else if ( queryStateC == asciiSetCurrentMode ) {
+
+		dataHandle.getData()->PrintDebug( "SetCurrentMode[C]: " + response );
+	}
+	// GetName
+	else if ( queryStateC == asciiGetName ) {
+
+		shared->Amplifier.nameC = response.substring( 2, queryResponseC.length() );
+		dataHandle.getData()->PrintDebug( "GetName[C]: " + shared->Amplifier.nameC );
+	}
+	// GetEncoderCount
+	else if ( queryStateC == asciiGetEncoderCount ) {
+
+		shared->Amplifier.encoderMeasuredCountC = response.toInt();
+		// dataHandle.getData()->PrintDebug( "GetCount[C]: " + String( shared->Amplifier.encoderMeasuredCountC ) );
+	}
+	// GetCurrent
+	else if ( queryStateC == asciiGetCurrent ) {
+
+		shared->Amplifier.currentMeasuredRawC = response.toInt();
+		// dataHandle.getData()->PrintDebug( "GetCurrent[C]: " + String( shared->Amplifier.currentMeasuredRawC ) );
+	}
+	// Set encoder zero
+	else if ( queryStateC == asciiSetEncoderZero ) {
+
+		dataHandle.getData()->PrintDebug( "SetEncoderZero[C]: " + String( queryResponseC ) );
+	}
+
+
+	queryStateC			= "";
+	queryResponseC		= "";
+	isAwaitingResponseC = false;
+}

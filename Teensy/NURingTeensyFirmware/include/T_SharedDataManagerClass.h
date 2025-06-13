@@ -7,37 +7,42 @@
 // Memory for shared data
 #include "T_Config.h"
 #include "T_PacketTypes.h"
+#include "T_SerialClass.h"
+#include "queue"
 #include <Arduino.h>
 #include <memory>
 
-
 // Shared data manager
 class SharedDataManager;
+class T_SerialClass;
 struct ManagedData;
 
-enum class stateEnum { WAITING, IDLE, DRIVING_PWM, MEASURING_LIMITS, MEASURING_CURRENTS };
+enum class stateEnum { WAITING, IDLE, DRIVING_PWM, MEASURING_LIMITS, MEASURING_CURRENTS , ZERO_ENCODER };
 
 
 struct AmplifierStruct {
 
 	// Amplifier enabled flags
-	bool isEnabled		= false;
-	bool isEncoderReset = false;
-	bool isBaudUpdated	= false;
+	bool isEnabled		   = false;
+	bool isEncoderReset	   = false;
+	bool isHWSerialEnabled = false;
+	bool useDebugPort	   = true;
+
+	bool isQuerySent = false;
 
 	// Packet variables
-	uint8_t	 packetType		  = 'W';	// Waiting initially
-	uint8_t	 commandedState	  = 0;
-	uint8_t	 packetCounter	  = 0;
-	uint16_t commandedPwmA	  = AMPLIFIER_PWM_ZERO;
-	uint16_t commandedPwmB	  = AMPLIFIER_PWM_ZERO;
-	uint16_t commandedPwmC	  = AMPLIFIER_PWM_ZERO;
-	int16_t	 measuredCurrentA = 987;
-	int16_t	 measuredCurrentB = 654;
-	int16_t	 measuredCurrentC = 321;
-	int32_t	 encoderCountA	  = 123456;
-	int32_t	 encoderCountB	  = 234567;
-	int32_t	 encoderCountC	  = 345678;
+	uint8_t	 packetType			   = 'W';	 // Waiting initially
+	uint8_t	 commandedState		   = 0;
+	uint8_t	 packetCounter		   = 0;
+	uint16_t commandedPwmA		   = AMPLIFIER_PWM_ZERO;
+	uint16_t commandedPwmB		   = AMPLIFIER_PWM_ZERO;
+	uint16_t commandedPwmC		   = AMPLIFIER_PWM_ZERO;
+	int16_t	 currentMeasuredRawA   = 0;
+	int16_t	 currentMeasuredRawB   = 0;
+	int16_t	 currentMeasuredRawC   = 0;
+	int32_t	 encoderMeasuredCountA = 0;
+	int32_t	 encoderMeasuredCountB = 0;
+	int32_t	 encoderMeasuredCountC = 0;
 
 	// Other variables
 	String	nameA = "";
@@ -71,6 +76,10 @@ struct SerialStruct {
 	// Packets
 	String packetIn	 = "";
 	String packetOut = "";
+
+	// Debug
+	String debugText	= "";
+	bool   useDebugText = true;
 };
 
 
@@ -89,9 +98,9 @@ struct SystemStruct {
 struct TimingStruct {
 
 	// Interval timer periods
-	uint16_t periodAmplifier	  = 1000000 / TIMING_FREQ_AMPLIFIER_DRIVE;
-	uint16_t periodHWSerial		  = 1000000 / TIMING_FREQ_AMPLIFIER_HWSERIAL;
-	uint16_t periodSoftwareSerial = 1000000 / TIMING_FREQ_AMPLIFIER_SOFTWARESERIAL;
+	int32_t periodAmplifier		 = 1000000 / TIMING_FREQ_AMPLIFIER_DRIVE;
+	int32_t periodHWSerial		 = 1000000 / TIMING_FREQ_AMPLIFIER_HWSERIAL;
+	int32_t periodSoftwareSerial = 1000000 / TIMING_FREQ_AMPLIFIER_SOFTWARESERIAL;
 };
 
 
@@ -108,6 +117,11 @@ struct ManagedData {
 	SerialStruct	Serial;
 	SystemStruct	System;
 	TimingStruct	Timing;
+
+	// Point to serial class
+
+	T_SerialClass* serialClassPtr = nullptr;
+	void		   PrintDebug( const String& msg );
 };
 
 

@@ -8,9 +8,8 @@
 T_SerialClass::T_SerialClass( SharedDataManager& ctx )
 	: dataHandle( ctx )
 	, shared( ctx.getData() ) {
-
-		
-	};
+	shared->serialClassPtr = this;
+};
 
 
 /**
@@ -19,9 +18,15 @@ T_SerialClass::T_SerialClass( SharedDataManager& ctx )
  */
 void T_SerialClass::Begin() {
 
-	SerialIn.begin( 1000000 );	  // Input
-	SerialOut.begin( 1000000 );
-	SerialIn.print( "Ready\n" );
+	SerialIn.begin( 1000000 );	   // Input
+	SerialOut.begin( 1000000 );	   // Output
+
+	if ( shared->Serial.useDebugText ) {
+		SerialDebug.begin( 1000000 );	 // Debug interface
+	}
+	// while ( !SerialDebug );			 // Wait until ready
+
+	PrintDebug( "Serial initialized" );
 }
 
 
@@ -53,10 +58,16 @@ void T_SerialClass::Update() {
 	// // See if data available
 	if ( SerialIn.available() ) {
 		ReadPacketFromPC();
-		SendPacketToPC() ;
+		SendPacketToPC();
 	}
 }
 
+
+void T_SerialClass::PrintDebug( const String& msg ) {
+	if ( shared->Serial.useDebugText ) {
+		SerialDebug.println( "[Debug] " + msg );
+	}
+}
 
 
 /** =========================================================== 
@@ -138,7 +149,7 @@ void T_SerialClass::ReadPacketFromPC() {
 					}
 
 					PacketStruct* newPacket = ( PacketStruct* )&buffer[3];
-
+					PrintDebug( "Type: " + String( newPacket->packetType ) );
 					// Parse packet
 					ParsePacketFromPC( newPacket );
 				}
@@ -197,6 +208,14 @@ void T_SerialClass::ParsePacketFromPC( PacketStruct* pkt ) {
 
 			// Update state
 			shared->System.state = stateEnum::MEASURING_LIMITS;
+
+			break;
+		}
+
+		case 'Z': {
+
+			// Update state
+			shared->System.state = stateEnum::ZERO_ENCODER;
 
 			break;
 		}
@@ -263,6 +282,8 @@ void T_SerialClass::SendPacketToPC() {
 		outgoingType = 'l';
 	} else if ( shared->System.state == stateEnum::MEASURING_CURRENTS ) {
 		outgoingType = 'c';
+	} else if ( shared->System.state == stateEnum::ZERO_ENCODER ) {
+		outgoingType = 'z';
 	} else {
 		//
 	};
@@ -277,12 +298,12 @@ void T_SerialClass::SendPacketToPC() {
 	outgoingPacket.pwmA			  = shared->Amplifier.commandedPwmA;
 	outgoingPacket.pwmB			  = shared->Amplifier.commandedPwmB;
 	outgoingPacket.pwmC			  = shared->Amplifier.commandedPwmC;
-	outgoingPacket.encoderA		  = shared->Amplifier.encoderCountA;
-	outgoingPacket.encoderB		  = shared->Amplifier.encoderCountB;
-	outgoingPacket.encoderC		  = shared->Amplifier.encoderCountC;
-	outgoingPacket.currentA		  = shared->Amplifier.measuredCurrentA;
-	outgoingPacket.currentB		  = shared->Amplifier.measuredCurrentB;
-	outgoingPacket.currentC		  = shared->Amplifier.measuredCurrentC;
+	outgoingPacket.encoderA		  = shared->Amplifier.encoderMeasuredCountA;
+	outgoingPacket.encoderB		  = shared->Amplifier.encoderMeasuredCountB;
+	outgoingPacket.encoderC		  = shared->Amplifier.encoderMeasuredCountC;
+	outgoingPacket.currentA		  = shared->Amplifier.currentMeasuredRawA;
+	outgoingPacket.currentB		  = shared->Amplifier.currentMeasuredRawB;
+	outgoingPacket.currentC		  = shared->Amplifier.currentMeasuredRawC;
 
 	// Compute checksum
 	uint8_t	 checkSum = outgoingType ^ packetLength;
@@ -309,10 +330,10 @@ void T_SerialClass::SendPacketToPC() {
 	// Send over serial
 	ssize_t bytesWritten = SerialOut.write( buffer, idx );
 	if ( bytesWritten < 0 ) {
-		// Failed
+		PrintDebug( "Nothing sent!" );
 
 	} else {
-
+		PrintDebug( "Sent: " + String( outgoingPacket.packetType ) );
 		// Success
 	}
 }

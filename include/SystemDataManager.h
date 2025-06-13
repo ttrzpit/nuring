@@ -23,15 +23,17 @@
 #define DEG2RAD 0.01745
 
 // Enum for system state
-enum class stateEnum { IDLE, DRIVING_PWM, MEASURING_LIMITS, MEASURING_CURRENT };
-
+enum class stateEnum { IDLE, DRIVING_PWM, MEASURING_LIMITS, MEASURING_CURRENT, ZERO_ENCODER };
+enum class selectGainTargetEnum { NONE, ABD, ADD, FLEX, EXT, AMPA, AMPB, AMPC, TORQUE };
+enum class selectGainEnum { NONE, KP, KI, KD };
+enum class selectTorqueTargetEnum { NONE, ABD, ADD, FLEX, EXT };
 
 // Structure for 4-point vector
 struct Point4f {
-	float abb  = 0.0f;
-	float add  = 0.0f;
-	float flex = 0.0f;
-	float ext  = 0.0f;
+	float abd = 0.0f;
+	float add = 0.0f;
+	float flx = 0.0f;
+	float ext = 0.0f;
 
 	// // Constructor
 	// Point4f( float a, float d, float f, float e )
@@ -46,21 +48,43 @@ struct Point4f {
 struct AmplifierStruct {
 
 	// Flags
-	bool isAmplifierActive = false;
+	bool isAmplifierActive		 = false;
+	bool isMeasuringEncoderLimit = false;
+	bool isLimitSet				 = false;
+	bool isOverLimitA			 = false;
+	bool isOverLimitB			 = false;
+	bool isOverLimitC			 = false;
+	bool isTorqueMeasuringLimit	 = false;
+	bool isTorqueLimitSet		 = false;
+	bool isTensionOnly			 = false;
 
-	// Measured balues
-	uint8_t	 packetType		  = 0;
-	uint8_t	 packetCounter	  = 0;
-	uint8_t	 packetDriveState = 0;
-	uint16_t measuredPwmA	  = 0;
-	uint16_t measuredPwmB	  = 0;
-	uint16_t measuredPwmC	  = 0;
-	int16_t	 measuredCurrentA = 0;
-	int16_t	 measuredCurrentB = 0;
-	int16_t	 measuredCurrentC = 0;
-	int32_t	 measuredEncoderA = 0;
-	int32_t	 measuredEncoderB = 0;
-	int32_t	 measuredEncoderC = 0;
+	// Packet payload
+	uint8_t	 packetType			   = 0;
+	uint8_t	 packetCounter		   = 0;
+	uint8_t	 packetDriveState	   = 0;
+	uint16_t measuredPwmA		   = 0;
+	uint16_t measuredPwmB		   = 0;
+	uint16_t measuredPwmC		   = 0;
+	int16_t	 currentMeasuredRawA   = 0;
+	int16_t	 currentMeasuredRawB   = 0;
+	int16_t	 currentMeasuredRawC   = 0;
+	int32_t	 encoderMeasuredCountA = 0;
+	int32_t	 encoderMeasuredCountB = 0;
+	int32_t	 encoderMeasuredCountC = 0;
+
+	// Derived values
+	float currentMeasuredAmpsA = 0.0f;
+	float currentMeasuredAmpsB = 0.0f;
+	float currentMeasuredAmpsC = 0.0f;
+	float encoderMeasuredDegA  = 0.0f;
+	float encoderMeasuredDegB  = 0.0f;
+	float encoderMeasuredDegC  = 0.0f;
+	float encoderLimitDegA	   = 0.0f;
+	float encoderLimitDegB	   = 0.0f;
+	float encoderLimitDegC	   = 0.0f;
+	float measuredPwmPercentA  = 0.0f;
+	float measuredPwmPercentB  = 0.0f;
+	float measuredPwmPercentC  = 0.0f;
 };
 
 struct ArUcoStruct {
@@ -97,7 +121,8 @@ struct ControllerStruct {
 	cv::Point3f combinedPIDTerms		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined PID terms
 	cv::Point3f combinedPIDTermPrev		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined PID terms
 	cv::Point3i commandedPwmABC			 = cv::Point3i( 0, 0, 0 );			   // Commanded PWM output
-	cv::Point3f commandedPercentage		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded percentage output
+	cv::Point3i commandedPwmABCLast		 = cv::Point3i( 0, 0, 0 );			   // Commanded PWM output
+	cv::Point3f commandedPercentageABC	 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded percentage output
 	cv::Point3f commandedPercentageLimit = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Max percentage output
 	cv::Point3f commandedCurrentABC		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded current output
 	cv::Point3f commandedTensionABC		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded tension
@@ -109,6 +134,7 @@ struct ControllerStruct {
 	bool		isLimitSet				 = false;							   // Are the motor limits set?
 	bool		isCalibrated			 = false;							   // Has the finger been calibrated?
 	cv::Point3i calibratedOffetMM		 = cv::Point3i( 0, 0, 0 );
+	int			integrationRadius		 = 100;
 };
 
 struct DisplayStruct {
@@ -116,6 +142,14 @@ struct DisplayStruct {
 	// Matrix to display overlay
 	cv::Mat		matFrameOverlay = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_WIDTH, CV_8UC3 );
 	std::string statusString	= "";
+};
+
+struct InputStruct {
+
+	// Enumerated gain selection
+	selectGainTargetEnum   selectGainTarget	  = selectGainTargetEnum::NONE;
+	selectGainEnum		   selectGain		  = selectGainEnum::NONE;
+	selectTorqueTargetEnum selectTorqueTarget = selectTorqueTargetEnum::NONE;
 };
 
 struct KalmanFilterStruct {
@@ -145,6 +179,8 @@ struct SerialStruct {
 	bool isSerialSending	 = false;
 	bool isSerialReceiveOpen = false;
 	bool isSerialReceiving	 = false;
+
+	int8_t packetDelay = 0;
 
 	// Plaintext packet
 	std::string packetOut = "";
@@ -176,11 +212,6 @@ struct TaskStruct {
 };
 
 
-struct TeensyStruct {
-	bool		isTeensyResponding	   = false;
-	bool		isAmplifierResponding  = false;
-	cv::Point3i measuredAmplfierOutput = cv::Point3i( 0, 0, 0 );
-};
 
 struct TimingStruct {
 
@@ -207,13 +238,13 @@ struct ManagedData {
 	CaptureStruct	   Capture;
 	ControllerStruct   Controller;
 	DisplayStruct	   Display;
+	InputStruct		   Input;
 	KalmanFilterStruct KalmanFilter;
 	LoggingStruct	   Logging;
 	SystemStruct	   System;
 	SerialStruct	   Serial;
 	TelemetryStruct	   Telemetry;
 	TaskStruct		   Task;
-	TeensyStruct	   Teensy;
 	TimingStruct	   Timing;
 	TouchscreenStruct  Touchscreen;
 

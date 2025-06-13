@@ -48,10 +48,12 @@ void		TaskCalibrate();
 void		TaskFitts();
 void		TaskFittsAngle();
 std::string BuildPacketAngularError();
-void		UpdateState();
+void		UpdateSystem();
 void		SendSerialPacket();
 void		BuildSerialPacket();
 void		UpdateSerial();
+void		UpdateState();
+void		PrintState();
 
 
 
@@ -63,9 +65,13 @@ void		UpdateSerial();
 int main() {
 
 	// Testing
-	shared->Controller.commandedPercentageLimit = cv::Point3f( 0.4f, 0.7f, 0.9f );
+	shared->Controller.commandedPercentageLimit = cv::Point3f( 1.0f, 1.0f, 1.0f );
 	shared->Controller.isLimitSet				= true;
-	shared->Controller.gainKi					= { 1.0f, 1.0f, 1.0f, 1.0f };
+	shared->Controller.gainKi					= { 0.0f, 0.0f, 0.0f, 0.0f };
+	shared->Controller.isCalibrated				= false;
+	// shared->Controller.calibratedOffetMM		= cv::Point3i( -50.0f, -75.0f, 140.0f );
+
+
 
 	// Settings
 	shared->Logging.isLoggingEnabled = true;
@@ -98,8 +104,12 @@ int main() {
 	// Main loop
 	while ( shared->System.isMainRunning ) {
 
+		// For debugging
+		// PrintState();
+
 		// Update timer (for measuring loop frequency)
 		Timing.UpdateTimer();
+
 
 		// Parse any input and use OpenCV WaitKey()
 		Input.ParseInput( cv::pollKey() & 0xFF );
@@ -107,10 +117,15 @@ int main() {
 		// Capture frame
 		Capture.GetFrame();
 
+
+		// UpdateState();
+
 		// Detect ArUco tags
 		if ( shared->Task.name != "FITTS_ANGLE" ) {
 			Aruco.FindTags();
 		}
+
+
 
 		// Task selector
 		if ( shared->Task.name == "FITTS" ) {
@@ -121,18 +136,18 @@ int main() {
 			TaskFittsAngle();
 		}
 
-		// Update system state
-		UpdateState();
+		// Update system
+		UpdateSystem();
 
 		// Update controller
-		// Controller.Update();
-		Controller.Update4D();
+		Controller.Update();
+		Controller.UpdateAmplifier();
 
 		// Check touchscreen input
 		Touch.GetCursorPosition();
 
 		// Update serial messages
-		Serial.Update() ;
+		Serial.Update();
 
 		// Update display
 		Canvas.Update();
@@ -146,14 +161,130 @@ int main() {
 
 		// Update shutdown flags for clean shutdown
 		if ( shared->System.isShuttingDown ) {
-			shared->Serial.packetOut = "DX\n";
-			// shared->FLAG_PACKET_WAITING = true;
 			shared->System.isMainRunning = false;
 		}
 	}
 	cv::destroyAllWindows();
 	return 0;
 }
+
+
+
+/**
+ * @brief Update system state using kalman filter
+ * 
+ */
+void UpdateSystem() {
+
+	if ( shared->Telemetry.isTargetFound && shared->Capture.isFrameReady ) {
+
+		if ( cv::norm( cv::Point2f( shared->Telemetry.positionUnfilteredMM.x, shared->Telemetry.positionUnfilteredMM.y ) - cv::Point2f( shared->Telemetry.positionFilteredOldMM.x, shared->Telemetry.positionFilteredOldMM.y ) ) > 100.0f ) {
+			shared->Telemetry.isTargetReset = true;
+		}
+
+
+		// Save old data
+		shared->Telemetry.positionFilteredOldMM = shared->Telemetry.positionFilteredNewMM;
+		shared->Telemetry.velocityFilteredOldMM = shared->Telemetry.velocityFilteredNewMM;
+
+		// Update kalman filter
+		Kalman.Update( shared->Telemetry.positionUnfilteredMM, shared->Timing.elapsedRunningTime );
+
+		// Get updated state values
+		shared->Telemetry.positionFilteredNewMM = Kalman.GetPosition();
+		shared->Telemetry.velocityFilteredNewMM = Kalman.GetVelocity();
+		shared->Telemetry.positionIntegratedMM	= Kalman.GetIntegralError();
+
+		// Update marker if finger calibrated
+		if ( shared->Controller.isCalibrated ) {
+			shared->Telemetry.positionFilteredNewMM = shared->Telemetry.positionFilteredNewMM - cv::Point3f( shared->Controller.calibratedOffetMM );
+		}
+
+		// std::cout << "dE = " << shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x << "dE/dt = " << ( shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x ) / shared->kalmanDt << "\n" ;
+
+		// Get covariance from Kalman filter
+		// shared->kalmanP = Kalman.GetCovariance();
+	}
+}
+
+
+
+/**
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
+
+void PrintState() {
+
+	// enum class stateEnum { IDLE, DRIVING_PWM, MEASURING_LIMITS, MEASURING_CURRENT, ZERO_ENCODER };
+
+	switch ( shared->System.state ) {
+
+		case stateEnum::IDLE: {
+			std::cout << "State: IDLE\n";
+			break;
+		}
+
+		case stateEnum::DRIVING_PWM: {
+			std::cout << "State: DRIVING_PWM\n";
+			break;
+		}
+
+		case stateEnum::MEASURING_LIMITS: {
+			std::cout << "State: MEASURING_LIMITS\n";
+			break;
+		}
+
+		case stateEnum::MEASURING_CURRENT: {
+			std::cout << "State: MEASURING_CURRENT\n";
+			break;
+		}
+
+		case stateEnum::ZERO_ENCODER: {
+			std::cout << "State: ZERO_ENCODER\n";
+			break;
+		}
+	}
+}
+
+// void UpdateState() {
+
+// 	switch ( shared->System.state ) {
+
+// 		case stateEnum::IDLE:{
+
+// 		}
+// 	}
+// }
 
 
 
@@ -394,49 +525,6 @@ std::string BuildPacketAngularError() {
 	// // 	+ std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "X\n";
 
 	return "";
-}
-
-
-/**
- * @brief Update system state using kalman filter
- * 
- */
-void UpdateState() {
-
-	if ( shared->Telemetry.isTargetFound && shared->Capture.isFrameReady ) {
-
-
-		if ( cv::norm( cv::Point2f( shared->Telemetry.positionUnfilteredMM.x, shared->Telemetry.positionUnfilteredMM.y ) - cv::Point2f( shared->Telemetry.positionFilteredOldMM.x, shared->Telemetry.positionFilteredOldMM.y ) ) > 100.0f ) {
-			shared->Telemetry.isTargetReset = true;
-			// shared->lostCount++;
-		}
-
-
-		// Save old data
-		shared->Telemetry.positionFilteredOldMM = shared->Telemetry.positionFilteredNewMM;
-		shared->Telemetry.velocityFilteredOldMM = shared->Telemetry.velocityFilteredNewMM;
-		// shared->targetMarkerAngleOld.x			= shared->angleTheta;
-		// shared->targetMarkerAnglularVelocityOld = shared->targetMarkerAnglularVelocityNew;
-
-		// Update kalman filter
-		if ( shared->calibrationComplete ) {
-			Kalman.Update( shared->Telemetry.positionUnfilteredMM + cv::Point3f( shared->calibrationOffsetMM ), shared->Timing.elapsedRunningTime );
-		} else {
-			Kalman.Update( shared->Telemetry.positionUnfilteredMM, shared->Timing.elapsedRunningTime );
-		}
-
-		// Get updated state values
-		shared->Telemetry.positionFilteredNewMM = Kalman.GetPosition();
-		shared->Telemetry.velocityFilteredNewMM = Kalman.GetVelocity();
-		// shared->targetMarkerAngleNew				= Kalman.GetAngle();
-		// shared->targetMarkerAnglularVelocityNew		= Kalman.GetAnglularVelocity();
-		shared->Telemetry.positionIntegratedMM = Kalman.GetIntegralError();
-
-		// std::cout << "dE = " << shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x << "dE/dt = " << ( shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x ) / shared->kalmanDt << "\n" ;
-
-		// Get covariance from Kalman filter
-		// shared->kalmanP = Kalman.GetCovariance();
-	}
 }
 
 
