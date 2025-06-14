@@ -3,12 +3,29 @@
 
 
 
-TasksClass::TasksClass( SystemDataManager& ctx )
+TasksClass::TasksClass( SystemDataManager& ctx, TimingClass& timerHandle, LoggingClass& loggerHandle )
 	: dataHandle( ctx )
-	, shared( ctx.getData() ) {
-
+	, shared( ctx.getData() )
+	, timer( timerHandle )
+	, logger( loggerHandle ) {
 	// Stuff
 }
+
+/* =========================================================================================
+ *  ========================================================================================= 
+ * 
+ *   CCCCCCC    AAAA    LL       IIIIII  BBBBBBB   RRRRRR     AAAA   TTTTTTTT  EEEEEEE
+ *  CC         AA  AA   LL         II    BB   BBB  RR   RR   AA  AA     TT     EE
+ *  CC         AA  AA   LL         II    BB   BBB  RR   RR   AA  AA     TT     EE
+ *  CC        AAAAAAAA  LL         II    BBBBBBB   RRRRRR   AAAAAAAA    TT     EEEEE
+ *  CC        AA    AA  LL         II    BB   BBB  RR  RR   AA    AA    TT     EE
+ *  CC        AA    AA  LL         II    BB   BBB  RR   RR  AA    AA    TT     EE
+ *   CCCCCCC  AA    AA  LLLLLLL  IIIIII  BBBBBBB   RR   RR  AA    AA    TT     EEEEEEE
+ * 
+ *  ========================================================================================= 
+ *  ========================================================================================= 
+ */
+
 
 
 void TasksClass::Calibration() {
@@ -123,7 +140,22 @@ void TasksClass::CalibrationFinish() {
 
 
 
-void FittsStart() { 
+/* =========================================================================================
+ *  ========================================================================================= 
+ * 
+ *   FFFFFFF  IIIIII  TTTTTTT  TTTTTTT   SSSSS
+ *   FF         II      TT        TT    SS
+ *   FF         II      TT        TT    SS
+ *   FFFFF      II      TT        TT     SSSSS
+ *   FF         II      TT        TT         SS
+ *   FF         II      TT        TT         SS
+ *   FF       IIIIII    TT        TT     SSSSS
+ * 
+ *  ========================================================================================= 
+ *  ========================================================================================= 
+ */
 
-    
-}
+
+void Fitts() { }
+
+void FittsStart() { }

@@ -42,7 +42,7 @@ FittsClass		 Fitts( dataHandle, Timing, Logging );	  // For fitts-law testing
 CalibrationClass Calibration( dataHandle );				  // For calibration of user to touchscreen
 ControllerClass	 Controller( dataHandle );				  // Controller
 KalmanClass		 Kalman( dataHandle );					  // Kalman filter
-TasksClass		 Tasks( dataHandle );					  // Tasks interface
+TasksClass		 Tasks( dataHandle, Timing, Logging );	  // Tasks interface
 
 
 // Function prototypes
@@ -191,7 +191,7 @@ void SelectTask() {
 
 				shared->Logging.isLoggingActivelyRunning = true;
 
-			} 
+			}
 			// Save logging info each loop
 			else {
 

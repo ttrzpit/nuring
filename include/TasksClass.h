@@ -1,11 +1,5 @@
 #pragma once
 
-// System data manager
-#include "SystemDataManager.h"
-
-
-// OpenCV
-#include <opencv2/core.hpp>
 
 // Memory for shared data
 #include <memory>
@@ -17,21 +11,29 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>	  // For pollKey()
 
+// System data manager
+#include "LoggingClass.h"
+#include "SystemDataManager.h"
+#include "TimingClass.h"
+
 // Forward declarations
 class SystemDataManager;
+class TimingClass;
+class LoggingClass;
 struct ManagedData;
 
 class TasksClass {
 
 public:
 	// Constructor
-	TasksClass( SystemDataManager& dataHandle );
+	TasksClass( SystemDataManager& dataHandle, TimingClass& timerHandle, LoggingClass& loggerHandle );
 
 	void Calibration();
 	void CalibrationStart();
 	void CalibrationUpdate();
 	void CalibrationFinish();
 
+	void Fitts();
 	void FittsStart();
 	void FittsUpdate();
 	void FittsFinish();
@@ -39,6 +41,8 @@ public:
 private:
 	// Data manager handle
 	SystemDataManager&			 dataHandle;
+	TimingClass&				 timer;
+	LoggingClass&				 logger;
 	std::shared_ptr<ManagedData> shared;
 
 	// Private variables
