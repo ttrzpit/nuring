@@ -86,21 +86,72 @@ void DisplayClass::Update() {
 
 	// Break components for PID
 
-	// cv::Point2i propA = cv::Point2i( CONFIG_CAM_PRINCIPAL_X + shared->Controller.commandedPercentageABC.x * COS35 * 100, CONFIG_CAM_PRINCIPAL_Y - shared->Controller.commandedPercentageABC.x * SIN35 * 100 );
-	// cv::Point2i propB;
-	// cv::Point2i propC;
-	// cv::Point2i intA;
-	// cv::Point2i intB;
-	// cv::Point2i intC;
-	// cv::Point2i derA;
-	// cv::Point2i derB;
-	// cv::Point2i derC;
+	uint8_t		rad = 80;
+	cv::Point2i centerProp( 1500, 100 );
+	cv::Point2i centerInt( 1500, 300 );
+	cv::Point2i centerDeriv( 1500, 500 );
+	cv::Point2i propA = cv::Point2i( centerProp.x + shared->Controller.percentageProportional.x * COS35 * rad, centerProp.y - shared->Controller.percentageProportional.x * SIN35 * rad );
+	cv::Point2i propB = cv::Point2i( centerProp.x + shared->Controller.percentageProportional.y * COS145 * rad, centerProp.y - shared->Controller.percentageProportional.y * SIN145 * rad );
+	cv::Point2i propC = cv::Point2i( centerProp.x + shared->Controller.percentageProportional.z * COS270 * rad, centerProp.y - shared->Controller.percentageProportional.z * SIN270 * rad );
+	cv::Point2i intA  = cv::Point2i( centerInt.x + shared->Controller.percentageIntegral.x * COS35 * rad, centerInt.y - shared->Controller.percentageIntegral.x * SIN35 * rad );
+	cv::Point2i intB  = cv::Point2i( centerInt.x + shared->Controller.percentageIntegral.y * COS145 * rad, centerInt.y - shared->Controller.percentageIntegral.y * SIN145 * rad );
+	cv::Point2i intC  = cv::Point2i( centerInt.x + shared->Controller.percentageIntegral.z * COS270 * rad, centerInt.y - shared->Controller.percentageIntegral.z * SIN270 * rad );
+	cv::Point2i derA  = cv::Point2i( centerDeriv.x + shared->Controller.percentageDerivative.x * COS35 * rad, centerDeriv.y - shared->Controller.percentageDerivative.x * SIN35 * rad );
+	cv::Point2i derB  = cv::Point2i( centerDeriv.x + shared->Controller.percentageDerivative.y * COS145 * rad, centerDeriv.y - shared->Controller.percentageDerivative.y * SIN145 * rad );
+	cv::Point2i derC  = cv::Point2i( centerDeriv.x + shared->Controller.percentageDerivative.z * COS270 * rad, centerDeriv.y - shared->Controller.percentageDerivative.z * SIN270 * rad );
 
-	// cv::circle( shared->Display.matFrameOverlay, propA, 5, CONFIG_colRedMd, -1 );
-	// // cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS145 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN145 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
-	// // cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS270 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN270 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
+	// Base Prop
+	cv::circle( shared->Display.matFrameOverlay, centerProp, rad, CONFIG_colGraBk, -1 );
+	cv::line( shared->Display.matFrameOverlay, centerProp, cv::Point2i( centerProp.x + rad * COS35, centerProp.y - rad * SIN35 ), CONFIG_colGraMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerProp, cv::Point2i( centerProp.x + rad * COS145, centerProp.y - rad * SIN145 ), CONFIG_colGraMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerProp, cv::Point2i( centerProp.x + rad * COS270, centerProp.y - rad * SIN270 ), CONFIG_colGraMd, 2 );
+
+	// Components Prop
+	cv::line( shared->Display.matFrameOverlay, centerProp, propA, CONFIG_colCyaMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerProp, propB, CONFIG_colCyaMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerProp, propC, CONFIG_colCyaMd, 2 );
+	cv::circle( shared->Display.matFrameOverlay, propA, 5, CONFIG_colCyaMd, -1 );
+	cv::circle( shared->Display.matFrameOverlay, propB, 5, CONFIG_colCyaMd, -1 );
+	cv::circle( shared->Display.matFrameOverlay, propC, 5, CONFIG_colCyaMd, -1 );
+
+	// Outline Prop
+	cv::circle( shared->Display.matFrameOverlay, centerProp, rad, CONFIG_colGraMd, 2 );
 
 
+	// Base Int
+	cv::circle( shared->Display.matFrameOverlay, centerInt, rad, CONFIG_colGraBk, -1 );
+	cv::line( shared->Display.matFrameOverlay, centerInt, cv::Point2i( centerInt.x + rad * COS35, centerInt.y - rad * SIN35 ), CONFIG_colGraMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerInt, cv::Point2i( centerInt.x + rad * COS145, centerInt.y - rad * SIN145 ), CONFIG_colGraMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerInt, cv::Point2i( centerInt.x + rad * COS270, centerInt.y - rad * SIN270 ), CONFIG_colGraMd, 2 );
+
+	// Components Int
+	cv::line( shared->Display.matFrameOverlay, centerInt, intA, CONFIG_colYelMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerInt, intB, CONFIG_colYelMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerInt, intC, CONFIG_colYelMd, 2 );
+	cv::circle( shared->Display.matFrameOverlay, intA, 5, CONFIG_colYelMd, -1 );
+	cv::circle( shared->Display.matFrameOverlay, intB, 5, CONFIG_colYelMd, -1 );
+	cv::circle( shared->Display.matFrameOverlay, intC, 5, CONFIG_colYelMd, -1 );
+
+	// Outline Int
+	cv::circle( shared->Display.matFrameOverlay, centerInt, rad, CONFIG_colGraMd, 2 );
+
+
+	// Base Int
+	cv::circle( shared->Display.matFrameOverlay, centerDeriv, rad, CONFIG_colGraBk, -1 );
+	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS35, centerDeriv.y - rad * SIN35 ), CONFIG_colGraMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS145, centerDeriv.y - rad * SIN145 ), CONFIG_colGraMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS270, centerDeriv.y - rad * SIN270 ), CONFIG_colGraMd, 2 );
+
+	// Components Int
+	cv::line( shared->Display.matFrameOverlay, centerDeriv, derA, CONFIG_colRedMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerDeriv, derB, CONFIG_colRedMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, centerDeriv, derC, CONFIG_colRedMd, 2 );
+	cv::circle( shared->Display.matFrameOverlay, derA, 5, CONFIG_colRedMd, -1 );
+	cv::circle( shared->Display.matFrameOverlay, derB, 5, CONFIG_colRedMd, -1 );
+	cv::circle( shared->Display.matFrameOverlay, derC, 5, CONFIG_colRedMd, -1 );
+
+	// Outline Int
+	cv::circle( shared->Display.matFrameOverlay, centerDeriv, rad, CONFIG_colGraMd, 2 );
 
 	// Add text
 	AddText();
@@ -229,10 +280,10 @@ void DisplayClass::AddText() {
 
 	// System Flags
 	DrawCell( shared->Amplifier.isLimitSet ? "Limit Set" : "No Limits", "I8", 2, 1, fontHeader, CONFIG_colWhite, shared->Amplifier.isLimitSet ? CONFIG_colGreBk : CONFIG_colRedBk, true );
-	DrawCell( "Calib:", "K8", 2, 1, fontHeader, CONFIG_colWhite, shared->Controller.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
-	DrawCell( std::to_string( shared->Controller.calibratedOffetMM.x ), "M8", 1, 1, fontHeader, CONFIG_colWhite, shared->Controller.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
-	DrawCell( std::to_string( shared->Controller.calibratedOffetMM.y ), "N8", 1, 1, fontHeader, CONFIG_colWhite, shared->Controller.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
-	DrawCell( std::to_string( shared->Controller.calibratedOffetMM.z ), "O8", 1, 1, fontHeader, CONFIG_colWhite, shared->Controller.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( "Calib:", "K8", 2, 1, fontHeader, CONFIG_colWhite, shared->Calibration.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( std::to_string( shared->Calibration.calibratedOffetMM.x ), "M8", 1, 1, fontHeader * 0.65f, CONFIG_colWhite, shared->Calibration.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( std::to_string( shared->Calibration.calibratedOffetMM.y ), "N8", 1, 1, fontHeader * 0.65f, CONFIG_colWhite, shared->Calibration.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( std::to_string( shared->Calibration.calibratedOffetMM.z ), "O8", 1, 1, fontHeader * 0.65f, CONFIG_colWhite, shared->Calibration.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
 	DrawCell( "Teensy In", "P8", 3, 1, fontHeader, CONFIG_colWhite, shared->Serial.isSerialReceiveOpen ? CONFIG_colGreBk : CONFIG_colRedBk, true );
 	DrawCell( "Teensy Out", "S8", 3, 1, fontHeader, CONFIG_colWhite, shared->Serial.isSerialSendOpen ? CONFIG_colGreBk : CONFIG_colRedBk, true );
 

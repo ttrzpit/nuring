@@ -14,6 +14,7 @@
 #define AMPLIFIER_PIN_PWM_A 7
 #define AMPLIFIER_PIN_PWM_B 8
 #define AMPLIFIER_PIN_PWM_C 25
+#define AMPLIFIER_PIN_PWM_C 25
 
 // Amplifier constants
 inline constexpr unsigned short AMPLIFIER_PWM_ZERO = 2047;	  // Minimum PWM value
@@ -37,3 +38,6 @@ inline constexpr unsigned short AMPLIFIER_PWM_MAX  = 1;		  // Maximum PWM value
 inline constexpr unsigned short TIMING_FREQ_AMPLIFIER_DRIVE			 = 1000;	// Hz
 inline constexpr unsigned short TIMING_FREQ_AMPLIFIER_HWSERIAL		 = 20;		// Hz
 inline constexpr unsigned short TIMING_FREQ_AMPLIFIER_SOFTWARESERIAL = 200;		// Hz
+
+
+#define VIBROTACTILE_PIN 2

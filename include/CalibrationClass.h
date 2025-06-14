@@ -60,5 +60,5 @@ private:
 	bool		outputCreated  = false;
 
 	// Calibration screen
-	cv::Mat matCalibration = cv::Mat( CONFIG_FITTS_SCREEN_HEIGHT, CONFIG_FITTS_SCREEN_WIDTH, CV_8UC3 );
+	cv::Mat matCalibration = cv::Mat( CONFIG_TOUCHSCREEN_HEIGHT_PX, CONFIG_TOUCHSCREEN_WIDTH_PX, CV_8UC3 );
 };

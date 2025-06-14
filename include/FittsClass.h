@@ -68,7 +68,7 @@ private:
 	cv::Mat matAruco01 = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-01-20mm.png" );
 
 	// Target background
-	cv::Mat matBackground = cv::Mat( CONFIG_FITTS_SCREEN_HEIGHT, CONFIG_FITTS_SCREEN_WIDTH, CV_8UC3 );
+	cv::Mat matBackground = cv::Mat( CONFIG_TOUCHSCREEN_HEIGHT_PX, CONFIG_TOUCHSCREEN_WIDTH_PX, CV_8UC3 );
 
 	// Data manager handle
 	SystemDataManager&			 dataHandle;

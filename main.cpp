@@ -29,6 +29,7 @@ auto shared = dataHandle.getData();
 #include "include/TouchscreenClass.h"
 
 // New class objects
+// New class objects
 CaptureClass	 Capture( dataHandle );					  // Camera capture
 ArucoClass		 Aruco( dataHandle );					  // Aruco detector
 DisplayClass	 Canvas( dataHandle );					  // Display output
@@ -40,7 +41,9 @@ LoggingClass	 Logging( dataHandle );					  // Logging interface
 FittsClass		 Fitts( dataHandle, Timing, Logging );	  // For fitts-law testing
 CalibrationClass Calibration( dataHandle );				  // For calibration of user to touchscreen
 ControllerClass	 Controller( dataHandle );				  // Controller
-KalmanClass		 Kalman( dataHandle );					  // Kalman filter for target
+KalmanClass		 Kalman( dataHandle );					  // Kalman filter
+TasksClass		 Tasks( dataHandle );					  // Tasks interface
+
 
 // Function prototypes
 void		SignalHandler( int signum );
@@ -49,9 +52,7 @@ void		TaskFitts();
 void		TaskFittsAngle();
 std::string BuildPacketAngularError();
 void		UpdateSystem();
-void		SendSerialPacket();
-void		BuildSerialPacket();
-void		UpdateSerial();
+void		SelectTask();
 void		UpdateState();
 void		PrintState();
 
@@ -68,7 +69,7 @@ int main() {
 	shared->Controller.commandedPercentageLimit = cv::Point3f( 1.0f, 1.0f, 1.0f );
 	shared->Controller.isLimitSet				= true;
 	shared->Controller.gainKi					= { 0.0f, 0.0f, 0.0f, 0.0f };
-	shared->Controller.isCalibrated				= false;
+	shared->Calibration.isCalibrated			= false;
 	// shared->Controller.calibratedOffetMM		= cv::Point3i( -50.0f, -75.0f, 140.0f );
 
 
@@ -117,24 +118,12 @@ int main() {
 		// Capture frame
 		Capture.GetFrame();
 
-
-		// UpdateState();
-
 		// Detect ArUco tags
-		if ( shared->Task.name != "FITTS_ANGLE" ) {
-			Aruco.FindTags();
-		}
+		Aruco.FindTags();
 
+		// Run the appropriate task
+		SelectTask();
 
-
-		// Task selector
-		if ( shared->Task.name == "FITTS" ) {
-			TaskFitts();
-		} else if ( shared->Task.name == "CALIB" ) {
-			TaskCalibrate();
-		} else if ( shared->Task.name == "FITTS_ANGLE" ) {
-			TaskFittsAngle();
-		}
 
 		// Update system
 		UpdateSystem();
@@ -142,6 +131,7 @@ int main() {
 		// Update controller
 		Controller.Update();
 		Controller.UpdateAmplifier();
+		Controller.UpdateVibrotactile();
 
 		// Check touchscreen input
 		Touch.GetCursorPosition();
@@ -153,12 +143,12 @@ int main() {
 		Canvas.Update();
 
 		// Save logging file
-		if ( shared->Task.isComplete ) {
-			Logging.Save();
-			std::cout << "File saved!\n";
-			shared->Task.isComplete = false;
-		}
-
+		// if ( shared->Task.isComplete ) {
+		// Logging.Save();
+		// std::cout << "File saved!\n";
+		// shared->Task.isComplete = false;
+		// }
+		//
 		// Update shutdown flags for clean shutdown
 		if ( shared->System.isShuttingDown ) {
 			shared->System.isMainRunning = false;
@@ -168,6 +158,64 @@ int main() {
 	return 0;
 }
 
+
+/**
+ * @brief State machine for running tasks
+ * 
+ */
+void SelectTask() {
+
+	switch ( shared->Task.state ) {
+
+		case taskEnum::IDLE: {
+
+			// Do nothing
+			break;
+		}
+
+		case taskEnum::FITTS: {
+
+			// Initialize logging
+			if ( shared->Logging.isLoggingEnabled && !shared->Logging.isLoggingActivelyRunning && shared->Task.isRunning ) {
+
+				// Set logging headers
+				shared->loggingHeader1 = "TouchDetected";
+				shared->loggingHeader2 = "OutgoingPacket";
+				shared->loggingHeader3 = "IncomingPacket";
+				shared->loggingHeader4 = "Serial0Enabled,Serial0Open,Serial1Enabled,Serial1Open";
+				shared->loggingHeader5 = "kpx,kpy,kix,kiy,kdx,kdy";
+
+				// Start timer and logging
+				Timing.TaskTimerStart();
+				Logging.Initialize();
+
+				shared->Logging.isLoggingActivelyRunning = true;
+
+			} 
+			// Save logging info each loop
+			else {
+
+				shared->loggingVariable1 = std::to_string( shared->Touchscreen.isTouched );
+				shared->loggingVariable2 = shared->Serial.packetOut.substr( 0, shared->Serial.packetOut.length() - 1 );
+				shared->loggingVariable3 = shared->Serial.packetIn.substr( 0, shared->Serial.packetIn.length() - 1 );
+				shared->loggingVariable4 = std::to_string( shared->Serial.isSerialSending ) + "," + std::to_string( shared->Serial.isSerialSendOpen ) + "," + std::to_string( shared->Serial.isSerialReceiving ) + "," + std::to_string( shared->Serial.isSerialReceiveOpen );
+				shared->loggingVariable5 = shared->FormatDecimal( shared->controllerKp.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKp.y, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.y, 1, 1 ) + ","
+					+ shared->FormatDecimal( shared->controllerKd.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKd.y, 1, 1 );
+				Logging.AddEntry();
+			}
+			// TaskFitts();	// Fallback to just this
+			break;
+		}
+
+		case taskEnum::CALIBRATE: {
+
+			shared->Task.name = "CALIBRATE";
+			Tasks.Calibration();
+
+			break;
+		}
+	}
+}
 
 
 /**
@@ -196,8 +244,8 @@ void UpdateSystem() {
 		shared->Telemetry.positionIntegratedMM	= Kalman.GetIntegralError();
 
 		// Update marker if finger calibrated
-		if ( shared->Controller.isCalibrated ) {
-			shared->Telemetry.positionFilteredNewMM = shared->Telemetry.positionFilteredNewMM - cv::Point3f( shared->Controller.calibratedOffetMM );
+		if ( shared->Calibration.isCalibrated ) {
+			shared->Telemetry.positionFilteredNewMM = shared->Telemetry.positionFilteredNewMM - cv::Point3f( shared->Calibration.calibratedOffetMM );
 		}
 
 		// std::cout << "dE = " << shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x << "dE/dt = " << ( shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x ) / shared->kalmanDt << "\n" ;
@@ -264,10 +312,6 @@ void PrintState() {
 			break;
 		}
 
-		case stateEnum::MEASURING_CURRENT: {
-			std::cout << "State: MEASURING_CURRENT\n";
-			break;
-		}
 
 		case stateEnum::ZERO_ENCODER: {
 			std::cout << "State: ZERO_ENCODER\n";
@@ -275,17 +319,6 @@ void PrintState() {
 		}
 	}
 }
-
-// void UpdateState() {
-
-// 	switch ( shared->System.state ) {
-
-// 		case stateEnum::IDLE:{
-
-// 		}
-// 	}
-// }
-
 
 
 /**
@@ -452,8 +485,8 @@ void TaskFitts() {
 	// Run task
 	if ( !shared->Task.isRunning ) {
 
-		shared->Task.isRunning			= true;
-		shared->Task.isComplete			= false;
+		shared->Task.isRunning = true;
+		// shared->Task.isComplete			= false;
 		shared->Telemetry.isTargetFound = 1;
 		Fitts.Initialize();
 		Fitts.StartTest( 'z' );	   // x , y , z, t , v, f
@@ -493,8 +526,8 @@ void TaskFittsAngle() {
 	// Run task
 	if ( !shared->Task.isRunning ) {
 
-		shared->Task.isRunning			= true;
-		shared->Task.isComplete			= false;
+		shared->Task.isRunning = true;
+		// shared->Task.isComplete			= false;
 		shared->Telemetry.isTargetFound = 1;
 		shared->angleEnabled			= !shared->angleEnabled;
 		Fitts.StartAngleTest();
@@ -504,68 +537,3 @@ void TaskFittsAngle() {
 		Fitts.UpdateAngle();
 	}
 }
-
-
-std::string BuildPacketAngularError() {
-
-	// Calculate angular error
-	// int8_t angX = std::clamp( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.z ) ), -45, 45 );
-	// int8_t angY = std::clamp( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z ) ), -45, 45 );
-
-	// // Get boolean for sign
-	// int8_t signX = Serial.Sign( angX );
-	// int8_t signY = Serial.Sign( angY );
-
-	// // Build string
-	// std::string output = "Ax" + Serial.PadValues( signX, 1 ) + Serial.PadValues( abs( angX ), 2 ) + "y" + Serial.PadValues( signY, 1 ) + Serial.PadValues( abs( angY ), 2 ) + "X";
-
-	// return output;
-
-	// // shared->serialPacket0 = "Ex" + std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.x, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "y"
-	// // 	+ std::to_string( int( RAD2DEG * atan2( shared->arucoTags[shared->arucoActiveID].error3D.y, shared->arucoTags[shared->arucoActiveID].error3D.z ) ) ) + "X\n";
-
-	return "";
-}
-
-
-
-// void BuildSerialPacket() {
-
-// 	if ( shared->serialTrigger == "drive" ) {
-// 		// Build string32
-// 		shared->Serial.packetOut
-// 			= std::string( "E" ) + ( shared->Amplifier.isAmplifierActive ? "1" : "0" ) + "A" + shared->PadValues( shared->Controller.commandedPwmABC.x, 4 ) + "B" + shared->PadValues( shared->Controller.commandedPwmABC.y, 4 ) + "C" + shared->PadValues( shared->Controller.commandedPwmABC.z, 4 ) + "X";
-// 	} else if ( shared->serialTrigger == "reset" ) {
-// 		shared->Serial.packetOut = "E0RX";
-// 		shared->serialTrigger	 = "drive";
-// 	}
-// }
-
-
-
-// void UpdateSerial() {
-
-// 		// Make sure serial comms are open and running
-// 		if ( shared->Serial.isSerialSendOpen && shared->Serial.isSerialSending ) {
-
-// 			// Send appropriate packet
-// 			if ( shared->System.state == "RUNNING" ) {	// Send drive commands
-
-// 				// Send drive packet
-// 				Serial.SendDrivePacket();
-
-// 			} else if ( shared->System.state == "MEASURE_LIMITS" ) { 	// Send encoder measurement commands
-
-// 				// Send limits packet
-// 				Serial.SendLimitsPacket() ;
-
-// 			} else if ( shared->System.state == "WAITING" ) {
-// 				Serial.SendWaitingPacket() ;
-// 			}
-// 		}
-
-// 		// Check for new incoming serial packet
-// 		if ( shared->Serial.isSerialReceiveOpen && shared->Serial.isSerialReceiving ) {
-// 			Serial.CheckForPacket();
-// 		}
-// }

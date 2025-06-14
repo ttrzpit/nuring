@@ -189,6 +189,7 @@ void SerialClass::Update() {
 
 
 		} else {
+
 		}
 	}
 }
@@ -250,13 +251,15 @@ void SerialClass::SendPacketToTeensy() {
 
 
 	if ( shared->System.state == stateEnum::IDLE ) {
-		outgoingPacket.pwmA = 2048;
-		outgoingPacket.pwmB = 2048;
-		outgoingPacket.pwmC = 2048;
+		outgoingPacket.pwmA		 = 2048;
+		outgoingPacket.pwmB		 = 2048;
+		outgoingPacket.pwmC		 = 2048;
+		outgoingPacket.vibration = shared->Vibration.isRunning;
 	} else {
-		outgoingPacket.pwmA = shared->Controller.commandedPwmABC.x;
-		outgoingPacket.pwmB = shared->Controller.commandedPwmABC.y;
-		outgoingPacket.pwmC = shared->Controller.commandedPwmABC.z;
+		outgoingPacket.pwmA		 = shared->Controller.commandedPwmABC.x;
+		outgoingPacket.pwmB		 = shared->Controller.commandedPwmABC.y;
+		outgoingPacket.pwmC		 = shared->Controller.commandedPwmABC.z;
+		outgoingPacket.vibration = shared->Vibration.isRunning;
 	}
 
 	// Compute checksum
@@ -273,7 +276,6 @@ void SerialClass::SendPacketToTeensy() {
 
 	memcpy( &buffer[idx], &outgoingPacket, packetLength );
 	idx += packetLength;
-	buffer[idx++] = 0x00;		// sizeof(outgoingPacket)
 	buffer[idx++] = endByte;	// sizeof(outgoingPacket)
 
 	// Send over serial port 0
@@ -324,7 +326,7 @@ bool SerialClass::ReadTeensyPacket( PacketStruct& outPacket ) {
 
 		if ( read( SerialIn, &byte, 1 ) <= 0 ) {
 
-			// std::cout << "ReadTeensyPacket: Empty!     ";
+			std::cout << "ReadTeensyPacket: Empty!     ";
 			return false;	 // Read fail
 		}
 		if ( byte == START_BYTE ) {
@@ -335,7 +337,7 @@ bool SerialClass::ReadTeensyPacket( PacketStruct& outPacket ) {
 
 	// Read packetLength and checksum
 	if ( read( SerialIn, buffer, 2 ) != 2 ) {
-		// std::cout << "ReadTeensyPacket: Not equal 2";
+		std::cout << "ReadTeensyPacket: Not equal 2";
 		return false;
 	}
 
@@ -343,8 +345,8 @@ bool SerialClass::ReadTeensyPacket( PacketStruct& outPacket ) {
 	uint8_t expectedChecksum = buffer[1];
 
 	// Read payload + 2 footer bytes (0x00 + END_BYTE)
-	if ( read( SerialIn, buffer, packetLength + 2 ) != static_cast<ssize_t>( packetLength + 2 ) ) {
-		// std::cout << "ReadTeensyPacket: Wrong size";
+	if ( read( SerialIn, buffer, packetLength + 1 ) != static_cast<ssize_t>( packetLength + 1 ) ) {
+		std::cout << "ReadTeensyPacket: Wrong size";
 		return false;
 	}
 
@@ -355,15 +357,16 @@ bool SerialClass::ReadTeensyPacket( PacketStruct& outPacket ) {
 	}
 
 	if ( actualChecksum != expectedChecksum ) {
-		// std::cout << "ReadTeensyPacket: Checksum mismatch!" << std::endl;
+		std::cout << "ReadTeensyPacket: Checksum mismatch!" << std::endl;
 		return false;
 	}
 
 	// Validate footer
-	if ( buffer[packetLength] != 0x00 || buffer[packetLength + 1] != END_BYTE ) {
-		// std::cout << "ReadTeensyPacket: Invalid footer!" << std::endl;
+	if ( buffer[packetLength] != END_BYTE ) {
+		std::cout << "ReadTeensyPacket: Invalid footer!" << std::endl;
 		return false;
 	}
+
 
 	// Copy payload into struct
 	std::memcpy( &outPacket, buffer, sizeof( PacketStruct ) );
@@ -505,6 +508,7 @@ void SerialClass::StringOutput( const uint8_t* buff ) {
  */
 void SerialClass::ConvertPacketToSerialString( PacketStruct packet ) {
 
+
 	// Create output string
 	std::ostringstream oss;
 
@@ -537,7 +541,8 @@ void SerialClass::ConvertPacketToSerialString( PacketStruct packet ) {
 	oss << std::setw( 4 ) << std::setfill( ' ' ) << static_cast<int>( packet.currentC ) << " ] [ ";
 	oss << std::setw( 6 ) << std::setfill( ' ' ) << static_cast<int>( packet.encoderA ) << " ";
 	oss << std::setw( 6 ) << std::setfill( ' ' ) << static_cast<int>( packet.encoderB ) << " ";
-	oss << std::setw( 6 ) << std::setfill( ' ' ) << static_cast<int>( packet.encoderC ) << " ]";
+	oss << std::setw( 6 ) << std::setfill( ' ' ) << static_cast<int>( packet.encoderC ) << " ] [ ";
+	oss << std::setw( 1 ) << std::setfill( ' ' ) << static_cast<int>( packet.vibration ) << " ]";
 
 	if ( std::isupper( type ) ) {
 

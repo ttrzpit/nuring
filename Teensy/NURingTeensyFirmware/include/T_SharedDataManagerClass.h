@@ -17,7 +17,7 @@ class SharedDataManager;
 class T_SerialClass;
 struct ManagedData;
 
-enum class stateEnum { WAITING, IDLE, DRIVING_PWM, MEASURING_LIMITS, MEASURING_CURRENTS , ZERO_ENCODER };
+enum class stateEnum { WAITING, IDLE, DRIVING_PWM, MEASURING_LIMITS, MEASURING_CURRENTS, ZERO_ENCODER };
 
 
 struct AmplifierStruct {
@@ -104,6 +104,11 @@ struct TimingStruct {
 };
 
 
+struct VibroTactileStruct {
+
+	bool isRunning = false;
+};
+
 
 /**
  * @brief Main struct that gets shared
@@ -112,11 +117,12 @@ struct TimingStruct {
 struct ManagedData {
 
 	// Declare system structs
-	AmplifierStruct Amplifier;
-	LEDStruct		LED;
-	SerialStruct	Serial;
-	SystemStruct	System;
-	TimingStruct	Timing;
+	AmplifierStruct	   Amplifier;
+	LEDStruct		   LED;
+	SerialStruct	   Serial;
+	SystemStruct	   System;
+	TimingStruct	   Timing;
+	VibroTactileStruct Vibration;
 
 	// Point to serial class
 

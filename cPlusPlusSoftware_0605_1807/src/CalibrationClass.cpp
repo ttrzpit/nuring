@@ -40,7 +40,7 @@ void CalibrationClass::Initialize() {
 	matCalibration = CONFIG_colWhite;
 
 	// Draw aruco target
-	matAruco.copyTo( matCalibration( cv::Rect( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) - ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) - ( matAruco.rows / 2 ), matAruco.cols, matAruco.rows ) ) );
+	matAruco.copyTo( matCalibration( cv::Rect( ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) - ( matAruco.rows / 2 ), matAruco.cols, matAruco.rows ) ) );
 
 	// Add instructional text
 	std::string line0 = "Please touch the screen while keeping the center of the camera aligned with the dot below. ";
@@ -60,7 +60,7 @@ void CalibrationClass::Update() {
 	// Check if touch detected
 	if ( shared->Touchscreen.isTouched ) {
 
-		calibrationPoints.push_back( shared->Touchscreen.positionTouched - cv::Point3i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2, 0 ) );
+		calibrationPoints.push_back( shared->Touchscreen.positionTouched - cv::Point3i( CONFIG_TOUCHSCREEN_WIDTH_PX / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2, 0 ) );
 		calibrationZPoints.push_back( shared->Telemetry.positionFilteredNewMM.z );
 
 		// Debug output
@@ -90,9 +90,9 @@ void CalibrationClass::End() {
 		matCalibration = CONFIG_colWhite;
 
 		// Copy to target window
-		cv::rectangle( matCalibration, cv::Point2i( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) - ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) - ( matAruco.rows / 2 ) ),
-					   cv::Point2i( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) + ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) + ( matAruco.rows / 2 ) ), CONFIG_colGreMd, 4 );
-		matAruco.copyTo( matCalibration( cv::Rect( ( CONFIG_TOUCHSCREEN_WIDTH / 2 ) - ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) - ( matAruco.rows / 2 ), matAruco.cols, matAruco.rows ) ) );
+		cv::rectangle( matCalibration, cv::Point2i( ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) - ( matAruco.rows / 2 ) ),
+					   cv::Point2i( ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) + ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) + ( matAruco.rows / 2 ) ), CONFIG_colGreMd, 4 );
+		matAruco.copyTo( matCalibration( cv::Rect( ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco.cols / 2 ), ( CONFIG_TOUCHSCREEN_HEIGHT / 2 ) - ( matAruco.rows / 2 ), matAruco.cols, matAruco.rows ) ) );
 
 		// Only attempt if enough data points were collected
 		if ( calibrationPoints.size() == 5 ) {
@@ -152,8 +152,8 @@ void CalibrationClass::End() {
 
 			if ( !shared->calibrationComplete ) {
 				// Save image
-				std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
-				shared->Display.statusString	  = "Saving file " + imageFilename;
+				std::string imageFilename	 = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
+				shared->Display.statusString = "Saving file " + imageFilename;
 				cv::imwrite( imageFilename, matCalibration );
 				std::cout << "CalibrationClass:  Image saved at " << imageFilename << "\n";
 

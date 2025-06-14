@@ -106,10 +106,11 @@ void InputClass::RegisterKeyBindings() {
 	keyBindings[171] = [this]() { K_Increment(); };
 	keyBindings[173] = [this]() { K_Decrement(); };
 	keyBindings['z'] = [this]() { K_EncoderZero(); };
-	keyBindings['x'] = [this]() { K_EncoderMeasure(); };
+	keyBindings['x'] = [this]() { K_EncoderMeasureLimit(); };
 	keyBindings['c'] = [this]() { K_EncoderSetLimit(); };
 	keyBindings['f'] = [this]() { K_FittsStart(); };
 	keyBindings['g'] = [this]() { K_FittsStop(); };
+	keyBindings[196] = [this]() { K_TaskCalibrationStart(); };
 }
 
 
@@ -281,6 +282,7 @@ void InputClass::K_TenSelect_A() {
 	shared->Input.selectGainTarget = ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPA ) ? selectGainTargetEnum::NONE : selectGainTargetEnum::AMPA;
 	shared->Input.selectGain	   = selectGainEnum::NONE;
 	shared->Display.statusString   = "InputClass: Selected tension A gain...";
+	shared->Vibration.isRunning	   = !shared->Vibration.isRunning;
 }
 
 void InputClass::K_TenSelect_B() {
@@ -702,7 +704,7 @@ void InputClass::K_EncoderZero() {
 }
 
 
-void InputClass::K_EncoderMeasure() {
+void InputClass::K_EncoderMeasureLimit() {
 
 
 	shared->Amplifier.isMeasuringEncoderLimit = true;
@@ -721,13 +723,22 @@ void InputClass::K_EncoderSetLimit() {
 	shared->Display.statusString			  = "InputClass: Encoder limit set.";
 }
 
+
+void InputClass::K_TaskCalibrationStart() {
+
+	// Update state
+	shared->Task.state			 = taskEnum::CALIBRATE;
+	shared->Display.statusString = "InputClass: Starting calibration.";
+}
+
+
 void InputClass::K_FittsStart() {
 	// Run fitts-law test
 	shared->Telemetry.isTargetReset = true;
 	shared->Controller.isRampingUp	= true;
 	shared->Touchscreen.isTouched	= 0;
 	shared->Task.isRunning			= false;
-	shared->Task.name				= "FITTS";
+	shared->Task.state				= taskEnum::FITTS;
 	shared->Task.repetitionNumber++;
 	// shared->TASK_RUNNING = true;
 	// shared->fittsTestStarted = false;
@@ -738,7 +749,8 @@ void InputClass::K_FittsStart() {
 void InputClass::K_FittsStop() {
 
 	shared->Touchscreen.isTouched = 1;
-	shared->Display.statusString  = "InputClass: Starting angle test.";
+	shared->Task.state			  = taskEnum::IDLE;
+	shared->Display.statusString  = "InputClass: Ending fitts test.";
 }
 
 

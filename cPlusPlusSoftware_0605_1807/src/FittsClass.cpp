@@ -160,15 +160,15 @@ void FittsClass::StartTest( char axis ) {
 void FittsClass::GenerateRandomX() {
 
 	// Calculate marker boundaries
-	unsigned short minX = 0 + CONFIG_FITTS_SCREEN_EXCLUSION_ZONE;
-	unsigned short maxX = CONFIG_FITTS_SCREEN_WIDTH - CONFIG_FITTS_SCREEN_EXCLUSION_ZONE - 72;
+	unsigned short minX = 0 + CONFIG_TOUCHSCREEN_EXCLUSION_ZONE;
+	unsigned short maxX = CONFIG_TOUCHSCREEN_WIDTH_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 72;
 
 	// Calculate marker position
 	shared->fittsMarkerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) ) + ( matAruco01.rows / 2 );
-	shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) + ( matAruco01.rows / 2 );
+	shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) + ( matAruco01.rows / 2 );
 
 	// Generate vertical bar
-	cv::line( matBackground, cv::Point2i( shared->fittsMarkerPosition.x + ( matAruco01.rows / 2 ), 0 ), cv::Point2i( shared->fittsMarkerPosition.x + ( matAruco01.rows / 2 ), CONFIG_FITTS_SCREEN_HEIGHT ), CONFIG_colGreLt, matAruco01.cols );
+	cv::line( matBackground, cv::Point2i( shared->fittsMarkerPosition.x + ( matAruco01.rows / 2 ), 0 ), cv::Point2i( shared->fittsMarkerPosition.x + ( matAruco01.rows / 2 ), CONFIG_TOUCHSCREEN_HEIGHT_PX ), CONFIG_colGreLt, matAruco01.cols );
 }
 
 
@@ -177,14 +177,14 @@ void FittsClass::GenerateRandomY() {
 
 	// Calculate marker boundaries
 	unsigned short minY = 0 + 72;
-	unsigned short maxY = CONFIG_FITTS_SCREEN_HEIGHT - CONFIG_FITTS_SCREEN_EXCLUSION_ZONE - 93;
+	unsigned short maxY = CONFIG_TOUCHSCREEN_HEIGHT_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 93;
 
 	// Calculate marker position
-	shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) + ( matAruco01.rows / 2 );
+	shared->fittsMarkerPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) + ( matAruco01.rows / 2 );
 	shared->fittsMarkerPosition.y = minY + ( rand() % ( maxY - minY + 1 ) ) + ( matAruco01.rows / 2 );
 
 	// Generate vertical bar
-	cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+	cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
 }
 
 
@@ -192,10 +192,10 @@ void FittsClass::GenerateRandomXY() {
 
 	shared->Telemetry.isTargetFound = false;
 	// Calculate marker boundaries
-	unsigned short minX = 0 + CONFIG_FITTS_SCREEN_EXCLUSION_ZONE;
-	unsigned short maxX = CONFIG_FITTS_SCREEN_WIDTH - CONFIG_FITTS_SCREEN_EXCLUSION_ZONE - 72;
+	unsigned short minX = 0 + CONFIG_TOUCHSCREEN_EXCLUSION_ZONE;
+	unsigned short maxX = CONFIG_TOUCHSCREEN_WIDTH_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 72;
 	unsigned short minY = 0 + 72;
-	unsigned short maxY = CONFIG_FITTS_SCREEN_HEIGHT - CONFIG_FITTS_SCREEN_EXCLUSION_ZONE - 93;
+	unsigned short maxY = CONFIG_TOUCHSCREEN_HEIGHT_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 93;
 
 
 	shared->fittsMarkerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) ) - matAruco01.cols / 2;
@@ -206,10 +206,10 @@ void FittsClass::GenerateRandomXY() {
 void FittsClass::GenerateFixedXY() {
 
 	// Calculate marker boundaries
-	unsigned short minX = 0 + CONFIG_FITTS_SCREEN_EXCLUSION_ZONE;
-	unsigned short maxX = CONFIG_FITTS_SCREEN_WIDTH - CONFIG_FITTS_SCREEN_EXCLUSION_ZONE - 72;
+	unsigned short minX = 0 + CONFIG_TOUCHSCREEN_EXCLUSION_ZONE;
+	unsigned short maxX = CONFIG_TOUCHSCREEN_WIDTH_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 72;
 	unsigned short minY = 0 + 72;
-	unsigned short maxY = CONFIG_FITTS_SCREEN_HEIGHT - CONFIG_FITTS_SCREEN_EXCLUSION_ZONE - 93;
+	unsigned short maxY = CONFIG_TOUCHSCREEN_HEIGHT_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 93;
 
 	shared->fittsMarkerPosition = shared->Telemetry.screenPositionPX;
 
@@ -226,77 +226,77 @@ void FittsClass::GenerateIncrementingXY() {
 	if ( shared->Task.repetitionNumber == 1 ) {
 
 		// Dead center
-		shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 );
-		shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows );
+		shared->fittsMarkerPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco01.rows / 2 );
+		shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows );
 
 		// Generate vertical bar
-		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
 
 	} else if ( shared->Task.repetitionNumber == 2 ) {
 
 		// Dead center
-		shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) + ( 240 * MM2PX );
-		shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows );
+		shared->fittsMarkerPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco01.rows / 2 ) + ( 240 * MM2PX );
+		shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows );
 
 		// Generate vertical bar
-		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
 
 	} else if ( shared->Task.repetitionNumber == 3 ) {
 
 		// Dead center
-		shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) + ( 100 * MM2PX );
-		shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) + ( 100 * MM2PX );
+		shared->fittsMarkerPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco01.rows / 2 ) + ( 100 * MM2PX );
+		shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows ) + ( 100 * MM2PX );
 
 		// Generate vertical bar
-		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
 	} else if ( shared->Task.repetitionNumber == 4 ) {
 
 		// Dead center
-		shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 );
-		shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) + ( 100 * MM2PX );
+		shared->fittsMarkerPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco01.rows / 2 );
+		shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows ) + ( 100 * MM2PX );
 
 		// Generate vertical bar
-		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
 	} else if ( shared->Task.repetitionNumber == 5 ) {
 
 		// Dead center
-		shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) - ( 100 * MM2PX );
-		shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) + ( 100 * MM2PX );
+		shared->fittsMarkerPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco01.rows / 2 ) - ( 100 * MM2PX );
+		shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows ) + ( 100 * MM2PX );
 
 		// Generate vertical bar
-		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
 	} else if ( shared->Task.repetitionNumber == 6 ) {
 
 		// Dead center
-		shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) - ( 240 * MM2PX );
-		shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows );
+		shared->fittsMarkerPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco01.rows / 2 ) - ( 240 * MM2PX );
+		shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows );
 
 		// Generate vertical bar
-		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
 	} else if ( shared->Task.repetitionNumber == 7 ) {
 
 		// Dead center
-		shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) - ( 100 * MM2PX );
-		shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) - ( 100 * MM2PX );
+		shared->fittsMarkerPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco01.rows / 2 ) - ( 100 * MM2PX );
+		shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows ) - ( 100 * MM2PX );
 
 		// Generate vertical bar
-		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
 	} else if ( shared->Task.repetitionNumber == 8 ) {
 
 		// Dead center
-		shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 );
-		shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) - ( 100 * MM2PX );
+		shared->fittsMarkerPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco01.rows / 2 );
+		shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows ) - ( 100 * MM2PX );
 
 		// Generate vertical bar
-		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
 	} else if ( shared->Task.repetitionNumber == 9 ) {
 
 		// Dead center
-		shared->fittsMarkerPosition.x = ( CONFIG_FITTS_SCREEN_WIDTH / 2 ) - ( matAruco01.rows / 2 ) + ( 100 * MM2PX );
-		shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows ) - ( 100 * MM2PX );
+		shared->fittsMarkerPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco01.rows / 2 ) + ( 100 * MM2PX );
+		shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows ) - ( 100 * MM2PX );
 
 		// Generate vertical bar
-		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_FITTS_SCREEN_WIDTH, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
+		cv::line( matBackground, cv::Point2i( 0, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX, shared->fittsMarkerPosition.y + ( matAruco01.rows / 2 ) ), CONFIG_colGreLt, matAruco01.cols );
 	} else {
 
 		shared->Task.repetitionNumber = 0;
@@ -308,7 +308,7 @@ void FittsClass::GenerateTestVelocity() {
 
 	fittsPosition.x += ( velocity * 0.01 * MM2PX );
 	shared->fittsMarkerPosition.x = fittsPosition.x;
-	shared->fittsMarkerPosition.y = ( CONFIG_FITTS_SCREEN_HEIGHT / 2 ) - ( matAruco01.rows );
+	shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows );
 	// std::cout << shared->timingTimestamp << "," << fittsPosition.x * PX2MM << "," << shared->targetMarkerPosition3dRaw.x << "," << shared->targetMarkerPosition3dNew.x << "\n";
 	std::cout << "t:" << shared->Timing.elapsedRunningTime << " \t v:" << shared->Telemetry.velocityFilteredNewMM.x << "\n";
 
@@ -377,8 +377,8 @@ void FittsClass::EndTest() {
 
 	// Save image
 	if ( shared->Logging.isLoggingEnabled ) {
-		std::string imageFilename = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
-		shared->Display.statusString	  = "Saving file " + imageFilename;
+		std::string imageFilename	 = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
+		shared->Display.statusString = "Saving file " + imageFilename;
 		cv::imwrite( imageFilename, matBackground );
 		std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
 	}

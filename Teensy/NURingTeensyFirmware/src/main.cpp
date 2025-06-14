@@ -9,16 +9,17 @@ SharedDataManager DataHandle;
 
 // Custom libraries
 
-#include "T_AmplifierClass.h"	 // Amplifier header
-#include "T_Config.h"			 // Global config constants
-#include "T_LEDClass.h"			 // LED header
-#include "T_SerialClass.h"		 // Serial header
+#include "T_AmplifierClass.h"		// Amplifier header
+#include "T_Config.h"				// Global config constants
+#include "T_LEDClass.h"				// LED header
+#include "T_SerialClass.h"			// Serial header
+#include "T_VIbrotactileClass.h"	// Vibrating motor
 
 // Custom classes
-T_AmplifierClass Amplifier( DataHandle );
-T_LEDClass		 LEDs( DataHandle );
-T_SerialClass	 SerialPort( DataHandle );
-
+T_AmplifierClass	Amplifier( DataHandle );
+T_LEDClass			LEDs( DataHandle );
+T_SerialClass		SerialPort( DataHandle );
+T_VibrotactileClass Vibrotactile( DataHandle );
 
 // Handle to shared data
 auto shared = DataHandle.getData();
@@ -28,6 +29,9 @@ IntervalTimer IT_DriveAmplifiers;
 IntervalTimer IT_SendSerialToPC;
 IntervalTimer IT_ReadAmplifiers;
 
+// Flags for serial IO
+volatile bool flagSendSerialToPC = false;
+volatile bool flagReadHWSerial	 = false;
 
 /** FUNCTION PROTOTYPES **/
 void IT_Callback_WriteToAmplifiers();
@@ -42,12 +46,17 @@ void UpdateSystemState();
  */
 void setup() {
 
+
+
 	// Initialize LEDs
 	LEDs.Begin();
 
+	// Start vibrating motor
+	// Vibrotactile.Begin();
+
 	// Initialize serial ports
 	SerialPort.Begin();
-	DataHandle.getData()->PrintDebug( "Debugger initialized" );
+	// DataHandle.getData()->PrintDebug( "Debugger initialized" );
 
 	// Toggle debug on 3rd serial port
 	shared->Serial.useDebugText = false;
@@ -77,8 +86,21 @@ void setup() {
 void loop() {
 
 
+
 	// Update LEDs
 	LEDs.Update();
+
+	// Handle flags from timers
+	if ( flagSendSerialToPC ) {
+		flagSendSerialToPC = false;
+		SerialPort.Update();	// NOW safe: runs in main thread, not interrupt
+	}
+
+	if ( flagReadHWSerial ) {
+		flagReadHWSerial = false;
+		Amplifier.UpdateHWSerial();	   // safe in main thread
+	}
+
 
 	// Update system state
 	UpdateSystemState();
@@ -88,6 +110,8 @@ void loop() {
 
 void IT_Callback_WriteToAmplifiers() {
 
+
+
 	// Update amplifier
 	Amplifier.Update();
 }
@@ -95,15 +119,20 @@ void IT_Callback_WriteToAmplifiers() {
 
 
 void IT_Callback_ReadFromAmplifiers() {
-	Amplifier.UpdateHWSerial();
+	// Amplifier.UpdateHWSerial();
+	flagReadHWSerial = true;
 }
 
 
 
 void IT_Callback_SendSerialToPC() {
 
+
+	// Vibrotactile.Drive();
+
 	// Update serial port
-	SerialPort.Update();
+	// SerialPort.Update();
+	flagSendSerialToPC = true;
 }
 
 
@@ -178,7 +207,7 @@ void UpdateSystemState() {
 
 			// Update amplifier state
 			shared->Amplifier.isEnabled = true;
-			
+
 
 			// Update LEDs
 			shared->LED.isCommunicatingWithPC = true;

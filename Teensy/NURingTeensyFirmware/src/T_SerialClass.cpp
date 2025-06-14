@@ -26,7 +26,7 @@ void T_SerialClass::Begin() {
 	}
 	// while ( !SerialDebug );			 // Wait until ready
 
-	PrintDebug( "Serial initialized" );
+	// PrintDebug( "Serial initialized" );
 }
 
 
@@ -129,7 +129,7 @@ void T_SerialClass::ReadPacketFromPC() {
 
 			case 3:	   // Read payload
 				buffer[idx++] = byte;
-				if ( idx == 3 + expectedLength + 1 ) {	  // +1 for footer
+				if ( idx == 3 + expectedLength ) {	  // +1 for footer
 					state = 4;
 				}
 				break;
@@ -150,6 +150,7 @@ void T_SerialClass::ReadPacketFromPC() {
 
 					PacketStruct* newPacket = ( PacketStruct* )&buffer[3];
 					PrintDebug( "Type: " + String( newPacket->packetType ) );
+					
 					// Parse packet
 					ParsePacketFromPC( newPacket );
 				}
@@ -244,6 +245,7 @@ void T_SerialClass::ParsePacketFromPC( PacketStruct* pkt ) {
 	shared->Amplifier.commandedPwmA	 = pkt->pwmA;
 	shared->Amplifier.commandedPwmB	 = pkt->pwmB;
 	shared->Amplifier.commandedPwmC	 = pkt->pwmC;
+	shared->Vibration.isRunning		 = pkt->vibration;
 }
 
 
@@ -288,8 +290,6 @@ void T_SerialClass::SendPacketToPC() {
 		//
 	};
 
-	// Measure packet length
-	const uint8_t packetLength = sizeof( outgoingPacket );
 
 	// Populate packet
 	outgoingPacket.packetType	  = outgoingType;
@@ -304,6 +304,10 @@ void T_SerialClass::SendPacketToPC() {
 	outgoingPacket.currentA		  = shared->Amplifier.currentMeasuredRawA;
 	outgoingPacket.currentB		  = shared->Amplifier.currentMeasuredRawB;
 	outgoingPacket.currentC		  = shared->Amplifier.currentMeasuredRawC;
+	outgoingPacket.vibration	  = uint8_t( shared->Vibration.isRunning );
+
+	// Measure packet length
+	const uint8_t packetLength = sizeof( outgoingPacket );
 
 	// Compute checksum
 	uint8_t	 checkSum = outgoingType ^ packetLength;
@@ -324,8 +328,9 @@ void T_SerialClass::SendPacketToPC() {
 
 	// Build buffer footer
 	idx += packetLength;
-	buffer[idx++] = 0x00;		// sizeof(outgoingPacket)
 	buffer[idx++] = endByte;	// sizeof(outgoingPacket)
+
+	
 
 	// Send over serial
 	ssize_t bytesWritten = SerialOut.write( buffer, idx );

@@ -23,10 +23,11 @@
 #define DEG2RAD 0.01745
 
 // Enum for system state
-enum class stateEnum { IDLE, DRIVING_PWM, MEASURING_LIMITS, MEASURING_CURRENT, ZERO_ENCODER };
+enum class stateEnum { IDLE, DRIVING_PWM, MEASURING_LIMITS, ZERO_ENCODER };
 enum class selectGainTargetEnum { NONE, ABD, ADD, FLEX, EXT, AMPA, AMPB, AMPC, TORQUE };
 enum class selectGainEnum { NONE, KP, KI, KD };
 enum class selectTorqueTargetEnum { NONE, ABD, ADD, FLEX, EXT };
+enum class taskEnum { IDLE, CALIBRATE, FITTS };
 
 // Structure for 4-point vector
 struct Point4f {
@@ -110,6 +111,13 @@ struct CaptureStruct {
 	cv::Mat matRemap2;
 };
 
+struct CalibrationStruct {
+
+	bool		isCalibrated	  = false;	  // Has the finger been calibrated
+	cv::Point3i calibratedOffetMM = cv::Point3i( 0, 0, 0 );
+	cv::Point3i calibratedOffetPX = cv::Point3i( 0, 0, 0 );
+};
+
 struct ControllerStruct {
 
 	Point4f		gainKp;
@@ -132,9 +140,11 @@ struct ControllerStruct {
 	float		rampDurationTime		 = 1.0f;							   // [s]
 	bool		isRampingUp				 = false;							   // Is the motor ramping up?
 	bool		isLimitSet				 = false;							   // Are the motor limits set?
-	bool		isCalibrated			 = false;							   // Has the finger been calibrated?
-	cv::Point3i calibratedOffetMM		 = cv::Point3i( 0, 0, 0 );
-	int			integrationRadius		 = 100;
+
+	int			integrationRadius	   = 100;
+	cv::Point3f percentageProportional = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	cv::Point3f percentageIntegral	   = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	cv::Point3f percentageDerivative   = cv::Point3f( 0.0f, 0.0f, 0.0f );
 };
 
 struct DisplayStruct {
@@ -187,6 +197,17 @@ struct SerialStruct {
 	std::string packetIn  = "";
 };
 
+struct TaskStruct {
+	taskEnum	state			 = taskEnum::IDLE;
+	bool		isRunning		 = false;	 // Is the task running
+	float		runningTime		 = 0.0f;	 // Task running time
+	int			userID			 = 000;		 // Participant ID
+	int			repetitionNumber = 0;		 // Task rep number
+	char		command			 = 0;		 // Command
+	std::string name			 = "IDLE";
+};
+
+
 struct TelemetryStruct {
 	int						 activeID			   = 1;	   // ID of target currently being tracked
 	bool					 isTargetReset		   = false;
@@ -200,17 +221,6 @@ struct TelemetryStruct {
 	std::vector<cv::Point2i> cornersPX			   = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	// Target corners in pixel space
 	cv::Point3f				 positionIntegratedMM  = cv::Point3f( 0.0f, 0.0f, 0.0f );
 };
-
-struct TaskStruct {
-	std::string name			 = "";		 // String name of task
-	float		runningTime		 = 0.0f;	 // Task running time
-	int			userID			 = 000;		 // Participant ID
-	int			repetitionNumber = 0;		 // Task rep number
-	char		command			 = 0;		 // Command
-	bool		isRunning		 = false;	 // Is the task running
-	bool		isComplete		 = false;	 // Trip when task is complete
-};
-
 
 
 struct TimingStruct {
@@ -228,6 +238,11 @@ struct TouchscreenStruct {
 };
 
 
+struct VibrationStruct {
+	bool isRunning = false;
+};
+
+
 // Shared system variable container
 struct ManagedData {
 
@@ -235,6 +250,7 @@ struct ManagedData {
 	// Structs
 	AmplifierStruct	   Amplifier;
 	ArUcoStruct		   Aruco;
+	CalibrationStruct  Calibration;
 	CaptureStruct	   Capture;
 	ControllerStruct   Controller;
 	DisplayStruct	   Display;
@@ -247,13 +263,8 @@ struct ManagedData {
 	TaskStruct		   Task;
 	TimingStruct	   Timing;
 	TouchscreenStruct  Touchscreen;
+	VibrationStruct	   Vibration;
 
-
-
-	// Teensy variables
-
-
-	// Display variables
 
 
 	// Logging variables

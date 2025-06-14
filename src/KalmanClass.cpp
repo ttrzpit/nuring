@@ -23,9 +23,9 @@ KalmanClass::KalmanClass( SystemDataManager& ctx )
 	state				= cv::Mat::zeros( 6, 1, CV_32F );
 	P					= cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
 	Q					= cv::Mat::eye( 6, 6, CV_32F ) * kalmanProcessNoiseCovarianceQ;
-	Q.at<float>( 3, 3 ) = 1e-2f;	// Velocity
-	Q.at<float>( 4, 4 ) = 1e-2f;
-	Q.at<float>( 5, 5 ) = 1e-2f;
+	Q.at<float>( 3, 3 ) = 0.5f;	   // Velocity
+	Q.at<float>( 4, 4 ) = 0.5f;
+	Q.at<float>( 5, 5 ) = 0.5f;
 	R					= cv::Mat::eye( 3, 3, CV_32F ) * kalmanMeasurementNoiseR;
 	H					= cv::Mat::zeros( 3, 6, CV_32F );
 	I					= cv::Mat::eye( 6, 6, CV_32F );
@@ -134,12 +134,10 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 	// Only calculate if within a certain radius of the target
 	if ( errorMagnitude < shared->Controller.integrationRadius ) {
 
-		// Add decay
-		if ( errorMagnitude < 10.0f ) {
-			integralError *= 0.9;	 // Decrease by 10% each time
-		} else {
-			integralError += error * dt;
-		}
+
+		integralError += error * dt;
+	} else {
+		integralError *= 0.95f;
 	}
 
 

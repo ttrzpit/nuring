@@ -20,7 +20,8 @@ public:
 	void Update4D();
 	void MapToContributionABC(cv::Point3f terms);
 	void UpdateAmplifier();
-
+	void UpdateVibrotactile() ; 
+	
 private:
 	SystemDataManager&			 dataHandle;
 	std::shared_ptr<ManagedData> shared;
@@ -52,5 +53,5 @@ private:
 	cv::Point3f MapToCurrent( cv::Point3f percentage, float iNominal );
 	cv::Point3i MapToPWM( cv::Point3f percentage, int min, int max );
 
-	void MapToContributionTerm(cv::Point3f terms);
+	cv::Point3f MapToContributionTerm(cv::Point3f terms);
 };

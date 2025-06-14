@@ -75,8 +75,9 @@ private:
 	void K_Increment();
 	void K_Decrement();
 	void K_EncoderZero();
-	void K_EncoderMeasure();
+	void K_EncoderMeasureLimit();
 	void K_EncoderSetLimit();
 	void K_FittsStart();
 	void K_FittsStop();
+	void K_TaskCalibrationStart();
 };

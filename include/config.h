@@ -13,6 +13,11 @@
 
 #if HIGH_RESOLUTION == 1
 
+// Marker constants
+inline constexpr short CONFIG_LARGE_MARKER_WIDTH  = 20;	   // [mm] Marker dimension
+inline constexpr short CONFIG_MEDIUM_MARKER_WIDTH = 12;
+inline constexpr short CONFIG_SMALL_MARKER_WIDTH  = 8;
+
 // Config name
 inline const std::string CONFIG_TYPE = "HighResolution";
 
@@ -21,7 +26,7 @@ inline const std::string CONFIG_TYPE = "HighResolution";
 inline constexpr unsigned short CONFIG_PANEL_HEIGHT	   = 1100;
 inline constexpr unsigned short CONFIG_DIS_WIDTH	   = 1600;
 inline constexpr unsigned short CONFIG_DIS_HEIGHT	   = 1360;
-inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH  = 32;    // 32
+inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH  = 32;	// 32
 inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT = 26;	// 26
 
 // Display keyboard shortcut panel
@@ -30,15 +35,23 @@ inline constexpr unsigned short CONFIG_DIS_KEY_HEIGHT	   = 1360;
 inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 50;	// 20
 inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 30;	// 20
 
-inline constexpr unsigned short CONFIG_DIS_VIZ_WIDTH	  = 1540;	 // 20
-inline constexpr unsigned short CONFIG_DIS_VIZ_HEIGHT	  = 1360;	 // 20
-inline constexpr unsigned short CONFIG_TOUCHSCREEN_WIDTH  = 1920;
-inline constexpr unsigned short CONFIG_TOUCHSCREEN_HEIGHT = 1080;
-inline constexpr unsigned short CONFIG_DIS_ANGLE_WIDTH	  = 1540;	 // 20
-inline constexpr unsigned short CONFIG_DIS_ANGLE_HEIGHT	  = 1360;	 // 20
-inline constexpr unsigned short CONFIG_FIELD_WIDTH_PX	  = 802;	 // 20
-inline constexpr unsigned short CONFIG_FIELD_LENGTH_PX	  = 510;	 // 1110
-inline const cv::Point2i		CONFIG_TOUCHSCREEN_CENTER = cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH / 2, CONFIG_TOUCHSCREEN_HEIGHT / 2 );
+// 3D visualization
+inline constexpr unsigned short CONFIG_DIS_VIZ_WIDTH  = 1540;	 // 20
+inline constexpr unsigned short CONFIG_DIS_VIZ_HEIGHT = 1360;	 // 20
+
+inline constexpr unsigned short CONFIG_DIS_ANGLE_WIDTH	= 1540;	   // 20
+inline constexpr unsigned short CONFIG_DIS_ANGLE_HEIGHT = 1360;	   // 20
+inline constexpr unsigned short CONFIG_FIELD_WIDTH_PX	= 802;	   // 20
+inline constexpr unsigned short CONFIG_FIELD_LENGTH_PX	= 510;	   // 1110
+
+// Touchscreen
+inline constexpr unsigned short CONFIG_TOUCHSCREEN_WIDTH_PX	 = 1920;
+inline constexpr unsigned short CONFIG_TOUCHSCREEN_HEIGHT_PX = 1080;
+inline const cv::Point2i		CONFIG_TOUCHSCREEN_CENTER	 = cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX / 2, CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 );
+
+inline constexpr unsigned short CONFIG_TOUCHSCREEN_EXCLUSION_ZONE = 93;
+inline constexpr unsigned short CONFIG_TOUCHSCREEN_MARKER_SIZE	  = CONFIG_LARGE_MARKER_WIDTH;
+
 
 // Camera intrinsic parameters
 inline constexpr unsigned short CONFIG_CAM_WIDTH	   = 1600;
@@ -97,10 +110,7 @@ inline std::string CONFIG_SERIAL_PORT_0 = "/dev/ttyACM0";
 // inline std::string CONFIG_SERIAL_PORT_0 = "/dev/pts/10";
 inline std::string CONFIG_SERIAL_PORT_1 = "/dev/ttyACM1";
 
-// Marker constants
-inline constexpr short CONFIG_LARGE_MARKER_WIDTH  = 20;	   // [mm] Marker dimension
-inline constexpr short CONFIG_MEDIUM_MARKER_WIDTH = 12;
-inline constexpr short CONFIG_SMALL_MARKER_WIDTH  = 8;
+
 
 // Unit conversions per touchscreen
 #define MM2PX 3.66142
@@ -145,11 +155,6 @@ extern const cv::Scalar CONFIG_colBlack, CONFIG_colWhite;
 extern const cv::Scalar CONFIG_colCyaMd, CONFIG_colCyaLt, CONFIG_colCyaDk;
 extern const cv::Scalar CONFIG_colMagMd, CONFIG_colMagLt, CONFIG_colMagDk;
 
-// Fitts Law Test
-inline constexpr unsigned short CONFIG_FITTS_SCREEN_EXCLUSION_ZONE = 93;
-inline constexpr unsigned short CONFIG_FITTS_MARKER_SIZE		   = CONFIG_LARGE_MARKER_WIDTH;
-inline constexpr unsigned short CONFIG_FITTS_SCREEN_WIDTH		   = 1920;
-inline constexpr unsigned short CONFIG_FITTS_SCREEN_HEIGHT		   = 1080;
 
 // Pulley
 // inline constexpr unsigned short CONFIG_PULLEY_RADIUS = 2.5;	   // [mm]
