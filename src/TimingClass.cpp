@@ -15,7 +15,7 @@ TimingClass::TimingClass( SystemDataManager& ctx )
 
 
 /**
- * @brief Initialize ArUco detector
+ * @brief Start the timer
  */
 void TimingClass::StartTimer() {
 
@@ -26,9 +26,9 @@ void TimingClass::StartTimer() {
 
 
 /**
- * @brief Check frequency
+ * @brief Updates the timer, pulling in current time and calculating average frequency (once per second)
  */
-void TimingClass::UpdateTimer() {
+void TimingClass::Update() {
 
 	// Increment loop counter
 	loopCounter++;
@@ -41,10 +41,12 @@ void TimingClass::UpdateTimer() {
 	elapsedTimeFreq					  = currentTime - previousTimeFreq;
 	shared->Timing.elapsedRunningTime = elapsedTime.count();
 
-	// if ( TASK_TIMER_STARTED ) {
-	// taskTimeElapsed			= currentTime - taskTimeStart;
+	// If a task is running, update timer
+	if ( shared->Task.isRunning ) {
+		UpdateTaskTime();
+	}
 
-	// }
+
 
 	// Check if 1 second has passed
 	if ( elapsedTimeFreq.count() >= 1.0 ) {
@@ -57,11 +59,34 @@ void TimingClass::UpdateTimer() {
 
 
 /**
- * @brief Add a string of the current date and time
+ * @brief Save a string of the current date and time to shared and print time
  * 
  * @return std::string MMDDYYHHMM
  */
-void TimingClass::GetTimestamp() {
+void TimingClass::UpdateFullDateAndTime() {
+
+	// Get current time
+	std::time_t t	= std::time( nullptr );
+	std::tm*	now = std::localtime( &t );
+
+	// Format time
+	std::ostringstream ssTime;
+	ssTime << "_d" << std::put_time( now, "%m%d" ) << "_t" << std::put_time( now, "%H%M%S" );
+
+	// Output
+	std::cout << "Timestamp generated: " << ssTime.str() << "\n";
+	shared->Logging.dataAndTime = ssTime.str();
+}
+
+
+
+/**
+ * @brief Get the current timestamp
+ * 
+ * @param echo 
+ * @return std::string 
+ */
+std::string TimingClass::GetFullDateAndTime( bool echo ) {
 
 	// Get current time
 	std::time_t t	= std::time( nullptr );
@@ -71,10 +96,11 @@ void TimingClass::GetTimestamp() {
 	std::ostringstream ssTime;
 	ssTime << "_d" << std::put_time( now, "%m%d" ) << "_h" << std::put_time( now, "%H%M%S" );
 
-	// Output
-	std::cout << "Timestamp generated: " << ssTime.str() << "\n";
-	shared->loggingTimestamp = ssTime.str();
+	// Return timestamp
+	return ssTime.str();
 }
+
+
 
 /**
  * @brief Add a string of the current date and time
@@ -87,9 +113,10 @@ void TimingClass::UpdateTaskTime() {
 	currentTaskTime = std::chrono::steady_clock::now();
 
 	// Get elapsed time
-	taskTimeElapsed			 = currentTaskTime - taskTimeStart;
-	shared->Task.runningTime = taskTimeElapsed.count();
+	taskTimeElapsed				 = currentTaskTime - taskTimeStart;
+	shared->Task.elapsedTaskTime = taskTimeElapsed.count();
 }
+
 
 
 void TimingClass::TaskTimerStart() {
@@ -102,7 +129,7 @@ void TimingClass::TaskTimerStart() {
 }
 
 
-void TimingClass::TaskTimerEnd() {
+void TimingClass::TaskTimerStop() {
 
 	// Capture final time
 	taskTimeEnd = std::chrono::steady_clock::now();
@@ -115,4 +142,15 @@ void TimingClass::TaskTimerEnd() {
 
 	// Update flag
 	TASK_TIMER_STARTED = false;
+}
+
+
+/**
+ * @brief Returns the elapsed time in seconds
+ * 
+ * @return float Current elapsed time
+ */
+float TimingClass::TaskTimerGetElapsedSeconds() {
+
+	return taskTimeElapsed.count();
 }

@@ -14,14 +14,14 @@ void ControllerClass::Update() {
 	// 4D version
 
 	// Reset ramp if target was reset
-	if ( shared->Telemetry.isTargetReset ) {
+	if ( shared->Target.isTargetReset ) {
 
 		shared->Controller.rampPercentage = 0.0f;
 		shared->Controller.rampStartTime  = shared->Timing.elapsedRunningTime;
 	}
 
 	// Ramp-up value
-	if ( shared->Controller.isRampingUp && shared->Telemetry.isTargetFound ) {
+	if ( shared->Controller.isRampingUp && shared->Target.isTargetFound ) {
 		float elapsed					  = shared->Timing.elapsedRunningTime - shared->Controller.rampStartTime;
 		shared->Controller.rampPercentage = std::clamp( elapsed / shared->Controller.rampDurationTime, 0.0f, 1.0f );
 
@@ -30,12 +30,12 @@ void ControllerClass::Update() {
 		}
 	}
 
-	if ( shared->Telemetry.isTargetFound ) {
+	if ( shared->Target.isTargetFound ) {
 
 
 		// Proportional AB+AD / FLEX+EXT
-		shared->Telemetry.positionFilteredNewMM.x < 0 ? ( shared->Controller.proportionalTerm.x = shared->Controller.gainKp.abd * shared->Telemetry.positionFilteredNewMM.x ) : ( shared->Controller.proportionalTerm.x = shared->Controller.gainKp.add * shared->Telemetry.positionFilteredNewMM.x );
-		shared->Telemetry.positionFilteredNewMM.y < 0 ? ( shared->Controller.proportionalTerm.y = shared->Controller.gainKp.flx * shared->Telemetry.positionFilteredNewMM.y ) : ( shared->Controller.proportionalTerm.y = shared->Controller.gainKp.ext * shared->Telemetry.positionFilteredNewMM.y );
+		shared->Target.positionFilteredNewMM.x < 0 ? ( shared->Controller.proportionalTerm.x = shared->Controller.gainKp.abd * shared->Target.positionFilteredNewMM.x ) : ( shared->Controller.proportionalTerm.x = shared->Controller.gainKp.add * shared->Target.positionFilteredNewMM.x );
+		shared->Target.positionFilteredNewMM.y < 0 ? ( shared->Controller.proportionalTerm.y = shared->Controller.gainKp.flx * shared->Target.positionFilteredNewMM.y ) : ( shared->Controller.proportionalTerm.y = shared->Controller.gainKp.ext * shared->Target.positionFilteredNewMM.y );
 
 		// Calculate derivative term
 		// shared->Telemetry.velocityFilteredNewMM.x < 0 ? ( shared->Controller.derivativeTerm.x = -shared->Controller.gainKd.abd * shared->Telemetry.velocityFilteredNewMM.x ) : ( shared->Controller.derivativeTerm.x = shared->Controller.gainKd.add * shared->Telemetry.velocityFilteredNewMM.x );
@@ -43,12 +43,12 @@ void ControllerClass::Update() {
 
 
 		// Direction to target
-		cv::Point2f posError	= cv::Point2f( shared->Telemetry.positionFilteredNewMM.x, shared->Telemetry.positionFilteredNewMM.y );
+		cv::Point2f posError	= cv::Point2f( shared->Target.positionFilteredNewMM.x, shared->Target.positionFilteredNewMM.y );
 		float		posNorm		= cv::norm( posError ) + 1e-6f;	   // prevent div-by-zero
 		cv::Point2f dirToTarget = posError * ( 1.0f / posNorm );
 
 		// Velocity
-		cv::Point2f velocity = cv::Point2f( shared->Telemetry.velocityFilteredNewMM.x, shared->Telemetry.velocityFilteredNewMM.y );
+		cv::Point2f velocity = cv::Point2f( shared->Target.velocityFilteredNewMM.x, shared->Target.velocityFilteredNewMM.y );
 
 		// Project velocity onto direction to target
 		float vTowardTarget = velocity.dot( dirToTarget );
@@ -57,8 +57,8 @@ void ControllerClass::Update() {
 		if ( vTowardTarget < 0.0f ) {
 			// You can adjust this to use axis-specific Kd like you had
 
-			shared->Telemetry.positionFilteredNewMM.x < 0 ? ( shared->Controller.derivativeTerm.x = vTowardTarget * shared->Controller.gainKd.abd * dirToTarget.x ) : ( shared->Controller.derivativeTerm.x = vTowardTarget * shared->Controller.gainKd.add * dirToTarget.x );
-			shared->Telemetry.positionFilteredNewMM.y < 0 ? ( shared->Controller.derivativeTerm.y = vTowardTarget * shared->Controller.gainKd.flx * dirToTarget.y ) : ( shared->Controller.derivativeTerm.y = vTowardTarget * shared->Controller.gainKd.ext * dirToTarget.y );
+			shared->Target.positionFilteredNewMM.x < 0 ? ( shared->Controller.derivativeTerm.x = vTowardTarget * shared->Controller.gainKd.abd * dirToTarget.x ) : ( shared->Controller.derivativeTerm.x = vTowardTarget * shared->Controller.gainKd.add * dirToTarget.x );
+			shared->Target.positionFilteredNewMM.y < 0 ? ( shared->Controller.derivativeTerm.y = vTowardTarget * shared->Controller.gainKd.flx * dirToTarget.y ) : ( shared->Controller.derivativeTerm.y = vTowardTarget * shared->Controller.gainKd.ext * dirToTarget.y );
 			// shared->Controller.derivativeTerm = cv::Point3f( vTowardTarget * shared->Controller.gainKd.abd * dirToTarget.x, vTowardTarget * shared->Controller.gainKd.flx * dirToTarget.y, 0.0f );
 		} else {
 			shared->Controller.derivativeTerm = cv::Point3f( 0.0f, 0.0f, 0.0f );
@@ -67,8 +67,8 @@ void ControllerClass::Update() {
 
 
 		// Calculate integral term
-		shared->Telemetry.positionIntegratedMM.x < 0 ? ( shared->Controller.integralTerm.x = shared->Controller.gainKi.abd * shared->Telemetry.positionIntegratedMM.x ) : ( shared->Controller.integralTerm.x = shared->Controller.gainKi.add * shared->Telemetry.positionIntegratedMM.x );
-		shared->Telemetry.positionIntegratedMM.y < 0 ? ( shared->Controller.integralTerm.y = shared->Controller.gainKi.flx * shared->Telemetry.positionIntegratedMM.y ) : ( shared->Controller.integralTerm.y = shared->Controller.gainKi.ext * shared->Telemetry.positionIntegratedMM.y );
+		shared->Target.positionIntegratedMM.x < 0 ? ( shared->Controller.integralTerm.x = shared->Controller.gainKi.abd * shared->Target.positionIntegratedMM.x ) : ( shared->Controller.integralTerm.x = shared->Controller.gainKi.add * shared->Target.positionIntegratedMM.x );
+		shared->Target.positionIntegratedMM.y < 0 ? ( shared->Controller.integralTerm.y = shared->Controller.gainKi.flx * shared->Target.positionIntegratedMM.y ) : ( shared->Controller.integralTerm.y = shared->Controller.gainKi.ext * shared->Target.positionIntegratedMM.y );
 
 		// Sum terms (working)
 		shared->Controller.combinedPIDTerms = ( shared->Controller.proportionalTerm + shared->Controller.integralTerm + shared->Controller.derivativeTerm ) * shared->Controller.rampPercentage;
@@ -143,8 +143,8 @@ void ControllerClass::Update() {
 
 void ControllerClass::UpdateVibrotactile() {
 
-	float rXY = shared->GetNorm2D( cv::Point2f( shared->Telemetry.positionFilteredNewMM.x, shared->Telemetry.positionFilteredNewMM.y ) );
-	if ( shared->Telemetry.isTargetFound && shared->Amplifier.isAmplifierActive && rXY <= 20.0f ) {
+	float rXY = shared->GetNorm2D( cv::Point2f( shared->Target.positionFilteredNewMM.x, shared->Target.positionFilteredNewMM.y ) );
+	if ( shared->Target.isTargetFound && shared->Amplifier.isAmplifierActive && rXY <= 20.0f ) {
 		shared->Vibration.isRunning = true;
 	} else {
 		shared->Vibration.isRunning = false;
@@ -217,7 +217,7 @@ void ControllerClass::MapToContributionABC( cv::Point3f terms ) {
 	rTarget	 = cv::norm( cv::Vec2f( terms.x, terms.y ) );
 
 	// Calculate max strength
-	rMax = std::clamp( float( std::atan2( rTarget, shared->Telemetry.positionFilteredNewMM.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD );
+	rMax = std::clamp( float( std::atan2( rTarget, shared->Target.positionFilteredNewMM.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD );
 
 	// Wrap angle within 0-360 deg
 	if ( thTarget < 0 ) {
@@ -368,7 +368,7 @@ cv::Point3f ControllerClass::MapToContributionTerm( cv::Point3f terms ) {
 	rTarget	 = cv::norm( cv::Vec2f( terms.x, terms.y ) );
 
 	// Calculate max strength
-	rMax = std::clamp( float( std::atan2( rTarget, shared->Telemetry.positionFilteredNewMM.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD );
+	rMax = std::clamp( float( std::atan2( rTarget, shared->Target.positionFilteredNewMM.z ) ), 0.0f, float( 40.0 * DEG2RAD ) ) / ( 40.0 * DEG2RAD );
 
 	// Wrap angle within 0-360 deg
 	if ( thTarget < 0 ) {

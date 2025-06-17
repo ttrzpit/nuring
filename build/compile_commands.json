@@ -13,12 +13,6 @@
 },
 {
   "directory": "/home/tom/Code/nuring/build",
-  "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/CalibrationClass.cpp.o -c /home/tom/Code/nuring/src/CalibrationClass.cpp",
-  "file": "/home/tom/Code/nuring/src/CalibrationClass.cpp",
-  "output": "CMakeFiles/NURingIntegratedController.dir/src/CalibrationClass.cpp.o"
-},
-{
-  "directory": "/home/tom/Code/nuring/build",
   "command": "/usr/bin/g++ -I/home/tom/Code/nuring/include -isystem /usr/local/include/opencv4 -O3 -DNDEBUG -std=c++17 -o CMakeFiles/NURingIntegratedController.dir/src/CaptureClass.cpp.o -c /home/tom/Code/nuring/src/CaptureClass.cpp",
   "file": "/home/tom/Code/nuring/src/CaptureClass.cpp",
   "output": "CMakeFiles/NURingIntegratedController.dir/src/CaptureClass.cpp.o"

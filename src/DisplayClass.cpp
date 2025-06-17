@@ -51,10 +51,10 @@ void DisplayClass::Update() {
 	/** Draw GUI elements **/
 
 	// Draw detector crosshairs, changing colors based on if the target is present
-	cv::circle( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, CONFIG_DET_RADIUS, ( shared->Telemetry.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
-	cv::circle( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, shared->Controller.integrationRadius, ( shared->Telemetry.isTargetFound ? CONFIG_colYelDk : CONFIG_colRedDk ), 1 );
-	cv::line( shared->Display.matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_HEIGHT ), ( shared->Telemetry.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
-	cv::line( shared->Display.matFrameOverlay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_WIDTH, CONFIG_CAM_PRINCIPAL_Y ), ( shared->Telemetry.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
+	cv::circle( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, CONFIG_DET_RADIUS, ( shared->Target.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
+	cv::circle( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, shared->Controller.integrationRadius, ( shared->Target.isTargetFound ? CONFIG_colYelDk : CONFIG_colRedDk ), 1 );
+	cv::line( shared->Display.matFrameOverlay, cv::Point2i( CONFIG_CAM_PRINCIPAL_X, 0 ), cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_HEIGHT ), ( shared->Target.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
+	cv::line( shared->Display.matFrameOverlay, cv::Point2i( 0, CONFIG_CAM_PRINCIPAL_Y ), cv::Point2i( CONFIG_CAM_WIDTH, CONFIG_CAM_PRINCIPAL_Y ), ( shared->Target.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
 
 	// Draw motor axis
 	cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS35 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN35 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
@@ -62,18 +62,29 @@ void DisplayClass::Update() {
 	cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_PRINCIPAL_X + COS270 * CONFIG_DET_RADIUS, CONFIG_CAM_PRINCIPAL_Y - SIN270 * CONFIG_DET_RADIUS ), CONFIG_colYelMd, 1 );
 
 	// Draw information for target marker if present
-	if ( shared->Telemetry.isTargetFound ) {
+	if ( shared->Target.isTargetFound ) {
 
 		//Draw vector to center of target
-		cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, shared->Telemetry.screenPositionPX, CONFIG_colCyaMd, 2 );
+		cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, shared->Target.screenPositionPX, CONFIG_colCyaMd, 2 );
 
 		// Draw border and axis elements of target marker
-		cv::polylines( shared->Display.matFrameOverlay, shared->Telemetry.cornersPX, true, CONFIG_colGreMd, 2 );
+		cv::polylines( shared->Display.matFrameOverlay, shared->Target.cornersPX, true, CONFIG_colGreMd, 2 );
 		// cv::drawFrameAxes( shared->matFrameUndistorted, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, shared->targetMarkerRotationVector, shared->targetMarkerTranslationVector, CONFIG_LARGE_MARKER_WIDTH, 15 );
 
 		// Draw velocity
-		cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_CENTER.x - shared->Telemetry.velocityFilteredNewMM.x * MM2PX / 2.0f, CONFIG_CAM_CENTER.y + shared->Telemetry.velocityFilteredNewMM.y * MM2PX / 2.0f ), CONFIG_colMagLt, 2 );
+		cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_CENTER.x - shared->Target.velocityFilteredNewMM.x * MM2PX / 2.0f, CONFIG_CAM_CENTER.y + shared->Target.velocityFilteredNewMM.y * MM2PX / 2.0f ), CONFIG_colMagLt, 2 );
 	}
+
+	// Draw information for target marker if present
+	if ( shared->Ring.isRingFound ) {
+
+		//Draw vector to center of target
+		cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, shared->Ring.ringScreenPositionPX, CONFIG_colCyaMd, 2 );
+
+		// Draw border and axis elements of target marker
+		cv::polylines( shared->Display.matFrameOverlay, shared->Ring.ringCornersPX, true, CONFIG_colGreLt, 2 );
+	}
+
 
 
 	// Draw calibrated marker
@@ -194,7 +205,7 @@ void DisplayClass::AddText() {
 	// Telemetry
 	// Position
 	DrawCell( "TELEMETRY", "A1", 8, 1, fontTitle, CONFIG_colWhite, CONFIG_colGraDk, true );
-	DrawCell( std::to_string( shared->Telemetry.activeID ), "A2", 2, 2, fontBody * 3, CONFIG_colWhite, ( shared->Telemetry.isTargetFound ? CONFIG_colGreBk : CONFIG_colBlack ), true );
+	DrawCell( std::to_string( shared->Target.activeID ), "A2", 2, 2, fontBody * 3, CONFIG_colWhite, ( shared->Target.isTargetFound ? CONFIG_colGreBk : CONFIG_colBlack ), true );
 	DrawCell( "Position", "C2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[mm]", "C3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "x", "A4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -202,27 +213,27 @@ void DisplayClass::AddText() {
 	DrawCell( "z", "A6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "Rxy", "A7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "Rxyz", "A8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->Telemetry.positionFilteredNewMM.x ) ), "C4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Telemetry.positionFilteredNewMM.y ) ), "C5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Telemetry.positionFilteredNewMM.z ) ), "C6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->GetNorm2D( cv::Point2f( shared->Telemetry.positionFilteredNewMM.x, shared->Telemetry.positionFilteredNewMM.y ) ) ) ), "C7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->GetNorm3D( shared->Telemetry.positionFilteredNewMM ) ) ), "C8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->Target.positionFilteredNewMM.x ) ), "C4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->Target.positionFilteredNewMM.y ) ), "C5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->Target.positionFilteredNewMM.z ) ), "C6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->GetNorm2D( cv::Point2f( shared->Target.positionFilteredNewMM.x, shared->Target.positionFilteredNewMM.y ) ) ) ), "C7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->GetNorm3D( shared->Target.positionFilteredNewMM ) ) ), "C8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Velocity
 	DrawCell( "Velocity", "E2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[mm/s]", "E3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( std::to_string( int( shared->Telemetry.velocityFilteredNewMM.x ) ), "E4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Telemetry.velocityFilteredNewMM.y ) ), "E5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->Telemetry.velocityFilteredNewMM.z ) ), "E6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->GetNorm2D( cv::Point2f( shared->Telemetry.velocityFilteredNewMM.x, shared->Telemetry.velocityFilteredNewMM.y ) ) ) ), "E7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( std::to_string( int( shared->GetNorm3D( shared->Telemetry.velocityFilteredNewMM ) ) ), "E8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->Target.velocityFilteredNewMM.x ) ), "E4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->Target.velocityFilteredNewMM.y ) ), "E5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->Target.velocityFilteredNewMM.z ) ), "E6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->GetNorm2D( cv::Point2f( shared->Target.velocityFilteredNewMM.x, shared->Target.velocityFilteredNewMM.y ) ) ) ), "E7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( std::to_string( int( shared->GetNorm3D( shared->Target.velocityFilteredNewMM ) ) ), "E8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Integrated Error
 	DrawCell( "Integr.", "G2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[mm]", "G3", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Telemetry.positionIntegratedMM.x, 1, 0 ), "G4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->Telemetry.positionIntegratedMM.y, 1, 0 ), "G5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->Telemetry.positionIntegratedMM.z, 1, 0 ), "G6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Target.positionIntegratedMM.x, 1, 0 ), "G4", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Target.positionIntegratedMM.y, 1, 0 ), "G5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Target.positionIntegratedMM.z, 1, 0 ), "G6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "xx", "G7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "xx", "G8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
@@ -439,7 +450,7 @@ void DisplayClass::AddText() {
 	DrawCell( "User ID", "AU2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( shared->Task.userID ), "AW2", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "Time", "AO3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Task.runningTime, 2, 3 ), "AQ3", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Task.elapsedTaskTime, 2, 3 ), "AQ3", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	DrawCell( "Touchscreen", "AO8", 4, 1, fontHeader, CONFIG_colWhite, shared->Touchscreen.isTouched ? CONFIG_colGreBk : CONFIG_colGraBk, true );
 	DrawCell( "x", "AS8", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -735,8 +746,8 @@ void DisplayClass::UpdateVisualizer() {
 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), ProjectIsometric( cv::Point3i( 1000, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
 
 	// Calculate camera + marker positions
-	cv::Point3i p3D		= cv::Point3i( shared->Telemetry.positionFilteredNewMM.x, shared->Telemetry.positionFilteredNewMM.y, shared->Telemetry.positionFilteredNewMM.z );
-	cv::Point3i p3DInv	= cv::Point3i( shared->Telemetry.positionFilteredNewMM.z, -shared->Telemetry.positionFilteredNewMM.y, shared->Telemetry.positionFilteredNewMM.x );
+	cv::Point3i p3D		= cv::Point3i( shared->Target.positionFilteredNewMM.x, shared->Target.positionFilteredNewMM.y, shared->Target.positionFilteredNewMM.z );
+	cv::Point3i p3DInv	= cv::Point3i( shared->Target.positionFilteredNewMM.z, -shared->Target.positionFilteredNewMM.y, shared->Target.positionFilteredNewMM.x );
 	int			ptSizeX = int( float( ( 1000.0 - ( p3D.x + vizLimXY ) ) / 1000.0 ) * 10.0 );
 	int			ptSizeY = int( float( ( 1000.0 - ( -1 * p3D.y + vizLimXY ) ) / 1000.0 ) * 10.0 );
 	int			ptSizeZ = int( float( ( 1000.0 - p3D.z ) / 1000.0 ) * 10.0 );
@@ -752,7 +763,7 @@ void DisplayClass::UpdateVisualizer() {
 
 
 	// Create color gradient
-	float zClamped = std::clamp( shared->Telemetry.positionFilteredNewMM.z, 0.0f, 1000.0f );
+	float zClamped = std::clamp( shared->Target.positionFilteredNewMM.z, 0.0f, 1000.0f );
 	// float intensity = 128.0f * ( zClamped / 1000.0f );
 
 	// Add current point to trail
@@ -853,69 +864,69 @@ cv::Point2i DisplayClass::GetForwardDirectionFromPose( const cv::Vec3d rvec, con
 
 
 
-void DisplayClass::ShowAngle() {
+// void DisplayClass::ShowAngle() {
 
-	// Create window
-	cv::namedWindow( winAngle, cv::WINDOW_AUTOSIZE );
-	cv::moveWindow( winAngle, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_VIZ_WIDTH - 6 - CONFIG_DIS_KEY_WIDTH, 0 );
-	cv::imshow( winAngle, matAngles );
-}
-
-
-void DisplayClass::UpdateAngle() {
-
-	matAngles = CONFIG_colWhite;
-
-	// Centerpoint
-	cv::Point2i midPt = cv::Point2i( CONFIG_DIS_ANGLE_WIDTH / 2, CONFIG_DIS_ANGLE_HEIGHT / 2 + 200 );
-
-	// Draw middle line
-	cv::line( matAngles, cv::Point2i( 0, midPt.y ), cv::Point2i( CONFIG_DIS_ANGLE_WIDTH, midPt.y ), CONFIG_colGraLt, 2 );
-	// Draw circle
-	cv::ellipse( matAngles, midPt, cv::Size( 400, 400 ), 0, 180, 360, CONFIG_colGraLt, 2 );
-
-	// Radius
-	int radius = 400;
-
-	// Target line
-	cv::Point2i endPtDesired( int( cos( ( shared->angleDesired + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleDesired + 270 ) * DEG2RAD ) * radius ) );
-	cv::line( matAngles, midPt, midPt + endPtDesired, CONFIG_colGreWt, 10 );
-
-	// Velocity Line
-	// cv::Point2i endPtVel( int( cos( ( shared->angleFiltered + shared->angleVelocity + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleFiltered + shared->angleVelocity + 270 ) * DEG2RAD ) * radius ) );
-	cv::Point2i endPtVel( int( shared->Telemetry.velocityFilteredNewMM.x * MM2PX ), int( shared->Telemetry.velocityFilteredNewMM.x * MM2PX ) );
-	cv::line( matAngles, midPt, midPt + endPtVel, CONFIG_colBluWt, 2 );
+// 	// Create window
+// 	cv::namedWindow( winAngle, cv::WINDOW_AUTOSIZE );
+// 	cv::moveWindow( winAngle, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_VIZ_WIDTH - 6 - CONFIG_DIS_KEY_WIDTH, 0 );
+// 	cv::imshow( winAngle, matAngles );
+// }
 
 
+// void DisplayClass::UpdateAngle() {
 
-	// Measured angle
-	cv::Point2i endPt( int( cos( ( shared->angleFiltered + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleFiltered + 270 ) * DEG2RAD ) * radius ) );
-	cv::line( matAngles, midPt, midPt + endPt, CONFIG_colBluLt, 3 );
+// 	matAngles = CONFIG_colWhite;
 
-	// Encoder center
-	cv::circle( matAngles, midPt, 10, CONFIG_colGraDk, -1 );
+// 	// Centerpoint
+// 	cv::Point2i midPt = cv::Point2i( CONFIG_DIS_ANGLE_WIDTH / 2, CONFIG_DIS_ANGLE_HEIGHT / 2 + 200 );
 
-	// Text
-	cv::putText( matAngles, "Desired [deg]: ", cv::Point2i( 20, 40 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
-	cv::putText( matAngles, shared->FormatDecimal( shared->angleDesired, 2, 2 ), cv::Point2i( 300, 40 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
-	cv::putText( matAngles, "Measured [deg]: ", cv::Point2i( 20, 80 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
-	cv::putText( matAngles, shared->FormatDecimal( shared->angleFiltered, 2, 2 ), cv::Point2i( 300, 80 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
-	cv::putText( matAngles, "Error [deg]: ", cv::Point2i( 20, 120 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
-	cv::putText( matAngles, shared->FormatDecimal( shared->angleFiltered - shared->angleDesired, 2, 2 ), cv::Point2i( 300, 120 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+// 	// Draw middle line
+// 	cv::line( matAngles, cv::Point2i( 0, midPt.y ), cv::Point2i( CONFIG_DIS_ANGLE_WIDTH, midPt.y ), CONFIG_colGraLt, 2 );
+// 	// Draw circle
+// 	cv::ellipse( matAngles, midPt, cv::Size( 400, 400 ), 0, 180, 360, CONFIG_colGraLt, 2 );
 
-	if ( shared->Touchscreen.isTouched == 1 ) {
+// 	// Radius
+// 	int radius = 400;
 
-		// Save image
-		if ( shared->Logging.isLoggingEnabled ) {
-			std::string imageFilename	 = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
-			shared->Display.statusString = "Saving file " + imageFilename;
-			cv::imwrite( imageFilename, matAngles );
-			std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
-		}
-	}
+// 	// Target line
+// 	cv::Point2i endPtDesired( int( cos( ( shared->angleDesired + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleDesired + 270 ) * DEG2RAD ) * radius ) );
+// 	cv::line( matAngles, midPt, midPt + endPtDesired, CONFIG_colGreWt, 10 );
 
-	cv::imshow( winAngle, matAngles );
-}
+// 	// Velocity Line
+// 	// cv::Point2i endPtVel( int( cos( ( shared->angleFiltered + shared->angleVelocity + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleFiltered + shared->angleVelocity + 270 ) * DEG2RAD ) * radius ) );
+// 	cv::Point2i endPtVel( int( shared->Telemetry.velocityFilteredNewMM.x * MM2PX ), int( shared->Telemetry.velocityFilteredNewMM.x * MM2PX ) );
+// 	cv::line( matAngles, midPt, midPt + endPtVel, CONFIG_colBluWt, 2 );
+
+
+
+// 	// Measured angle
+// 	cv::Point2i endPt( int( cos( ( shared->angleFiltered + 90 ) * DEG2RAD ) * radius ), int( sin( ( shared->angleFiltered + 270 ) * DEG2RAD ) * radius ) );
+// 	cv::line( matAngles, midPt, midPt + endPt, CONFIG_colBluLt, 3 );
+
+// 	// Encoder center
+// 	cv::circle( matAngles, midPt, 10, CONFIG_colGraDk, -1 );
+
+// 	// Text
+// 	cv::putText( matAngles, "Desired [deg]: ", cv::Point2i( 20, 40 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+// 	cv::putText( matAngles, shared->FormatDecimal( shared->angleDesired, 2, 2 ), cv::Point2i( 300, 40 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+// 	cv::putText( matAngles, "Measured [deg]: ", cv::Point2i( 20, 80 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+// 	cv::putText( matAngles, shared->FormatDecimal( shared->angleFiltered, 2, 2 ), cv::Point2i( 300, 80 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+// 	cv::putText( matAngles, "Error [deg]: ", cv::Point2i( 20, 120 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+// 	cv::putText( matAngles, shared->FormatDecimal( shared->angleFiltered - shared->angleDesired, 2, 2 ), cv::Point2i( 300, 120 ), cv::FONT_HERSHEY_DUPLEX, 1.0, CONFIG_colBlack, 1 );
+
+// 	if ( shared->Touchscreen.isTouched == 1 ) {
+
+// 		// Save image
+// 		if ( shared->Logging.isEnabled ) {
+// 			std::string imageFilename	 = "/home/tom/Code/nuring/logging/" + shared->Logging.filename + ".png";
+// 			shared->Display.statusString = "Saving file " + imageFilename;
+// 			cv::imwrite( imageFilename, matAngles );
+// 			std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
+// 		}
+// 	}
+
+// 	cv::imshow( winAngle, matAngles );
+// }
 
 
 void DisplayClass::CheckOptions() {
@@ -938,24 +949,5 @@ void DisplayClass::CheckOptions() {
 			shared->vizLoaded = false;
 			cv::destroyWindow( winVisualizer );
 		}
-	}
-
-	// Launch angle if requested
-	if ( shared->angleEnabled ) {
-
-		// Check if window loaded
-		if ( shared->angleLoaded ) {
-			UpdateAngle();
-		} else {
-			ShowAngle();
-			shared->angleLoaded = true;
-		}
-	} else {
-
-		// // Check if window is loaded before destroying
-		// if ( shared->angleLoaded ) {
-		// 	cv::destroyWindow( winAngle );
-		// 	shared->angleLoaded = false;
-		// }
 	}
 }

@@ -4,6 +4,9 @@
 // Memory for shared data
 #include <memory>
 
+// Library for randomization
+#include <random>
+
 // Configuration
 #include <config.h>
 
@@ -29,27 +32,24 @@ public:
 	TasksClass( SystemDataManager& dataHandle, TimingClass& timerHandle, LoggingClass& loggerHandle );
 
 	void Calibration();
-	void CalibrationStart();
-	void CalibrationUpdate();
-	void CalibrationFinish();
+
 
 	void Fitts();
-	void FittsStart();
-	void FittsUpdate();
-	void FittsFinish();
+
 
 private:
 	// Data manager handle
 	SystemDataManager&			 dataHandle;
-	TimingClass&				 timer;
-	LoggingClass&				 logger;
+	TimingClass&				 Timer;
+	LoggingClass&				 Logger;
 	std::shared_ptr<ManagedData> shared;
 
 	// Private variables
-	std::string winCalibration = "Calibration Interface";
+	std::string winTaskBackground = "Calibration Interface";
 
 	// ArUco tag
 	cv::Mat matAruco08 = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-08-20mm-scaled.png" );
+	cv::Mat matAruco01 = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-01-20mm.png" );
 
 	// Target background
 	cv::Mat matTaskBackground = cv::Mat( CONFIG_TOUCHSCREEN_HEIGHT_PX, CONFIG_TOUCHSCREEN_WIDTH_PX, CV_8UC3 );
@@ -60,4 +60,30 @@ private:
 
 	bool isComplete	 = false;
 	bool isFinishing = false;
+
+	unsigned short minX = 0;
+	unsigned short maxX = 0;
+	unsigned short minY = 0;
+	unsigned short maxY = 0;
+
+
+	// Calibration
+	void CalibrationStart();
+	void CalibrationUpdate();
+	void CalibrationFinish();
+
+	// Fitts
+	void		FittsStart();
+	void		FittsUpdate();
+	void		FittsFinish();
+	void		FittsGeneratePosition();
+	void		FittsLoggingStart();
+	void		FittsLoggingUpdate();
+	cv::Point2i touchPosition  = cv::Point2i( 0, 0 );
+	cv::Point2i targetPosition = cv::Point2i( 0, 0 );
+	cv::Point2i errorPx		   = cv::Point2i( 0, 0 );
+	cv::Point2i errorMm		   = cv::Point2i( 0, 0 );
+
+	// General
+	void InitializeInterface( taskEnum task );
 };

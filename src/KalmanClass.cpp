@@ -66,8 +66,8 @@ void KalmanClass::Initialize( const cv::Point3f& initialPos, float tInitial ) {
 
 
 	// Update flag
-	isInitialized					= true;
-	shared->Telemetry.isTargetReset = false;
+	isInitialized				 = true;
+	shared->Target.isTargetReset = false;
 }
 
 
@@ -81,13 +81,13 @@ void KalmanClass::Initialize( const cv::Point3f& initialPos, float tInitial ) {
 void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 
 
-	if ( shared->Telemetry.isTargetReset ) {
+	if ( shared->Target.isTargetReset ) {
 
 		// shared->timingTimestamp = 0.0f;
-		tCurrent						= 0.0f;
-		tPrevious						= 0.0f;
-		shared->Telemetry.isTargetReset = false;
-		Initialize( shared->Telemetry.positionUnfilteredMM, shared->Timing.elapsedRunningTime );
+		tCurrent					 = 0.0f;
+		tPrevious					 = 0.0f;
+		shared->Target.isTargetReset = false;
+		Initialize( shared->Target.positionUnfilteredMM, shared->Timing.elapsedRunningTime );
 		std::cout << "KalmanClass: Reset\n";
 		return;
 	}

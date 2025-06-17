@@ -76,7 +76,7 @@ void FittsClass::UpdateAngle() {
 void FittsClass::EndAngleTest() {
 
 	// End the task timer
-	timer.TaskTimerEnd();
+	timer.TaskTimerStop();
 
 	// Update console
 	shared->Display.statusString = "FittsClass: Angle test complete.";
@@ -97,7 +97,7 @@ void FittsClass::EndAngleTest() {
 	shared->Task.name	   = "";
 	shared->Task.isRunning = false;
 	// shared->Task.isComplete					 = true;
-	shared->Logging.isLoggingActivelyRunning = false;
+	shared->Logging.isRunning = false;
 }
 
 
@@ -190,7 +190,7 @@ void FittsClass::GenerateRandomY() {
 
 void FittsClass::GenerateRandomXY() {
 
-	shared->Telemetry.isTargetFound = false;
+	shared->Target.isTargetFound = false;
 	// Calculate marker boundaries
 	unsigned short minX = 0 + CONFIG_TOUCHSCREEN_EXCLUSION_ZONE;
 	unsigned short maxX = CONFIG_TOUCHSCREEN_WIDTH_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 72;
@@ -211,7 +211,7 @@ void FittsClass::GenerateFixedXY() {
 	unsigned short minY = 0 + 72;
 	unsigned short maxY = CONFIG_TOUCHSCREEN_HEIGHT_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 93;
 
-	shared->fittsMarkerPosition = shared->Telemetry.screenPositionPX;
+	shared->fittsMarkerPosition = shared->Target.screenPositionPX;
 
 
 	// shared->fittsMarkerPosition.x = minX + ( rand() % ( maxX - minX + 1 ) ) - matAruco01.cols / 2;
@@ -310,7 +310,7 @@ void FittsClass::GenerateTestVelocity() {
 	shared->fittsMarkerPosition.x = fittsPosition.x;
 	shared->fittsMarkerPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows );
 	// std::cout << shared->timingTimestamp << "," << fittsPosition.x * PX2MM << "," << shared->targetMarkerPosition3dRaw.x << "," << shared->targetMarkerPosition3dNew.x << "\n";
-	std::cout << "t:" << shared->Timing.elapsedRunningTime << " \t v:" << shared->Telemetry.velocityFilteredNewMM.x << "\n";
+	std::cout << "t:" << shared->Timing.elapsedRunningTime << " \t v:" << shared->Target.velocityFilteredNewMM.x << "\n";
 
 
 	// Clear the screen
@@ -327,7 +327,7 @@ void FittsClass::GenerateTestVelocity() {
 void FittsClass::EndTest() {
 
 	// End the task timer
-	timer.TaskTimerEnd();
+	timer.TaskTimerStop();
 
 	// Update console
 	shared->Display.statusString = "FittsClass: Test complete.";
@@ -375,19 +375,12 @@ void FittsClass::EndTest() {
 	cv::imshow( "Fitts Testing Interface", matBackground );
 
 
-	// Save image
-	if ( shared->Logging.isLoggingEnabled ) {
-		std::string imageFilename	 = "/home/tom/Code/nuring/logging/" + shared->loggingFilename + ".png";
-		shared->Display.statusString = "Saving file " + imageFilename;
-		cv::imwrite( imageFilename, matBackground );
-		std::cout << "FittsClass:  Image saved at " << imageFilename << "\n";
-	}
 
 	// Update and remove task
 	shared->Task.name	   = "";
 	shared->Task.isRunning = false;
 	// shared->Task.isComplete					 = true;
-	shared->Logging.isLoggingActivelyRunning = false;
+	shared->Logging.isRunning = false;
 }
 
 

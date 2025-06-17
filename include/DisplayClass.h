@@ -35,8 +35,6 @@ public:
 	void ShowVisualizer();
 	void UpdateVisualizer();
 	void ClearVisualizer();
-	void ShowAngle();
-	void UpdateAngle();
 	void CheckOptions();
 
 

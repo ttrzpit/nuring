@@ -167,8 +167,35 @@ struct KalmanFilterStruct {
 };
 
 struct LoggingStruct {
-	bool isLoggingActivelyRunning = false;	  // Is logging actively running
-	bool isLoggingEnabled		  = false;	  // Is logging enabled
+
+	// Flags
+	bool isRunning = false;	   // Is logging actively running
+	bool isEnabled = false;	   // Is logging enabled
+
+	// Logging variables
+	std::string filenameTxt = "NULL";
+	std::string filenamePng = "NULL";
+	std::string header1		= "Heading1";
+	std::string header2		= "Heading2";
+	std::string header3		= "Heading3";
+	std::string header4		= "Heading4";
+	std::string header5		= "Heading5";
+	std::string header6		= "Heading5";
+	std::string header7		= "Heading5";
+	std::string header8		= "Heading5";
+	std::string header9		= "Heading5";
+	std::string header10	= "Heading5";
+	std::string variable1	= "0";
+	std::string variable2	= "0";
+	std::string variable3	= "0";
+	std::string variable4	= "0";
+	std::string variable5	= "0";
+	std::string variable6	= "0";
+	std::string variable7	= "0";
+	std::string variable8	= "0";
+	std::string variable9	= "0";
+	std::string variable10	= "0";
+	std::string dataAndTime = "NULL";
 };
 
 
@@ -177,6 +204,7 @@ struct SystemStruct {
 	// Flags
 	bool isMainRunning	= true;		// Global flag to shut-down safely
 	bool isShuttingDown = false;	// Trigger safe shutdown
+	bool useRing		= true;
 
 	// State enum
 	stateEnum state = stateEnum::IDLE;
@@ -200,15 +228,16 @@ struct SerialStruct {
 struct TaskStruct {
 	taskEnum	state			 = taskEnum::IDLE;
 	bool		isRunning		 = false;	 // Is the task running
-	float		runningTime		 = 0.0f;	 // Task running time
+	float		elapsedTaskTime	 = 0.0f;	 // Task running time
 	int			userID			 = 000;		 // Participant ID
 	int			repetitionNumber = 0;		 // Task rep number
 	char		command			 = 0;		 // Command
 	std::string name			 = "IDLE";
+	cv::Point2i targetPosition	 = cv::Point2i( 0, 0 );
 };
 
 
-struct TelemetryStruct {
+struct TargetTelemetryStruct {
 	int						 activeID			   = 1;	   // ID of target currently being tracked
 	bool					 isTargetReset		   = false;
 	bool					 isTargetFound		   = false;
@@ -220,6 +249,22 @@ struct TelemetryStruct {
 	cv::Point3f				 velocityFilteredOldMM = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] New 3D filtered position
 	std::vector<cv::Point2i> cornersPX			   = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	// Target corners in pixel space
 	cv::Point3f				 positionIntegratedMM  = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	cv::Point3f				 offsetMm			   = cv::Point3f( 0, -CONFIG_TARGET_OFFSET_Y_MM, 0 );
+};
+
+struct RingTelemetryStruct {
+
+	// Ring and finger
+	bool					 isRingFound		  = false;
+	cv::Point3f				 ringPositionMm		  = cv::Point3i( 0, 0, 0 );
+	cv::Point3f				 fingerPositionMm	  = cv::Point3i( 0, 0, 0 );
+	cv::Point2i				 ringScreenPositionPX = cv::Point2i( 0, 0 );																	   // [px] Position of target in screen space
+	std::vector<cv::Point2i> ringCornersPX		  = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	   // Target corners in pixel space
+
+	// Offsets
+
+	cv::Point3f fingerOffsetMm = cv::Point3f( 0, 20, -40 );
+	cv::Vec3d	ringRotationVector, ringTranslationVector;
 };
 
 
@@ -227,7 +272,6 @@ struct TimingStruct {
 
 	short measuredFrequency	 = 45;		// Default timing frequency
 	float elapsedRunningTime = 0.0f;	// Elapsed time in seconds
-	float taskTimer			 = 0.0f;	// Elapsed time for current task
 	float timestepDT		 = 0.0f;
 };
 
@@ -248,38 +292,25 @@ struct ManagedData {
 
 
 	// Structs
-	AmplifierStruct	   Amplifier;
-	ArUcoStruct		   Aruco;
-	CalibrationStruct  Calibration;
-	CaptureStruct	   Capture;
-	ControllerStruct   Controller;
-	DisplayStruct	   Display;
-	InputStruct		   Input;
-	KalmanFilterStruct KalmanFilter;
-	LoggingStruct	   Logging;
-	SystemStruct	   System;
-	SerialStruct	   Serial;
-	TelemetryStruct	   Telemetry;
-	TaskStruct		   Task;
-	TimingStruct	   Timing;
-	TouchscreenStruct  Touchscreen;
-	VibrationStruct	   Vibration;
+	AmplifierStruct		  Amplifier;
+	ArUcoStruct			  Aruco;
+	CalibrationStruct	  Calibration;	  // Logging variables
+	CaptureStruct		  Capture;
+	ControllerStruct	  Controller;
+	DisplayStruct		  Display;
+	InputStruct			  Input;
+	KalmanFilterStruct	  KalmanFilter;
+	LoggingStruct		  Logging;
+	RingTelemetryStruct	  Ring;
+	SystemStruct		  System;
+	SerialStruct		  Serial;
+	TargetTelemetryStruct Target;
+	TaskStruct			  Task;
+	TimingStruct		  Timing;
+	TouchscreenStruct	  Touchscreen;
+	VibrationStruct		  Vibration;
 
 
-
-	// Logging variables
-	std::string loggingFilename	 = "NULL";
-	std::string loggingHeader1	 = "Heading1";
-	std::string loggingHeader2	 = "Heading2";
-	std::string loggingHeader3	 = "Heading3";
-	std::string loggingHeader4	 = "Heading4";
-	std::string loggingHeader5	 = "Heading5";
-	std::string loggingVariable1 = "0";
-	std::string loggingVariable2 = "0";
-	std::string loggingVariable3 = "0";
-	std::string loggingVariable4 = "0";
-	std::string loggingVariable5 = "0";
-	std::string loggingTimestamp = "";
 
 	// Task variables
 	cv::Point3i fittsErrorPx		= cv::Point3i( 0, 0, 0 );

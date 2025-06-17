@@ -25,11 +25,16 @@ public:
 
 	// Public functions
 	void StartTimer();
-	void UpdateTimer();
-	void TaskTimerStart();
-	void TaskTimerEnd();
-	void GetTimestamp();
-	void UpdateTaskTime();
+	void Update();
+
+	void		UpdateFullDateAndTime();
+	void		UpdateTaskTime();
+	std::string GetFullDateAndTime( bool echo );
+
+	// Task timers
+	void  TaskTimerStart();
+	void  TaskTimerStop();
+	float TaskTimerGetElapsedSeconds();
 
 
 

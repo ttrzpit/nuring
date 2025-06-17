@@ -162,33 +162,33 @@ void InputClass::K_Exit() {
 }
 
 void InputClass::K_SetActive1() {
-	shared->Telemetry.activeID	 = 1;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Telemetry.activeID;
+	shared->Target.activeID		 = 1;
+	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_SetActive2() {
-	shared->Telemetry.activeID	 = 2;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Telemetry.activeID;
+	shared->Target.activeID		 = 2;
+	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_SetActive3() {
-	shared->Telemetry.activeID	 = 3;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Telemetry.activeID;
+	shared->Target.activeID		 = 3;
+	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_SetActive4() {
-	shared->Telemetry.activeID	 = 4;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Telemetry.activeID;
+	shared->Target.activeID		 = 4;
+	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_SetActive5() {
-	shared->Telemetry.activeID	 = 5;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Telemetry.activeID;
+	shared->Target.activeID		 = 5;
+	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_SetActiveNone() {
-	shared->Telemetry.activeID	 = 0;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Telemetry.activeID;
+	shared->Target.activeID		 = 0;
+	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_AmplifierToggle() {
@@ -202,7 +202,7 @@ void InputClass::K_AmplifierToggle() {
 	}
 
 	if ( shared->Amplifier.isAmplifierActive ) {
-		shared->Telemetry.isTargetReset	  = true;
+		shared->Target.isTargetReset	  = true;
 		shared->Controller.isRampingUp	  = true;
 		shared->Controller.rampPercentage = 0.0f;
 		shared->Controller.rampStartTime  = shared->Timing.elapsedRunningTime;
@@ -466,7 +466,7 @@ void InputClass::K_Increment() {
 		case selectGainTargetEnum::TORQUE: {
 
 			// Deselect active marker
-			shared->Telemetry.activeID = 0;
+			shared->Target.activeID = 0;
 
 			// Pick direction
 			switch ( shared->Input.selectTorqueTarget ) {
@@ -475,7 +475,7 @@ void InputClass::K_Increment() {
 				case selectTorqueTargetEnum::ABD: {
 
 					// Increment virtual error
-					shared->Telemetry.positionFilteredNewMM.x -= increment;
+					shared->Target.positionFilteredNewMM.x -= increment;
 
 					if ( shared->Controller.commandedPercentageABC.y > shared->Controller.commandedPercentageLimit.y ) {
 						shared->Controller.commandedPercentageLimit.y = shared->Controller.commandedPercentageABC.y;
@@ -734,14 +734,13 @@ void InputClass::K_TaskCalibrationStart() {
 
 void InputClass::K_FittsStart() {
 	// Run fitts-law test
-	shared->Telemetry.isTargetReset = true;
-	shared->Controller.isRampingUp	= true;
-	shared->Touchscreen.isTouched	= 0;
-	shared->Task.isRunning			= false;
-	shared->Task.state				= taskEnum::FITTS;
+	shared->Target.activeID		   = 1;
+	shared->Target.isTargetReset   = true;
+	shared->Controller.isRampingUp = true;
+	shared->Touchscreen.isTouched  = 0;
+	shared->Task.isRunning		   = false;
+	shared->Task.state			   = taskEnum::FITTS;
 	shared->Task.repetitionNumber++;
-	// shared->TASK_RUNNING = true;
-	// shared->fittsTestStarted = false;
 	shared->Display.statusString = "InputClass: Starting fitts test.";
 }
 
@@ -749,8 +748,8 @@ void InputClass::K_FittsStart() {
 void InputClass::K_FittsStop() {
 
 	shared->Touchscreen.isTouched = 1;
-	shared->Task.state			  = taskEnum::IDLE;
-	shared->Display.statusString  = "InputClass: Ending fitts test.";
+	// shared->Task.state			  = taskEnum::IDLE;
+	shared->Display.statusString = "InputClass: Ending fitts test.";
 }
 
 
