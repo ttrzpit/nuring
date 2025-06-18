@@ -334,9 +334,9 @@ void DisplayClass::AddText() {
 	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentageABC.z * 100.0, 3, 1 ), "AG5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "Max", "Z6", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[%]", "AB6", 1, 1, fontHeader * 0.6f, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentageLimit.x * 100.0f, 3, 1 ), "AC6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentageLimit.y * 100.0f, 3, 1 ), "AE6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentageLimit.z * 100.0f, 3, 1 ), "AG6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.x * 100.0f, 3, 1 ), "AC6", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectLimit == selectLimitEnum::AMP_A ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.y * 100.0f, 3, 1 ), "AE6", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectLimit == selectLimitEnum::AMP_B ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.z * 100.0f, 3, 1 ), "AG6", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectLimit == selectLimitEnum::AMP_C ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
 	DrawCell( "PWM", "Z7", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[DC]", "AB7", 1, 1, fontHeader * 0.6f, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( shared->Controller.commandedPwmABC.x ), "AC7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
@@ -376,9 +376,9 @@ void DisplayClass::AddText() {
 	cv::Point2i center( 1184, 1100 + 117 );
 	float		motorR = 80.0f;
 
-	limA = shared->Controller.commandedPercentageLimit.x * motorR;
-	limB = shared->Controller.commandedPercentageLimit.y * motorR;
-	limC = shared->Controller.commandedPercentageLimit.z * motorR;
+	limA = shared->Amplifier.commandedLimits.x * motorR;
+	limB = shared->Amplifier.commandedLimits.y * motorR;
+	limC = shared->Amplifier.commandedLimits.z * motorR;
 
 
 	// Motor limits

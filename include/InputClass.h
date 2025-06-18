@@ -80,4 +80,7 @@ private:
 	void K_FittsStart();
 	void K_FittsStop();
 	void K_TaskCalibrationStart();
+	void K_LimitsSelectA();
+	void K_LimitsSelectB();
+	void K_LimitsSelectC();
 };

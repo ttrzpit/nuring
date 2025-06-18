@@ -268,14 +268,14 @@ void ControllerClass::MapToContributionABC( cv::Point3f terms ) {
 	// Update percentage and constrain to max depending on torque
 	if ( shared->Amplifier.isTensionOnly ) {
 
-		shared->Controller.commandedPercentageABC.x = std::clamp( shared->Controller.commandedTensionABC.x, 0.0f, shared->Controller.commandedPercentageLimit.x );
-		shared->Controller.commandedPercentageABC.y = std::clamp( shared->Controller.commandedTensionABC.y, 0.0f, shared->Controller.commandedPercentageLimit.y );
-		shared->Controller.commandedPercentageABC.z = std::clamp( shared->Controller.commandedTensionABC.z, 0.0f, shared->Controller.commandedPercentageLimit.z );
+		shared->Controller.commandedPercentageABC.x = std::clamp( shared->Controller.commandedTensionABC.x, 0.0f, shared->Amplifier.commandedLimits.x );
+		shared->Controller.commandedPercentageABC.y = std::clamp( shared->Controller.commandedTensionABC.y, 0.0f, shared->Amplifier.commandedLimits.y );
+		shared->Controller.commandedPercentageABC.z = std::clamp( shared->Controller.commandedTensionABC.z, 0.0f, shared->Amplifier.commandedLimits.z );
 	} else {
 
-		shared->Controller.commandedPercentageABC.x = std::clamp( ( contribution.x + shared->Controller.commandedTensionABC.x ), 0.0f, shared->Controller.commandedPercentageLimit.x );
-		shared->Controller.commandedPercentageABC.y = std::clamp( ( contribution.y + shared->Controller.commandedTensionABC.y ), 0.0f, shared->Controller.commandedPercentageLimit.y );
-		shared->Controller.commandedPercentageABC.z = std::clamp( ( contribution.z + shared->Controller.commandedTensionABC.z ), 0.0f, shared->Controller.commandedPercentageLimit.z );
+		shared->Controller.commandedPercentageABC.x = std::clamp( ( contribution.x + shared->Controller.commandedTensionABC.x ), 0.0f, shared->Amplifier.commandedLimits.x );
+		shared->Controller.commandedPercentageABC.y = std::clamp( ( contribution.y + shared->Controller.commandedTensionABC.y ), 0.0f, shared->Amplifier.commandedLimits.y );
+		shared->Controller.commandedPercentageABC.z = std::clamp( ( contribution.z + shared->Controller.commandedTensionABC.z ), 0.0f, shared->Amplifier.commandedLimits.z );
 	}
 
 

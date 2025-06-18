@@ -111,6 +111,9 @@ void InputClass::RegisterKeyBindings() {
 	keyBindings['f'] = [this]() { K_FittsStart(); };
 	keyBindings['g'] = [this]() { K_FittsStop(); };
 	keyBindings[196] = [this]() { K_TaskCalibrationStart(); };
+	keyBindings[185] = [this]() { K_LimitsSelectA(); };
+	keyBindings[183] = [this]() { K_LimitsSelectB(); };
+	keyBindings[178] = [this]() { K_LimitsSelectC(); };
 }
 
 
@@ -477,17 +480,63 @@ void InputClass::K_Increment() {
 					// Increment virtual error
 					shared->Target.positionFilteredNewMM.x -= increment;
 
-					if ( shared->Controller.commandedPercentageABC.y > shared->Controller.commandedPercentageLimit.y ) {
-						shared->Controller.commandedPercentageLimit.y = shared->Controller.commandedPercentageABC.y;
+					if ( shared->Controller.commandedPercentageABC.y > shared->Amplifier.commandedLimits.y ) {
+						shared->Amplifier.commandedLimits.y = shared->Controller.commandedPercentageABC.y;
 					}
 
-					if ( shared->Controller.commandedPercentageABC.z > shared->Controller.commandedPercentageLimit.z ) {
-						shared->Controller.commandedPercentageLimit.z = shared->Controller.commandedPercentageABC.z;
+					if ( shared->Controller.commandedPercentageABC.z > shared->Amplifier.commandedLimits.z ) {
+						shared->Amplifier.commandedLimits.z = shared->Controller.commandedPercentageABC.z;
 					}
 
 					break;
 				}
 			}
+		}
+
+		// Amplifier Limits
+		case selectGainTargetEnum::LIMITS: {
+
+			switch ( shared->Input.selectLimit ) {
+
+				// Amplifier A
+				case selectLimitEnum::AMP_A: {
+
+					// Only increment if under limit
+					if ( shared->Amplifier.commandedLimits.x < 0.99f ) {
+						shared->Amplifier.commandedLimits.x += 0.01f;
+						shared->Display.statusString = "InputClass: Motor A max power increased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
+					}
+
+					break;
+				}
+
+				// Amplifier B
+				case selectLimitEnum::AMP_B: {
+
+					// Only increment if under limit
+					if ( shared->Amplifier.commandedLimits.y < 0.99f ) {
+						shared->Amplifier.commandedLimits.y += 0.01f;
+						shared->Display.statusString = "InputClass: Motor B max power increased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.y, 2, 2 );
+					}
+
+					break;
+				}
+
+				// Amplifier C
+				case selectLimitEnum::AMP_C: {
+
+					// Only increment if under limit
+					if ( shared->Amplifier.commandedLimits.z < 0.99f ) {
+						shared->Amplifier.commandedLimits.z += 0.01f;
+						shared->Display.statusString = "InputClass: Motor C max power increased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.z, 2, 2 );
+					}
+
+					break;
+				}
+			}
+
+
+			break;
 		}
 
 		// None
@@ -661,6 +710,52 @@ void InputClass::K_Decrement() {
 		}
 
 
+
+		// Amplifier Limits
+		case selectGainTargetEnum::LIMITS: {
+
+			switch ( shared->Input.selectLimit ) {
+
+				// Amplifier A
+				case selectLimitEnum::AMP_A: {
+
+					// Only decrement if under limit
+					if ( shared->Amplifier.commandedLimits.x > 0.01f ) {
+						SafeDecrement( shared->Amplifier.commandedLimits.x, -0.01f );
+						shared->Display.statusString = "InputClass: Motor A max power decreased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
+					}
+
+					break;
+				}
+
+				// Amplifier B
+				case selectLimitEnum::AMP_B: {
+
+					// Only decrement if under limit
+					if ( shared->Amplifier.commandedLimits.y > 0.01f ) {
+						SafeDecrement( shared->Amplifier.commandedLimits.y, -0.01f );
+						shared->Display.statusString = "InputClass: Motor A max power decreased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
+					}
+
+					break;
+				}
+
+				// Amplifier C
+				case selectLimitEnum::AMP_C: {
+
+					// Only decrement if under limit
+					if ( shared->Amplifier.commandedLimits.z > 0.01f ) {
+						SafeDecrement( shared->Amplifier.commandedLimits.z, -0.01f );
+						shared->Display.statusString = "InputClass: Motor A max power decreased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
+					}
+
+					break;   
+				}
+			}
+		}
+
+
+
 		// None
 		case selectGainTargetEnum::NONE: {
 
@@ -750,6 +845,42 @@ void InputClass::K_FittsStop() {
 	shared->Touchscreen.isTouched = 1;
 	// shared->Task.state			  = taskEnum::IDLE;
 	shared->Display.statusString = "InputClass: Ending fitts test.";
+}
+
+
+
+/* ===================================================
+ *  ==================================================
+ * 
+ *   LL    IIIIII  MM     MM  IIIIII  TTTTTTT   SSSSS
+ *   LL      II    MMM   MMM    II      TT     SS
+ *   LL      II    MM MMM MM    II      TT     SS
+ *   LL      II    MM  M  MM    II      TT      SSSSS
+ *   LL      II    MM     MM    II      TT          SS
+ *   LL      II    MM     MM    II      TT          SS
+ *   LLLLL IIIIII  MM     MM  IIIIII    TT     SSSSSS
+ * 
+ *  ==================================================
+ *  ==================================================
+ */
+
+
+void InputClass::K_LimitsSelectA() {
+
+	shared->Input.selectLimit	   = ( shared->Input.selectLimit == selectLimitEnum::AMP_A ) ? selectLimitEnum::NONE : selectLimitEnum::AMP_A;
+	shared->Input.selectGainTarget = selectGainTargetEnum::LIMITS;
+}
+
+void InputClass::K_LimitsSelectB() {
+
+	shared->Input.selectLimit	   = ( shared->Input.selectLimit == selectLimitEnum::AMP_B ) ? selectLimitEnum::NONE : selectLimitEnum::AMP_B;
+	shared->Input.selectGainTarget = selectGainTargetEnum::LIMITS;
+}
+
+void InputClass::K_LimitsSelectC() {
+
+	shared->Input.selectLimit	   = ( shared->Input.selectLimit == selectLimitEnum::AMP_C ) ? selectLimitEnum::NONE : selectLimitEnum::AMP_C;
+	shared->Input.selectGainTarget = selectGainTargetEnum::LIMITS;
 }
 
 

@@ -24,10 +24,11 @@
 
 // Enum for system state
 enum class stateEnum { IDLE, DRIVING_PWM, MEASURING_LIMITS, ZERO_ENCODER };
-enum class selectGainTargetEnum { NONE, ABD, ADD, FLEX, EXT, AMPA, AMPB, AMPC, TORQUE };
+enum class selectGainTargetEnum { NONE, ABD, ADD, FLEX, EXT, AMPA, AMPB, AMPC, TORQUE, LIMITS };
 enum class selectGainEnum { NONE, KP, KI, KD };
 enum class selectTorqueTargetEnum { NONE, ABD, ADD, FLEX, EXT };
 enum class taskEnum { IDLE, CALIBRATE, FITTS };
+enum class selectLimitEnum { NONE, AMP_A, AMP_B, AMP_C };
 
 // Structure for 4-point vector
 struct Point4f {
@@ -86,6 +87,9 @@ struct AmplifierStruct {
 	float measuredPwmPercentA  = 0.0f;
 	float measuredPwmPercentB  = 0.0f;
 	float measuredPwmPercentC  = 0.0f;
+
+	// Limits
+	cv::Point3f commandedLimits = cv::Point3f( 0.10f, 0.10f, 0.10f );
 };
 
 struct ArUcoStruct {
@@ -123,23 +127,22 @@ struct ControllerStruct {
 	Point4f		gainKp;
 	Point4f		gainKi;
 	Point4f		gainKd;
-	cv::Point3f proportionalTerm		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined proportional term
-	cv::Point3f integralTerm			 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined integral
-	cv::Point3f derivativeTerm			 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined derivative term
-	cv::Point3f combinedPIDTerms		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined PID terms
-	cv::Point3f combinedPIDTermPrev		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Combined PID terms
-	cv::Point3i commandedPwmABC			 = cv::Point3i( 0, 0, 0 );			   // Commanded PWM output
-	cv::Point3i commandedPwmABCLast		 = cv::Point3i( 0, 0, 0 );			   // Commanded PWM output
-	cv::Point3f commandedPercentageABC	 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded percentage output
-	cv::Point3f commandedPercentageLimit = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Max percentage output
-	cv::Point3f commandedCurrentABC		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded current output
-	cv::Point3f commandedTensionABC		 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded tension
-	cv::Point3f torqueABC				 = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Commanded torque
-	float		rampPercentage			 = 0.00f;							   // Counter
-	float		rampStartTime			 = 0.0f;							   // [s]
-	float		rampDurationTime		 = 1.0f;							   // [s]
-	bool		isRampingUp				 = false;							   // Is the motor ramping up?
-	bool		isLimitSet				 = false;							   // Are the motor limits set?
+	cv::Point3f proportionalTerm	   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // Combined proportional term
+	cv::Point3f integralTerm		   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // Combined integral
+	cv::Point3f derivativeTerm		   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // Combined derivative term
+	cv::Point3f combinedPIDTerms	   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // Combined PID terms
+	cv::Point3f combinedPIDTermPrev	   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // Combined PID terms
+	cv::Point3i commandedPwmABC		   = cv::Point3i( 0, 0, 0 );			 // Commanded PWM output
+	cv::Point3i commandedPwmABCLast	   = cv::Point3i( 0, 0, 0 );			 // Commanded PWM output
+	cv::Point3f commandedPercentageABC = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // Commanded percentage output
+	cv::Point3f commandedCurrentABC	   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // Commanded current output
+	cv::Point3f commandedTensionABC	   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // Commanded tension
+	cv::Point3f torqueABC			   = cv::Point3f( 0.0f, 0.0f, 0.0f );	 // Commanded torque
+	float		rampPercentage		   = 0.00f;								 // Counter
+	float		rampStartTime		   = 0.0f;								 // [s]
+	float		rampDurationTime	   = 1.0f;								 // [s]
+	bool		isRampingUp			   = false;								 // Is the motor ramping up?
+	bool		isLimitSet			   = false;								 // Are the motor limits set?
 
 	int			integrationRadius	   = 100;
 	cv::Point3f percentageProportional = cv::Point3f( 0.0f, 0.0f, 0.0f );
@@ -160,6 +163,7 @@ struct InputStruct {
 	selectGainTargetEnum   selectGainTarget	  = selectGainTargetEnum::NONE;
 	selectGainEnum		   selectGain		  = selectGainEnum::NONE;
 	selectTorqueTargetEnum selectTorqueTarget = selectTorqueTargetEnum::NONE;
+	selectLimitEnum		   selectLimit		  = selectLimitEnum::NONE;
 };
 
 struct KalmanFilterStruct {

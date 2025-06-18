@@ -59,9 +59,9 @@ void PrintState();
 int main() {
 
 	// Testing
-	shared->Controller.commandedPercentageLimit = cv::Point3f( 1.0f, 1.0f, 1.0f );
-	shared->Controller.isLimitSet				= true;
-	shared->Calibration.isCalibrated			= false;
+	shared->Amplifier.commandedLimits = cv::Point3f( 0.4f, 0.4f, 0.4f );
+	shared->Controller.isLimitSet	  = true;
+	shared->Calibration.isCalibrated  = false;
 
 	// Settings
 	shared->Logging.isEnabled	 = true;
@@ -197,7 +197,7 @@ void SelectTask() {
 			 * 		z = random xy position
 			 * 		v = constant velocity
 			 */
-			shared->Task.command = 'c';
+			shared->Task.command = 'z';
 
 			// Update name and start
 			shared->Task.name = "FITTS";

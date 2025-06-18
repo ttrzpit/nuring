@@ -32,9 +32,8 @@ public:
 	TasksClass( SystemDataManager& dataHandle, TimingClass& timerHandle, LoggingClass& loggerHandle );
 
 	void Calibration();
-
-
 	void Fitts();
+	void Limits();
 
 
 private:
@@ -83,6 +82,11 @@ private:
 	cv::Point2i targetPosition = cv::Point2i( 0, 0 );
 	cv::Point2i errorPx		   = cv::Point2i( 0, 0 );
 	cv::Point2i errorMm		   = cv::Point2i( 0, 0 );
+
+	// Limits
+	void LimitsStart() ;
+	void LimitsUpdate() ;
+	void LimitsFinish() ;
 
 	// General
 	void InitializeInterface( taskEnum task );
