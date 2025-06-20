@@ -350,47 +350,51 @@ void PrintState() {
 
 	std::cout << "\t ";
 
-	// Gain motor target
-	if ( shared->Input.selectGainTarget == selectGainTargetEnum::NONE ) {
-		std::cout << "GainMotorTarget::NONE";
-	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::ABD ) {
-		std::cout << "GainMotorTarget::ABD";
-	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::ADD ) {
-		std::cout << "GainMotorTarget::ADD";
-	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::FLEX ) {
-		std::cout << "GainMotorTarget::FLEX";
-	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::EXT ) {
-		std::cout << "GainMotorTarget::EXT";
-	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPA ) {
-		std::cout << "GainMotorTarget::AMPA";
-	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPB ) {
-		std::cout << "GainMotorTarget::AMPB";
-	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPC ) {
-		std::cout << "GainMotorTarget::AMPC";
-	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::LIMITS ) {
-		std::cout << "GainMotorTarget::LIMITS";
-	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::TORQUE ) {
-		std::cout << "GainMotorTarget::TORQUE";
+	// Adjustment system selection
+	auto& system = shared->Input.selectedAdjustmentSystem;
+
+	if ( system == selectSystemEnum::NONE ) {
+		std::cout << "SelectSystem::NONE";
+	} else if ( system == selectSystemEnum::GAIN_PROPORTIONAL ) {
+		std::cout << "SelectSystem::GAIN_PROPORTIONAL";
+	} else if ( system == selectSystemEnum::GAIN_INTEGRAL ) {
+		std::cout << "SelectSystem::GAIN_INTEGRAL";
+	} else if ( system == selectSystemEnum::GAIN_DERIVATIVE ) {
+		std::cout << "SelectSystem::GAIN_DERIVATIVE";
+	} else if ( system == selectSystemEnum::AMP_LIMIT ) {
+		std::cout << "SelectSystem::AMP_LIMIT";
+	} else if ( system == selectSystemEnum::AMP_TENSION ) {
+		std::cout << "SelectSystem::AMP_TENSION";
 	} else {
-		std::cout << "GainMotorTarget::ERROR!";
+		std::cout << "SelectSystem::ERROR!";
 	}
 
 	std::cout << "\t ";
 
-	// Gain target
-	if ( shared->Input.selectGain == selectGainEnum::NONE ) {
-		std::cout << "SelectGain::NONE";
-	} else if ( shared->Input.selectGain == selectGainEnum::KP ) {
-		std::cout << "SelectGain::KP";
-	} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-		std::cout << "SelectGain::KI";
-	} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-		std::cout << "SelectGain::KD";
-	} else {
-		std::cout << "SelectGain::ERROR!";
-	}
+	// Adjustment subsystem selection
+	auto& subsystem = shared->Input.selectedAdjustmentSubsystem;
 
-	std::cout << "\t ";
+	if ( subsystem == selectSubsystemEnum::NONE ) {
+		std::cout << "SelectSubsystem::NONE";
+	} else if ( subsystem == selectSubsystemEnum::ABD ) {
+		std::cout << "SelectSubsystem::ABD";
+	} else if ( subsystem == selectSubsystemEnum::ADD ) {
+		std::cout << "SelectSubsystem::ADD";
+	} else if ( subsystem == selectSubsystemEnum::FLEX ) {
+		std::cout << "SelectSubsystem::FLEX";
+	} else if ( subsystem == selectSubsystemEnum::EXT ) {
+		std::cout << "SelectSubsystem::EXT";
+	} else if ( subsystem == selectSubsystemEnum::ALL ) {
+		std::cout << "SelectSubsystem::ALL";
+	} else if ( subsystem == selectSubsystemEnum::AMP_A ) {
+		std::cout << "SelectSubsystem::AMP_A";
+	} else if ( subsystem == selectSubsystemEnum::AMP_B ) {
+		std::cout << "SelectSubsystem::AMP_B";
+	} else if ( subsystem == selectSubsystemEnum::AMP_C ) {
+		std::cout << "SelectSubsystem::AMP_C";
+	} else
+
+		std::cout << "\t ";
 
 	// Torque target
 	if ( shared->Input.selectTorqueTarget == selectTorqueTargetEnum::NONE ) {

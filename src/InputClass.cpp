@@ -797,23 +797,44 @@ void InputClass::K_LimitsStart() {
 
 void InputClass::K_LimitsSelectA() {
 
-	shared->Input.selectLimit	   = ( shared->Input.selectLimit == selectLimitEnum::AMP_A ) ? selectLimitEnum::NONE : selectLimitEnum::AMP_A;
-	shared->Input.selectGainTarget = selectGainTargetEnum::LIMITS;
-	shared->Display.statusString   = "Input: Setting limits for Motor A.";
+	if ( shared->Input.selectedAdjustmentSystem != selectSystemEnum::AMP_TENSION ) {
+
+		shared->Input.selectedAdjustmentSystem	  = selectSystemEnum::AMP_TENSION;
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::AMP_A;
+	} else {
+		shared->Input.selectedAdjustmentSystem	  = selectSystemEnum::AMP_TENSION;
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::ALL;
+	}
+
+	shared->Display.statusString = "Input: Setting limits for Motor A.";
 }
 
 void InputClass::K_LimitsSelectB() {
 
-	shared->Input.selectLimit	   = ( shared->Input.selectLimit == selectLimitEnum::AMP_B ) ? selectLimitEnum::NONE : selectLimitEnum::AMP_B;
-	shared->Input.selectGainTarget = selectGainTargetEnum::LIMITS;
-	shared->Display.statusString   = "Input: Setting limits for Motor B.";
+	if ( shared->Input.selectedAdjustmentSystem != selectSystemEnum::AMP_TENSION ) {
+
+		shared->Input.selectedAdjustmentSystem	  = selectSystemEnum::AMP_TENSION;
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::AMP_B;
+	} else {
+		shared->Input.selectedAdjustmentSystem	  = selectSystemEnum::AMP_TENSION;
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::ALL;
+	}
+
+	shared->Display.statusString = "Input: Setting limits for Motor B.";
 }
 
 void InputClass::K_LimitsSelectC() {
 
-	shared->Input.selectLimit	   = ( shared->Input.selectLimit == selectLimitEnum::AMP_C ) ? selectLimitEnum::NONE : selectLimitEnum::AMP_C;
-	shared->Input.selectGainTarget = selectGainTargetEnum::LIMITS;
-	shared->Display.statusString   = "Input: Setting limits for Motor C.";
+	if ( shared->Input.selectedAdjustmentSystem != selectSystemEnum::AMP_TENSION ) {
+
+		shared->Input.selectedAdjustmentSystem	  = selectSystemEnum::AMP_TENSION;
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::AMP_C;
+	} else {
+		shared->Input.selectedAdjustmentSystem	  = selectSystemEnum::AMP_TENSION;
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::ALL;
+	}
+
+	shared->Display.statusString = "Input: Setting limits for Motor C.";
 }
 
 

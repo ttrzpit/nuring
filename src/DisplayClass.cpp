@@ -350,48 +350,67 @@ void DisplayClass::AddTextController() {
 
 
 	// Handler for gains
-	auto& in = shared->Input;
+	auto& system	= shared->Input.selectedAdjustmentSystem;
+	auto& subsystem = shared->Input.selectedAdjustmentSubsystem;
 
 	// Controller
 	DrawCell( "CONTROLLER", "I1", 17, 1, fontTitle, CONFIG_colWhite, CONFIG_colGraDk, true );
 	DrawCell( "Freq", "I2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( int( shared->Timing.measuredFrequency ) ), "I3", 2, 1, fontBody, CONFIG_colWhite, ( shared->Timing.measuredFrequency > 60 ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
-	DrawCell( "ABD", "I4", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::ABD ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( "ADD", "I5", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::ADD ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( "FLEX", "I6", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::FLEX ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( "EXT", "I7", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::EXT ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( "Kp", "K2", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGain == selectGainEnum::KP ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+
+	// Direction
+	DrawCell( "ABD", "I4", 2, 1, fontHeader, CONFIG_colWhite, ( subsystem == selectSubsystemEnum::ABD ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( "ADD", "I5", 2, 1, fontHeader, CONFIG_colWhite, ( subsystem == selectSubsystemEnum::ADD ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( "FLEX", "I6", 2, 1, fontHeader, CONFIG_colWhite, ( subsystem == selectSubsystemEnum::FLEX ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( "EXT", "I7", 2, 1, fontHeader, CONFIG_colWhite, ( subsystem == selectSubsystemEnum::EXT ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+
+	// Proportional
+	DrawCell( "Kp", "K2", 2, 1, fontHeader, CONFIG_colWhite, ( system == selectSystemEnum::GAIN_PROPORTIONAL ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
 	DrawCell( "[u]", "K3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.abd, 1, 1 ), "K4", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::ABD ) && ( in.selectGain == selectGainEnum::KP ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.add, 1, 1 ), "K5", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::ADD ) && ( in.selectGain == selectGainEnum::KP ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.flx, 1, 1 ), "K6", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::FLEX ) && ( in.selectGain == selectGainEnum::KP ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.ext, 1, 1 ), "K7", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::EXT ) && ( in.selectGain == selectGainEnum::KP ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( "Ki", "M2", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGain == selectGainEnum::KI ? CONFIG_colYelBk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.abd, 1, 1 ), "K4", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_PROPORTIONAL ) && ( subsystem == selectSubsystemEnum::ABD ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.add, 1, 1 ), "K5", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_PROPORTIONAL ) && ( subsystem == selectSubsystemEnum::ADD ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.flx, 1, 1 ), "K6", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_PROPORTIONAL ) && ( subsystem == selectSubsystemEnum::FLEX ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.ext, 1, 1 ), "K7", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_PROPORTIONAL ) && ( subsystem == selectSubsystemEnum::EXT ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+
+	// Integral
+	DrawCell( "Ki", "M2", 2, 1, fontHeader, CONFIG_colWhite, ( system == selectSystemEnum::GAIN_INTEGRAL ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
 	DrawCell( "[u]", "M3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.abd, 1, 1 ), "M4", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::ABD ) && ( in.selectGain == selectGainEnum::KI ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.add, 1, 1 ), "M5", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::ADD ) && ( in.selectGain == selectGainEnum::KI ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.flx, 1, 1 ), "M6", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::FLEX ) && ( in.selectGain == selectGainEnum::KI ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.ext, 1, 1 ), "M7", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::EXT ) && ( in.selectGain == selectGainEnum::KI ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( "Kd", "O2", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGain == selectGainEnum::KD ? CONFIG_colYelBk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.abd, 1, 1 ), "M4", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_INTEGRAL ) && ( subsystem == selectSubsystemEnum::ABD ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.add, 1, 1 ), "M5", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_INTEGRAL ) && ( subsystem == selectSubsystemEnum::ADD ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.flx, 1, 1 ), "M6", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_INTEGRAL ) && ( subsystem == selectSubsystemEnum::FLEX ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKi.ext, 1, 1 ), "M7", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_INTEGRAL ) && ( subsystem == selectSubsystemEnum::EXT ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+
+	// Derivative
+	DrawCell( "Kd", "O2", 2, 1, fontHeader, CONFIG_colWhite, ( system == selectSystemEnum::GAIN_DERIVATIVE ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
 	DrawCell( "[u]", "O3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.abd, 1, 2 ), "O4", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::ABD ) && ( in.selectGain == selectGainEnum::KD ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.add, 1, 2 ), "O5", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::ADD ) && ( in.selectGain == selectGainEnum::KD ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.flx, 1, 2 ), "O6", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::FLEX ) && ( in.selectGain == selectGainEnum::KD ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.ext, 1, 2 ), "O7", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::EXT ) && ( in.selectGain == selectGainEnum::KD ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.abd, 1, 2 ), "O4", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_DERIVATIVE ) && ( subsystem == selectSubsystemEnum::ABD ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.add, 1, 2 ), "O5", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_DERIVATIVE ) && ( subsystem == selectSubsystemEnum::ADD ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.flx, 1, 2 ), "O6", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_DERIVATIVE ) && ( subsystem == selectSubsystemEnum::FLEX ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.gainKd.ext, 1, 2 ), "O7", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::GAIN_DERIVATIVE ) && ( subsystem == selectSubsystemEnum::EXT ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+
+	// Term axis
 	DrawCell( "x", "Q4", 1, 2, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "y", "Q6", 1, 2, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+
+	// P Term
 	DrawCell( "Kp*E", "R2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[u]", "R3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.proportionalTerm.x, 1, 1 ), "R4", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.proportionalTerm.y, 1, 1 ), "R6", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// I Term
 	DrawCell( "Ki*IE", "T2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[u]", "T3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.integralTerm.x, 1, 1 ), "T4", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.integralTerm.y, 1, 1 ), "T6", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// D Term
 	DrawCell( "Kp*dE", "V2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[u]", "V3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.derivativeTerm.x, 1, 1 ), "V4", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.derivativeTerm.y, 1, 1 ), "V6", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Total
 	DrawCell( "Total", "X2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[u]", "X3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.combinedPIDTerms.x, 1, 1 ), "X4", 2, 2, fontBody * 1.5f, CONFIG_colWhite, CONFIG_colBlack, true );
@@ -426,50 +445,69 @@ void DisplayClass::AddTextSystem() {
 void DisplayClass::AddTextAmplifier() {
 
 	// Handler for gains
-	auto& in = shared->Input;
+	auto& system	= shared->Input.selectedAdjustmentSystem;
+	auto& subsystem = shared->Input.selectedAdjustmentSubsystem;
 
 	// Amplifier
 	DrawCell( "AMPLIFIER", "Z1", 15, 1, fontTitle, CONFIG_colWhite, CONFIG_colGraDk, true );
 	DrawCell( ( shared->Amplifier.isSafetySwitchEngaged ? "Safe" : "Released" ), "Z2", 3, 1, fontBody * 0.7f, CONFIG_colWhite, ( shared->Amplifier.isSafetySwitchEngaged ? CONFIG_colGreDk : CONFIG_colRedBk ), true );
+
+	// Motor selection
 	DrawCell( "Motor", "Z3", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "A", "AC2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "B", "AE2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "C", "AG2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+
+	// Tension
 	DrawCell( "Tension", "Z3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[%]", "AB3", 1, 1, fontHeader * 0.8f, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.x * 100.0, 3, 1 ), "AC3", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::AMPA ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.y * 100.0, 3, 1 ), "AE3", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::AMPB ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.z * 100.0, 3, 1 ), "AG3", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::AMPC ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.x * 100.0, 3, 1 ), "AC3", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_TENSION ) && ( subsystem == selectSubsystemEnum::AMP_A ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.y * 100.0, 3, 1 ), "AE3", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_TENSION ) && ( subsystem == selectSubsystemEnum::AMP_B ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.z * 100.0, 3, 1 ), "AG3", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_TENSION ) && ( subsystem == selectSubsystemEnum::AMP_C ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+
+	// Drive command
 	DrawCell( "Drive", "Z4", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[%]", "AB4", 1, 1, fontHeader * 0.6f, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( shared->FormatDecimal( ( shared->Controller.commandedPercentageABC.x - shared->Controller.commandedTensionABC.x ) * 100.0, 3, 1 ), "AC4", 2, 1, fontBody, ( shared->Amplifier.isTensionOnly ? CONFIG_colGraDk : CONFIG_colWhite ), CONFIG_colBlack, true );
 	DrawCell( shared->FormatDecimal( ( shared->Controller.commandedPercentageABC.y - shared->Controller.commandedTensionABC.y ) * 100.0, 3, 1 ), "AE4", 2, 1, fontBody, ( shared->Amplifier.isTensionOnly ? CONFIG_colGraDk : CONFIG_colWhite ), CONFIG_colBlack, true );
 	DrawCell( shared->FormatDecimal( ( shared->Controller.commandedPercentageABC.z - shared->Controller.commandedTensionABC.z ) * 100.0, 3, 1 ), "AG4", 2, 1, fontBody, ( shared->Amplifier.isTensionOnly ? CONFIG_colGraDk : CONFIG_colWhite ), CONFIG_colBlack, true );
+
+	// Total command
 	DrawCell( "Total", "Z5", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[%]", "AB5", 1, 1, fontHeader * 0.6f, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentageABC.x * 100.0, 3, 1 ), "AC5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentageABC.y * 100.0, 3, 1 ), "AE5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentageABC.z * 100.0, 3, 1 ), "AG5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Max command
 	DrawCell( "Max", "Z6", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[%]", "AB6", 1, 1, fontHeader * 0.6f, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.x * 100.0f, 3, 1 ), "AC6", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectLimit == selectLimitEnum::AMP_A ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
-	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.y * 100.0f, 3, 1 ), "AE6", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectLimit == selectLimitEnum::AMP_B ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
-	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.z * 100.0f, 3, 1 ), "AG6", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectLimit == selectLimitEnum::AMP_C ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.x * 100.0f, 3, 1 ), "AC6", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_LIMIT ) && ( subsystem == selectSubsystemEnum::AMP_A ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.y * 100.0f, 3, 1 ), "AE6", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_LIMIT ) && ( subsystem == selectSubsystemEnum::AMP_B ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.z * 100.0f, 3, 1 ), "AG6", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_LIMIT ) && ( subsystem == selectSubsystemEnum::AMP_C ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+
+	// PWM mapping
 	DrawCell( "PWM", "Z7", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[DC]", "AB7", 1, 1, fontHeader * 0.6f, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( shared->Controller.commandedPwmABC.x ), "AC7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( shared->Controller.commandedPwmABC.y ), "AE7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( std::to_string( shared->Controller.commandedPwmABC.z ), "AG7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Current mapping
 	DrawCell( "Current", "Z8", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[A]", "AB8", 1, 1, fontHeader * 0.6f, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( shared->FormatDecimal( shared->Amplifier.currentMeasuredAmpsA, 1, 2 ), "AC8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( shared->FormatDecimal( shared->Amplifier.currentMeasuredAmpsB, 1, 2 ), "AE8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( shared->FormatDecimal( shared->Amplifier.currentMeasuredAmpsC, 1, 2 ), "AG8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Motor angles
 	DrawCell( "Angle", "Z9", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[deg]", "AB9", 1, 1, fontHeader * 0.6f, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( shared->FormatDecimal( shared->Amplifier.encoderMeasuredDegA, 2, 2 ), "AC9", 2, 1, fontBody, CONFIG_colWhite, ( ( shared->Amplifier.isLimitSet && shared->Amplifier.isOverLimitA ) ? CONFIG_colRedDk : CONFIG_colGreBk ), true );
 	DrawCell( shared->FormatDecimal( shared->Amplifier.encoderMeasuredDegB, 2, 2 ), "AE9", 2, 1, fontBody, CONFIG_colWhite, ( ( shared->Amplifier.isLimitSet && shared->Amplifier.isOverLimitB ) ? CONFIG_colRedDk : CONFIG_colGreBk ), true );
 	DrawCell( shared->FormatDecimal( shared->Amplifier.encoderMeasuredDegC, 2, 2 ), "AG9", 2, 1, fontBody, CONFIG_colWhite, ( ( shared->Amplifier.isLimitSet && shared->Amplifier.isOverLimitC ) ? CONFIG_colRedDk : CONFIG_colGreBk ), true );
+
+	// Motor angle limits
 	DrawCell( "Limit", "Z10", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "[deg]", "AB10", 1, 1, fontHeader * 0.6f, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( shared->FormatDecimal( shared->Amplifier.encoderLimitDegA, 2, 2 ), "AC10", 2, 1, fontBody, CONFIG_colWhite, ( shared->Amplifier.isMeasuringEncoderLimit ? CONFIG_colYelDk : CONFIG_colBlack ), true );

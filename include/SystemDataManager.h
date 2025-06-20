@@ -24,8 +24,8 @@
 
 // Enum for system state
 enum class stateEnum { IDLE, DRIVING_PWM, MEASURING_LIMITS, ZERO_ENCODER };
-enum class selectGainTargetEnum { NONE, ABD, ADD, FLEX, EXT, AMPA, AMPB, AMPC, TORQUE, LIMITS };
-enum class selectGainEnum { NONE, KP, KI, KD };
+// enum class selectGainTargetEnum { NONE, ABD, ADD, FLEX, EXT, AMPA, AMPB, AMPC, TORQUE, LIMITS };
+// enum class selectGainEnum { NONE, KP, KI, KD };
 enum class selectTorqueTargetEnum { NONE, ABD, ADD, FLEX, EXT };
 enum class taskEnum { IDLE, CALIBRATE, FITTS, LIMIT };
 enum class selectLimitEnum { NONE, AMP_A, AMP_B, AMP_C };
@@ -162,8 +162,8 @@ struct DisplayStruct {
 struct InputStruct {
 
 	// Enumerated gain selection
-	selectGainTargetEnum   selectGainTarget	  = selectGainTargetEnum::NONE;
-	selectGainEnum		   selectGain		  = selectGainEnum::NONE;
+	// selectGainTargetEnum   selectGainTarget	  = selectGainTargetEnum::NONE;
+	// selectGainEnum		   selectGain		  = selectGainEnum::NONE;
 	selectTorqueTargetEnum selectTorqueTarget = selectTorqueTargetEnum::NONE;
 	selectLimitEnum		   selectLimit		  = selectLimitEnum::NONE;
 
