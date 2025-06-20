@@ -77,6 +77,8 @@
         "numeric": "cpp",
         "variant": "cpp",
         "__hash_table": "cpp",
-        "__tree": "cpp"
+        "__tree": "cpp",
+        "__functional_03": "cpp",
+        "target": "cpp"
     }
 }

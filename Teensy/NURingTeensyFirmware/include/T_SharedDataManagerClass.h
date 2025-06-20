@@ -90,7 +90,8 @@ struct SerialStruct {
  */
 struct SystemStruct {
 
-	stateEnum state = stateEnum::WAITING;
+	stateEnum state					= stateEnum::WAITING;
+	bool	  isSafetySwitchEngaged = false;
 };
 
 
@@ -104,11 +105,6 @@ struct TimingStruct {
 };
 
 
-struct VibroTactileStruct {
-
-	bool isRunning = false;
-};
-
 
 /**
  * @brief Main struct that gets shared
@@ -117,12 +113,11 @@ struct VibroTactileStruct {
 struct ManagedData {
 
 	// Declare system structs
-	AmplifierStruct	   Amplifier;
-	LEDStruct		   LED;
-	SerialStruct	   Serial;
-	SystemStruct	   System;
-	TimingStruct	   Timing;
-	VibroTactileStruct Vibration;
+	AmplifierStruct Amplifier;
+	LEDStruct		LED;
+	SerialStruct	Serial;
+	SystemStruct	System;
+	TimingStruct	Timing;
 
 	// Point to serial class
 

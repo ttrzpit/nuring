@@ -103,7 +103,7 @@ void DisplayClass::Update() {
 	}
 
 	// Add text
-	AddText();
+	BuildReadoutInterface();
 
 	// Show interface
 	ShowInterface();
@@ -131,7 +131,7 @@ void DisplayClass::ShowInterface() {
 /**
  * Add text to the overlay
  */
-void DisplayClass::AddText() {
+void DisplayClass::BuildReadoutInterface() {
 
 	// Section border
 	DrawCell( "", "A1", 40, 7, 0, CONFIG_colWhite, CONFIG_colBlack, false );
@@ -417,7 +417,7 @@ void DisplayClass::DrawKeyCell( std::string str, std::string cell0, short width,
 
 
 
-void DisplayClass::ShowShortcuts() {
+void DisplayClass::BuildKeyboardShortcuts() {
 
 	// Create window
 	cv::namedWindow( winShortcuts, cv::WINDOW_AUTOSIZE );

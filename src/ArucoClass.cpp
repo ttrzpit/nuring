@@ -85,47 +85,7 @@ void ArucoClass::FindTags() {
 			// Process each detected marker
 			for ( int i = 0; i < arucoDetectedIDs.size(); i++ ) {
 
-				// Sort out markers in valid range
-				if ( arucoDetectedIDs[i] == 0 ) {
-
-					// Extract current corner
-					std::vector<std::vector<cv::Point2f>> currentCorner = { arucoCorners[i] };
-
-					// Get telemetry for ring tag
-					if ( arucoDetectedIDs[i] == 0 ) {
-						shared->Ring.isRingFound = true;
-						cv::aruco::estimatePoseSingleMarkers( currentCorner, CONFIG_RING_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
-
-						// Update 2D pixel coordinates
-						int avgX						  = int( ( currentCorner[0][0].x + currentCorner[0][1].x + currentCorner[0][2].x + currentCorner[0][3].x ) / 4.0f );
-						int avgY						  = int( ( currentCorner[0][0].y + currentCorner[0][1].y + currentCorner[0][2].y + currentCorner[0][3].y ) / 4.0f );
-						shared->Ring.ringScreenPositionPX = cv::Point2i( avgX, avgY );
-
-						// Update 2D corner vector for active marker
-						shared->Ring.ringCornersPX[0] = cv::Point2i( currentCorner[0][0].x, currentCorner[0][0].y );
-						shared->Ring.ringCornersPX[1] = cv::Point2i( currentCorner[0][1].x, currentCorner[0][1].y );
-						shared->Ring.ringCornersPX[2] = cv::Point2i( currentCorner[0][2].x, currentCorner[0][2].y );
-						shared->Ring.ringCornersPX[3] = cv::Point2i( currentCorner[0][3].x, currentCorner[0][3].y );
-
-						// Update 3D real-world coordinates
-						shared->Ring.ringPositionMm = cv::Point3f( arucoTranslationVector[0][0], -arucoTranslationVector[0][1], arucoTranslationVector[0][2] );
-
-						// Save matrices
-						shared->Ring.ringRotationVector	   = arucoRotationVector[0];
-						shared->Ring.ringTranslationVector = arucoTranslationVector[0];
-
-						cv::Mat offsetLocal = ( cv::Mat_<double>( 3, 1 ) << shared->Ring.fingerOffsetMm.x, shared->Ring.fingerOffsetMm.y, shared->Ring.fingerOffsetMm.z );
-						cv::Mat R_tag;
-						cv::Rodrigues( shared->Ring.ringRotationVector, R_tag );
-
-						cv::Mat		offsetWorld = R_tag * offsetLocal;
-						cv::Point3f offsetWorldPt( static_cast<float>( offsetWorld.at<double>( 0, 0 ) ), static_cast<float>( offsetWorld.at<double>( 1, 0 ) ), static_cast<float>( offsetWorld.at<double>( 2, 0 ) ) );
-
-						shared->Ring.fingerPositionMm = shared->Ring.ringPositionMm + offsetWorldPt;
-						// shared->Ring.fingerPositionMm = shared->Ring.ringPositionMm + shared->Ring.fingerOffsetMm;
-					}
-
-				} else if ( ( arucoDetectedIDs[i] > 0 && arucoDetectedIDs[i] <= 5 ) || ( arucoDetectedIDs[i] == 8 ) ) {
+				if ( ( arucoDetectedIDs[i] > 0 && arucoDetectedIDs[i] <= 5 ) || ( arucoDetectedIDs[i] == 8 ) ) {
 
 					if ( ( arucoDetectedIDs[i] > 0 ) && ( arucoDetectedIDs[i] == shared->Target.activeID ) ) {	  // Only process active tag
 

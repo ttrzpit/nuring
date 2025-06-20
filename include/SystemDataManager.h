@@ -27,8 +27,11 @@ enum class stateEnum { IDLE, DRIVING_PWM, MEASURING_LIMITS, ZERO_ENCODER };
 enum class selectGainTargetEnum { NONE, ABD, ADD, FLEX, EXT, AMPA, AMPB, AMPC, TORQUE, LIMITS };
 enum class selectGainEnum { NONE, KP, KI, KD };
 enum class selectTorqueTargetEnum { NONE, ABD, ADD, FLEX, EXT };
-enum class taskEnum { IDLE, CALIBRATE, FITTS };
+enum class taskEnum { IDLE, CALIBRATE, FITTS, LIMIT };
 enum class selectLimitEnum { NONE, AMP_A, AMP_B, AMP_C };
+
+enum class selectSystemEnum { NONE, GAIN_PROPORTIONAL, GAIN_INTEGRAL, GAIN_DERIVATIVE, AMP_TENSION, AMP_LIMIT };
+enum class selectSubsystemEnum { NONE, ALL, ABD, ADD, EXT, FLEX, AMP_A, AMP_B, AMP_C };
 
 // Structure for 4-point vector
 struct Point4f {
@@ -36,13 +39,6 @@ struct Point4f {
 	float add = 0.0f;
 	float flx = 0.0f;
 	float ext = 0.0f;
-
-	// // Constructor
-	// Point4f( float a, float d, float f, float e )
-	// 	: abb( a )
-	// 	, add( d )
-	// 	, flex( f )
-	// 	, ext( e ) { }
 };
 
 
@@ -59,6 +55,7 @@ struct AmplifierStruct {
 	bool isTorqueMeasuringLimit	 = false;
 	bool isTorqueLimitSet		 = false;
 	bool isTensionOnly			 = false;
+	bool isSafetySwitchEngaged	 = false;
 
 	// Packet payload
 	uint8_t	 packetType			   = 0;
@@ -120,6 +117,12 @@ struct CalibrationStruct {
 	bool		isCalibrated	  = false;	  // Has the finger been calibrated
 	cv::Point3i calibratedOffetMM = cv::Point3i( 0, 0, 0 );
 	cv::Point3i calibratedOffetPX = cv::Point3i( 0, 0, 0 );
+
+	// bool		calibrationComplete = false;
+	// cv::Point3i calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
+	// cv::Point3i calibrationOffsetPX = cv::Point3i( 0, 0, 0 );
+	// cv::Point2i calibrationScreenPX = cv::Point2i( 0, 0 );
+	// bool		calibrationLoaded	= false;
 };
 
 struct ControllerStruct {
@@ -143,7 +146,6 @@ struct ControllerStruct {
 	float		rampDurationTime	   = 1.0f;								 // [s]
 	bool		isRampingUp			   = false;								 // Is the motor ramping up?
 	bool		isLimitSet			   = false;								 // Are the motor limits set?
-
 	int			integrationRadius	   = 100;
 	cv::Point3f percentageProportional = cv::Point3f( 0.0f, 0.0f, 0.0f );
 	cv::Point3f percentageIntegral	   = cv::Point3f( 0.0f, 0.0f, 0.0f );
@@ -164,6 +166,10 @@ struct InputStruct {
 	selectGainEnum		   selectGain		  = selectGainEnum::NONE;
 	selectTorqueTargetEnum selectTorqueTarget = selectTorqueTargetEnum::NONE;
 	selectLimitEnum		   selectLimit		  = selectLimitEnum::NONE;
+
+	// Selection
+	selectSystemEnum	selectedAdjustmentSystem	= selectSystemEnum::NONE;
+	selectSubsystemEnum selectedAdjustmentSubsystem = selectSubsystemEnum::ALL;
 };
 
 struct KalmanFilterStruct {
@@ -238,6 +244,7 @@ struct TaskStruct {
 	char		command			 = 0;		 // Command
 	std::string name			 = "IDLE";
 	cv::Point2i targetPosition	 = cv::Point2i( 0, 0 );
+	float		completionTime	 = 0.0f;
 };
 
 
@@ -294,7 +301,6 @@ struct VibrationStruct {
 // Shared system variable container
 struct ManagedData {
 
-
 	// Structs
 	AmplifierStruct		  Amplifier;
 	ArUcoStruct			  Aruco;
@@ -305,7 +311,6 @@ struct ManagedData {
 	InputStruct			  Input;
 	KalmanFilterStruct	  KalmanFilter;
 	LoggingStruct		  Logging;
-	RingTelemetryStruct	  Ring;
 	SystemStruct		  System;
 	SerialStruct		  Serial;
 	TargetTelemetryStruct Target;
@@ -314,136 +319,17 @@ struct ManagedData {
 	TouchscreenStruct	  Touchscreen;
 	VibrationStruct		  Vibration;
 
-
-
-	// Task variables
-	cv::Point3i fittsErrorPx		= cv::Point3i( 0, 0, 0 );
-	cv::Point3i fittsErrorMm		= cv::Point3i( 0, 0, 0 );
-	float		fittsCompletionTime = 0.0f;
-	short		fittsTestNumber		= 0;
-	cv::Point2i fittsMarkerPosition = cv::Point2i( 0, 0 );
-	char		fittsActiveAxis		= 'z';
-
-	// 3D Visualization
-	bool vizClear	= false;
-	bool vizEnabled = false;
-	bool vizLoaded	= false;
-
-	// 2D Angle Visualization
-	bool  angleEnabled	= false;
-	bool  angleLoaded	= false;
-	float angleTheta	= 0.0f;
-	float angleDesired	= 0.0f;
-	float angleFiltered = 0.0f;
-	float angleVelocity = 0.0f;
-
-	// Serial triggers
-	std::string serialTrigger = "drive";
-
-	// Calibration
-	bool		calibrationComplete = false;
-	cv::Point3i calibrationOffsetMM = cv::Point3i( 0, 0, 0 );
-	cv::Point3i calibrationOffsetPX = cv::Point3i( 0, 0, 0 );
-	cv::Point2i calibrationScreenPX = cv::Point2i( 0, 0 );
-	bool		calibrationLoaded	= false;
-
-
-
 	// Helper functions
-	float		GetNorm2D( cv::Point2f pt1 );					   // Calculate magnitude of 2D vector
-	float		GetNorm3D( cv::Point3f pt1 );					   // Calculate magnitude of 3D vector
-	float		GetDist2D( cv::Point2f pt1, cv::Point2f pt2 );	   // Calculate magnitude of 2D distance between 2 points
-	float		GetDist3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate magnitude of 2D distance between 2 points
-	cv::Point2f GetDelta2D( cv::Point2f pt1, cv::Point2f pt2 );	   // Calculate the x,y delta beteen two points
-	cv::Point3f GetDelta3D( cv::Point3f pt1, cv::Point3f pt2 );	   // Calculate the x,y,z delta beteen two points
-	std::string FormatDecimal( float x, uint8_t p, uint8_t d );	   // Formats a float to xx.xxx
-	std::string PadValues( int val, int nZeroes );				   // Return a padded string
-	// int			MapInt( int x, int inMin, int inMax, int outMin, int outMax );					// Return a remapped integer
-	float MapFloat( float val, float inMin, float inMax, float outMin, float outMax );	  // Return a remapped float
-
-
-
-	// int	 lostCount					   = 0;
-	// Target marker
-	// bool					 FLAG_TARGET_MARKER_SWITCHED	 = false;	// Updated in ArucoClass
-	// int						 targetMarkerActiveID			 = 1;		// Target.activeID
-	// cv::Point2i				 targetMarkerScreenPosition		 = cv::Point2i( 0, 0 );		// Target.screenPositionPX
-	// cv::Point3f				 targetMarkerPosition3dRaw		 = cv::Point3f( 0.0f, 0.0f, 0.0f );		// Target.rawPositionMM													  // Target.rawPositionMM	// [mm] Raw (unfiltered) position of tag relative to camera
-	// cv::Point3f				 targetMarkerPosition3dOld		 = cv::Point3f( 0.0f, 0.0f, 0.0f );		// Target.positionOldMM													  // Target.PositionOldMM												  // [mm] Old position of tag relative to camera
-	// cv::Point3f				 targetMarkerPosition3dNew		 = cv::Point3f( 0.0f, 0.0f, 0.0f );		// Target.positionFilteredNewMM													  // Target.filteredPositionMM
-	// cv::Point3f				 targetMarkerPosition3dPredicted = cv::Point3f( 0.0f, 0.0f, 0.0f );		// Deleted
-	// cv::Point3f				 targetMarkerVelocity3dOld		 = cv::Point3f( 0.0f, 0.0f, 0.0f );			// Target.velocityFilteredOldMM												  // Target.velocityFilteredOldMM													  // Target.filteredPositionMM
-	// cv::Point3f				 targetMarkerVelocity3dNew		 = cv::Point3f( 0.0f, 0.0f, 0.0f );				// Target.velocityFilteredNewMM											  // Target.velocityFilteredNewMM
-	// cv::Point3f				 targetMarkerIntegralError		 = cv::Point3f( 0.0f, 0.0f, 0.0f );															  // Controller.accumulatedIntegralError
-	// cv::Point2f				 targetMarkerAngleOld			 = cv::Point2f( 0.0f, 0.0f );	// Deleted
-	// cv::Point2f				 targetMarkerAngleNew			 = cv::Point2f( 0.0f, 0.0f );	// Deleted																  // [rad] New angle
-	// cv::Point2f				 targetMarkerAnglularVelocityOld = cv::Point2f( 0.0f, 0.0f );																  // [rad/s] Old angular velocity
-	// cv::Point2f				 targetMarkerAnglularVelocityNew = cv::Point2f( 0.0f, 0.0f );																  // [rad/s] New angular velocity
-	// std::vector<cv::Point2i> targetMarkerCorners = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	  // Target.cornersPX
-	// cv::Vec3d targetMarkerRotationVector, targetMarkerTranslationVector;	// Target.rotationVector // Rotation and translation vectors for active marker
-
-	// Controller variables
-	cv::Point3f controllerKp = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Proportional gain
-	cv::Point3f controllerKd = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Derivative gain
-	cv::Point3f controllerKi = cv::Point3f( 0.0f, 0.0f, 0.0f );	   // Integral gain
-	// cv::Point3i controllerPWM			  = cv::Point3i( 0, 0, 0 );		// Controller.commandedPwm				// Motor output PWM value
-	// cv::Point3f controllerPercentage	  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Controller.commandedPercentage	// Motor output percentage
-	cv::Point3f controllerProportinalTerm = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for proportional term
-	cv::Point3f controllerDerivativeTerm  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for derivative term
-	cv::Point3f controllerIntegralTerm	  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for integral term
-	cv::Point3f controllerTotalTerm		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Placeholder for total term
-	// cv::Point3f controllerTorqueABC		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Controller.torqueABC
-	// cv::Point3f controllerCurrent		  = cv::Point3f( 0.0f, 0.0f, 0.0f );	// Controller.currentABC
-	// cv::Point3f controllerTension		= cv::Point3f( 0.0f, 0.0f, 0.0f );	  // Controller.commandedTensionABC 	Tension (in PWM units)
-	// float controllerRampFactor	  = 0.0f;	  // Controller.rampPercentage
-	// bool  controllerIsRamping	  = false;	  // Controller.isRampingUp
-	// float controllerRampStartTime = 0.0f;	 // Controller.rampStartTime 	Ramp start time
-	// float controllerRampDuration = 1.0f;	// // Controller.rampDurationTime 	How long to ramp up for
-
-
-
-	// Kalman filter
-	// cv::Mat kalmanP;									 // KalmanFilter.pMatrix
-	// float	kalmanDt = 0.1f;
-
-
-	// Finger marker
-	// bool					 FLAG_FINGER_MARKER_FOUND  = false;
-	// cv::Point3i				 fingerMarkerPosition3DRaw = cv::Point3i( 0, 0, 0 );
-	// cv::Point3i				 fingerMarkerPosition3DNew = cv::Point3i( 0, 0, 0 );
-	// std::vector<cv::Point2i> fingerMarkerCorners	   = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	// Corners of finger tag
-	// cv::Vec3d				 fingerMarkerRotationVector, fingerMarkerTranslationVector;																// Rotation and translation vectors for active marker
-	// cv::Point2i				 fingerMarkerScreenPosition = cv::Point2i( 0, 0 );																		// Position of target in screen space, ArucoClass
-	// cv::Point2f				 fingerMarkerAngleNew		= cv::Point2f( 0.0f, 0.0f );																// [rad] New angle
-
-	// Tasks
-	// std::string TASK_NAME		= "";		// Task.name
-	// uint8_t TASK_USER_ID	= 000;		// Task.userID
-	// int	 TASK_REP_NUMBER = 0;		 // Task.repetitionNumber	 Task rep number
-	// char TASK_COMMAND	 = 0;		 // Task.command
-	// bool TASK_RUNNING  = false;	   // Task.isRunning
-	// bool TASK_COMPLETE = false;	   // Task.isComplete Trip when task is complete
-
-	/** OLD VARIABLES */
-
-	// System flags
-	// bool FLAG_AMPLIFIERS_ENABLED	   = false;		// Amplifier.isAmplifierActive
-	// bool FLAG_FRAME_READY			   = false;		// Camera.isFrameReady
-	// bool FLAG_LOGGING_ENABLED		   = false;		// Logging.isLoggingEnabled
-	// bool FLAG_LOGGING_STARTED		   = false;		// Logging.isLoggingActivelyRunning
-	// bool FLAG_MAIN_RUNNING			   = true;		// Main.isMainRunning
-	// bool FLAG_PACKET_WAITING		   	   = false;		// Deleted
-	// bool FLAG_SERIAL0_OPEN			   = false;		// Serial.isSerialSendOpen
-	// bool FLAG_SERIAL0_ENABLED = false;	  // Serial.isSerialSending
-	// bool FLAG_SERIAL1_OPEN			   = false;	   // Serial.isSerialReceiveOpen
-	// bool FLAG_SERIAL1_ENABLED		   = false;	   // Serial.isSerialReceiving
-	// bool FLAG_SHUTTING_DOWN			   = false;	   // Main.isShuttingDown
-	// bool FLAG_TARGET_MARKER_FOUND	   = false;		// Target.isTargetFound
-	// bool FLAG_TEENSY_SERIAL_RESPONDING = false;		// Teensy.isTeensyResponding
-	// bool FLAG_TEENSY_AMPLIFIER_ENABLED = false;		// Teensy.isAmplifierResponding
-	bool FLAG_USE_FINGER_MARKER = false;
-	// bool FLAG_TARGET_RESET		= false;		// Target.isTargetReset
-	// bool FLAG_USE_FIXED_MARKER	= false;		// Deleted
+	float		GetNorm2D( cv::Point2f pt1 );													// Calculate magnitude of 2D vector
+	float		GetNorm3D( cv::Point3f pt1 );													// Calculate magnitude of 3D vector
+	float		GetDist2D( cv::Point2f pt1, cv::Point2f pt2 );									// Calculate magnitude of 2D distance between 2 points
+	float		GetDist3D( cv::Point3f pt1, cv::Point3f pt2 );									// Calculate magnitude of 2D distance between 2 points
+	cv::Point2f GetDelta2D( cv::Point2f pt1, cv::Point2f pt2 );									// Calculate the x,y delta beteen two points
+	cv::Point3f GetDelta3D( cv::Point3f pt1, cv::Point3f pt2 );									// Calculate the x,y,z delta beteen two points
+	std::string FormatDecimal( float x, uint8_t p, uint8_t d );									// Formats a float to xx.xxx
+	std::string PadValues( int val, int nZeroes );												// Return a padded string
+	float		MapFloat( float val, float inMin, float inMax, float outMin, float outMax );	// Return a remapped float
+																								// int			MapInt( int x, int inMin, int inMax, int outMin, int outMax );					// Return a remapped integer
 };
 
 class SystemDataManager {

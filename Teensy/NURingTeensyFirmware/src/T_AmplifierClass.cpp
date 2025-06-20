@@ -257,7 +257,7 @@ void T_AmplifierClass::Update() {
 		case stateEnum::DRIVING_PWM: {
 
 			// Send drive command if amplifier is enabled
-			if ( shared->Amplifier.isEnabled ) {
+			if ( shared->Amplifier.isEnabled && shared->System.isSafetySwitchEngaged ) {
 
 				// Drive PWM
 				DrivePWM();

@@ -139,10 +139,10 @@ void T_SerialClass::ReadPacketFromPC() {
 					buffer[idx++] = byte;
 
 					// Check checksum
-					uint8_t packetType		 = buffer[1];
-					uint8_t length			 = buffer[2];
-					uint8_t receivedChecksum = buffer[3];
-					uint8_t computed		 = packetType ^ length;
+					uint8_t packetType = buffer[1];
+					uint8_t length	   = buffer[2];
+					// uint8_t receivedChecksum = buffer[3];
+					uint8_t computed = packetType ^ length;
 
 					for ( uint8_t i = 0; i < length; ++i ) {
 						computed ^= buffer[4 + i];
@@ -150,7 +150,7 @@ void T_SerialClass::ReadPacketFromPC() {
 
 					PacketStruct* newPacket = ( PacketStruct* )&buffer[3];
 					PrintDebug( "Type: " + String( newPacket->packetType ) );
-					
+
 					// Parse packet
 					ParsePacketFromPC( newPacket );
 				}
@@ -245,7 +245,7 @@ void T_SerialClass::ParsePacketFromPC( PacketStruct* pkt ) {
 	shared->Amplifier.commandedPwmA	 = pkt->pwmA;
 	shared->Amplifier.commandedPwmB	 = pkt->pwmB;
 	shared->Amplifier.commandedPwmC	 = pkt->pwmC;
-	shared->Vibration.isRunning		 = pkt->vibration;
+	// shared->Vibration.isRunning		 = pkt->vibration;
 }
 
 
@@ -273,7 +273,7 @@ void T_SerialClass::ParsePacketFromPC( PacketStruct* pkt ) {
 void T_SerialClass::SendPacketToPC() {
 
 	PacketStruct outgoingPacket;
-	uint8_t		 outgoingType;
+	uint8_t		 outgoingType = 'i';
 
 	// Select type based on state
 	if ( shared->System.state == stateEnum::IDLE ) {
@@ -304,7 +304,7 @@ void T_SerialClass::SendPacketToPC() {
 	outgoingPacket.currentA		  = shared->Amplifier.currentMeasuredRawA;
 	outgoingPacket.currentB		  = shared->Amplifier.currentMeasuredRawB;
 	outgoingPacket.currentC		  = shared->Amplifier.currentMeasuredRawC;
-	outgoingPacket.vibration	  = uint8_t( shared->Vibration.isRunning );
+	outgoingPacket.safetySwitch	  = shared->System.isSafetySwitchEngaged;
 
 	// Measure packet length
 	const uint8_t packetLength = sizeof( outgoingPacket );
@@ -330,7 +330,7 @@ void T_SerialClass::SendPacketToPC() {
 	idx += packetLength;
 	buffer[idx++] = endByte;	// sizeof(outgoingPacket)
 
-	
+
 
 	// Send over serial
 	ssize_t bytesWritten = SerialOut.write( buffer, idx );

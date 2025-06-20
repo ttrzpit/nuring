@@ -16,18 +16,8 @@ void ControllerClass::Update() {
 	// Reset ramp if target was reset
 	if ( shared->Target.isTargetReset ) {
 
-		shared->Controller.rampPercentage = 0.0f;
-		shared->Controller.rampStartTime  = shared->Timing.elapsedRunningTime;
-	}
-
-	// Ramp-up value
-	if ( shared->Controller.isRampingUp && shared->Target.isTargetFound ) {
-		float elapsed					  = shared->Timing.elapsedRunningTime - shared->Controller.rampStartTime;
-		shared->Controller.rampPercentage = std::clamp( elapsed / shared->Controller.rampDurationTime, 0.0f, 1.0f );
-
-		if ( shared->Controller.rampPercentage >= 1.0f ) {
-			shared->Controller.isRampingUp = false;
-		}
+		// Handle ramping up
+		RampUp();
 	}
 
 	if ( shared->Target.isTargetFound ) {
@@ -88,57 +78,6 @@ void ControllerClass::Update() {
 
 	// std::cout << "P: " << shared->Controller.percentageProportional << "   I: " << shared->Controller.percentageIntegral << "   D: " << shared->Controller.percentageDerivative << "\n";
 }
-
-
-
-// void ControllerClass::Update() {
-
-// Previous 2D version
-
-
-// 	// Reset ramp if target was reset
-// 	if ( shared->Telemetry.isTargetReset ) {
-
-// 		shared->Controller.rampPercentage = 0.0f;
-// 		shared->Controller.rampStartTime  = shared->Timing.elapsedRunningTime;
-// 	}
-
-
-
-// 	// Ramp-up value
-// 	if ( shared->Controller.isRampingUp && shared->Telemetry.isTargetFound ) {
-// 		float elapsed					  = shared->Timing.elapsedRunningTime - shared->Controller.rampStartTime;
-// 		shared->Controller.rampPercentage = std::clamp( elapsed / shared->Controller.rampDurationTime, 0.0f, 1.0f );
-
-// 		if ( shared->Controller.rampPercentage >= 1.0f ) {
-// 			shared->Controller.isRampingUp = false;
-// 		}
-// 	}
-
-// 	if ( shared->Telemetry.isTargetFound ) {
-// 		// Calculate proportional term
-// 		shared->controllerProportinalTerm.x = shared->controllerKp.x * shared->Telemetry.positionFilteredNewMM.x;
-// 		shared->controllerProportinalTerm.y = shared->controllerKp.y * shared->Telemetry.positionFilteredNewMM.y;
-// 		shared->controllerProportinalTerm.z = shared->controllerKp.z * shared->Telemetry.positionFilteredNewMM.z;
-
-// 		// Calculate derivative term
-// 		shared->controllerDerivativeTerm.x = shared->controllerKd.x * shared->Telemetry.velocityFilteredNewMM.x;
-// 		shared->controllerDerivativeTerm.y = shared->controllerKd.y * shared->Telemetry.velocityFilteredNewMM.y;
-// 		shared->controllerDerivativeTerm.z = shared->controllerKd.z * shared->Telemetry.velocityFilteredNewMM.z;
-
-// 		// Calculate integral term
-// 		shared->controllerIntegralTerm.x = shared->controllerKi.x * shared->Telemetry.positionIntegratedMM.x;
-// 		shared->controllerIntegralTerm.y = shared->controllerKi.y * shared->Telemetry.positionIntegratedMM.y;
-// 		shared->controllerIntegralTerm.z = shared->controllerKi.z * shared->Telemetry.positionIntegratedMM.z;
-
-// 		// Sum terms
-// 		shared->controllerTotalTerm = ( shared->controllerProportinalTerm + shared->controllerDerivativeTerm + shared->controllerIntegralTerm ) * shared->Controller.rampPercentage;
-// 	} else {
-// 		shared->controllerTotalTerm = cv::Point3f( 0.0f, 0.0f, 0.0f );
-// 	}
-// 	// Calculate motor contributions
-// 	MapToContributionABC();
-// }
 
 
 void ControllerClass::UpdateVibrotactile() {
@@ -265,17 +204,67 @@ void ControllerClass::MapToContributionABC( cv::Point3f terms ) {
 		// std::cout << "|B+C| Angle: " << shared->FormatDecimal( thTarget * RAD2DEG, 2 ) << "   Contrib: B: " << shared->FormatDecimal( contribution.y, 2 ) << " , C: " << shared->FormatDecimal( contribution.z, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
 	}
 
+	if ( shared->System.state == stateEnum::MEASURING_LIMITS ) {
+	}
+
 	// Update percentage and constrain to max depending on torque
-	if ( shared->Amplifier.isTensionOnly ) {
+	if ( ( shared->Amplifier.isTensionOnly ) && ( shared->System.state == stateEnum::DRIVING_PWM ) ) {
 
 		shared->Controller.commandedPercentageABC.x = std::clamp( shared->Controller.commandedTensionABC.x, 0.0f, shared->Amplifier.commandedLimits.x );
 		shared->Controller.commandedPercentageABC.y = std::clamp( shared->Controller.commandedTensionABC.y, 0.0f, shared->Amplifier.commandedLimits.y );
 		shared->Controller.commandedPercentageABC.z = std::clamp( shared->Controller.commandedTensionABC.z, 0.0f, shared->Amplifier.commandedLimits.z );
-	} else {
+
+	} else if ( ( !shared->Amplifier.isTensionOnly ) && ( shared->System.state == stateEnum::DRIVING_PWM ) ) {
 
 		shared->Controller.commandedPercentageABC.x = std::clamp( ( contribution.x + shared->Controller.commandedTensionABC.x ), 0.0f, shared->Amplifier.commandedLimits.x );
 		shared->Controller.commandedPercentageABC.y = std::clamp( ( contribution.y + shared->Controller.commandedTensionABC.y ), 0.0f, shared->Amplifier.commandedLimits.y );
 		shared->Controller.commandedPercentageABC.z = std::clamp( ( contribution.z + shared->Controller.commandedTensionABC.z ), 0.0f, shared->Amplifier.commandedLimits.z );
+
+	} else if ( shared->System.state == stateEnum::MEASURING_LIMITS ) {
+
+		// Only drive limits on active motor
+		switch ( shared->Input.selectLimit ) {
+
+			// Amp A
+			case ( selectLimitEnum::AMP_A ): {
+
+				shared->Controller.commandedPercentageABC.x = shared->Amplifier.commandedLimits.x;
+				shared->Controller.commandedPercentageABC.y = 0.0f;
+				shared->Controller.commandedPercentageABC.z = 0.0f;
+
+				break;
+			}
+
+			// Amp B
+			case ( selectLimitEnum::AMP_B ): {
+
+				shared->Controller.commandedPercentageABC.x = 0.0f;
+				shared->Controller.commandedPercentageABC.y = shared->Amplifier.commandedLimits.y;
+				shared->Controller.commandedPercentageABC.z = 0.0f;
+
+				break;
+			}
+
+			// Amp C
+			case ( selectLimitEnum::AMP_C ): {
+
+				shared->Controller.commandedPercentageABC.x = 0.0f;
+				shared->Controller.commandedPercentageABC.y = 0.0f;
+				shared->Controller.commandedPercentageABC.z = shared->Amplifier.commandedLimits.z;
+
+				break;
+			}
+
+			// Amp C
+			case ( selectLimitEnum::NONE ): {
+
+				shared->Controller.commandedPercentageABC.x = 0.0f;
+				shared->Controller.commandedPercentageABC.y = 0.0f;
+				shared->Controller.commandedPercentageABC.z = 0.0f;
+
+				break;
+			}
+		}
 	}
 
 
@@ -438,3 +427,23 @@ cv::Point3i ControllerClass::MapToPWM( cv::Point3f percentage, int min, int max 
 	// Return result
 	return pt;
 };
+
+
+
+void ControllerClass::RampUp() {
+
+	// Reset ramp-up
+	shared->Controller.rampPercentage = 0.0f;
+	shared->Controller.rampStartTime  = shared->Timing.elapsedRunningTime;
+
+
+	// Ramp-up value
+	if ( shared->Controller.isRampingUp && shared->Target.isTargetFound ) {
+		float elapsed					  = shared->Timing.elapsedRunningTime - shared->Controller.rampStartTime;
+		shared->Controller.rampPercentage = std::clamp( elapsed / shared->Controller.rampDurationTime, 0.0f, 1.0f );
+
+		if ( shared->Controller.rampPercentage >= 1.0f ) {
+			shared->Controller.isRampingUp = false;
+		}
+	}
+}

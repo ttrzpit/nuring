@@ -26,7 +26,7 @@ struct PacketStruct {
 	int32_t	 encoderA		= 0;
 	int32_t	 encoderB		= 0;
 	int32_t	 encoderC		= 0;
-	uint8_t	 vibration		= 0;
+	uint8_t	 safetySwitch		= 0;
 };
 
 #pragma pack( pop )

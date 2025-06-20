@@ -137,7 +137,7 @@ void TimingClass::TaskTimerStop() {
 	// Save final time
 	if ( shared->Task.name == "FITTS" ) {
 		taskTimeElapsed				= taskTimeEnd - taskTimeStart;
-		shared->fittsCompletionTime = taskTimeElapsed.count();
+		shared->Task.completionTime = taskTimeElapsed.count();
 	}
 
 	// Update flag

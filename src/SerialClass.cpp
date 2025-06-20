@@ -189,7 +189,6 @@ void SerialClass::Update() {
 
 
 		} else {
-
 		}
 	}
 }
@@ -251,15 +250,15 @@ void SerialClass::SendPacketToTeensy() {
 
 
 	if ( shared->System.state == stateEnum::IDLE ) {
-		outgoingPacket.pwmA		 = 2048;
-		outgoingPacket.pwmB		 = 2048;
-		outgoingPacket.pwmC		 = 2048;
-		outgoingPacket.vibration = shared->Vibration.isRunning;
+		outgoingPacket.pwmA			= 2048;
+		outgoingPacket.pwmB			= 2048;
+		outgoingPacket.pwmC			= 2048;
+		// outgoingPacket.safetySwitch = shared->Vibration.isRunning;
 	} else {
-		outgoingPacket.pwmA		 = shared->Controller.commandedPwmABC.x;
-		outgoingPacket.pwmB		 = shared->Controller.commandedPwmABC.y;
-		outgoingPacket.pwmC		 = shared->Controller.commandedPwmABC.z;
-		outgoingPacket.vibration = shared->Vibration.isRunning;
+		outgoingPacket.pwmA			= shared->Controller.commandedPwmABC.x;
+		outgoingPacket.pwmB			= shared->Controller.commandedPwmABC.y;
+		outgoingPacket.pwmC			= shared->Controller.commandedPwmABC.z;
+		// outgoingPacket.safetySwitch = shared->Vibration.isRunning;
 	}
 
 	// Compute checksum
@@ -413,6 +412,7 @@ void SerialClass::ParsePacketFromTeensy( PacketStruct pkt ) {
 	shared->Amplifier.encoderMeasuredCountA = pkt.encoderA;
 	shared->Amplifier.encoderMeasuredCountB = pkt.encoderB;
 	shared->Amplifier.encoderMeasuredCountC = pkt.encoderC;
+	shared->Amplifier.isSafetySwitchEngaged = pkt.safetySwitch;
 
 	// Below moved to controller update
 	// shared->Amplifier.currentMeasuredAmpsA	= shared->Amplifier.currentMeasuredRawA * 0.01f;
@@ -542,7 +542,7 @@ void SerialClass::ConvertPacketToSerialString( PacketStruct packet ) {
 	oss << std::setw( 6 ) << std::setfill( ' ' ) << static_cast<int>( packet.encoderA ) << " ";
 	oss << std::setw( 6 ) << std::setfill( ' ' ) << static_cast<int>( packet.encoderB ) << " ";
 	oss << std::setw( 6 ) << std::setfill( ' ' ) << static_cast<int>( packet.encoderC ) << " ] [ ";
-	oss << std::setw( 1 ) << std::setfill( ' ' ) << static_cast<int>( packet.vibration ) << " ]";
+	oss << std::setw( 1 ) << std::setfill( ' ' ) << static_cast<int>( packet.safetySwitch ) << " ]";
 
 	if ( std::isupper( type ) ) {
 

@@ -35,6 +35,30 @@ DisplayClass::DisplayClass( SystemDataManager& ctx )
 }
 
 
+/**
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  ==================================================
+ *  ================================================== 
+ * 
+ *  UU   UU  PPPPP    DDDDD      AAA    TTTTTT  EEEEEE 
+ *  UU   UU  PP   PP  DD   DD   AA AA     TT    EE    
+ *  UU   UU  PP   PP  DD   DD   AA AA     TT    EE  
+ *  UU   UU  PPPPP    DD   DD  AAAAAAA    TT    EEEEE    
+ *  UU   UU  PP       DD   DD  AA   AA    TT    EE    
+ *  UU   UU  PP       DD   DD  AA   AA    TT    EE    
+ *   UUUUU   PP       DDDDD    AA   AA    TT    EEEEEE 
+ * 
+ *  ================================================== 
+ *  ================================================== 
+*/
+
 
 /**
  * @brief Updates the information on the display
@@ -47,8 +71,131 @@ void DisplayClass::Update() {
 	// Copy video frame to overlay
 	shared->Capture.matFrameUndistorted.copyTo( shared->Display.matFrameOverlay( cv::Rect( 0, 0, shared->Capture.matFrameUndistorted.cols, shared->Capture.matFrameUndistorted.rows ) ) );
 
+	// Add camera elements
+	AddCameraElements();
 
-	/** Draw GUI elements **/
+	// Add PID elements
+	AddPidElements();
+
+	// Add text
+	BuildReadoutInterface();
+
+	// Show interface
+	ShowInterface();
+}
+
+
+
+/**
+ * Add text to the overlay
+ */
+void DisplayClass::BuildReadoutInterface() {
+
+	// Section border
+	DrawCell( "", "A1", 40, 10, 0, CONFIG_colWhite, CONFIG_colBlack, false );
+
+	// Telemetry
+	AddTextTelemetry();
+
+	// Controller
+	AddTextController();
+
+	// System flags
+	AddTextSystem();
+
+	// Amplifier
+	AddTextAmplifier();
+
+	// Serial
+	AddTextSerial();
+
+	// Motor
+	AddTextMotorOutput();
+
+	// Task
+	AddTextTask();
+
+	// Status block
+	DrawCell( shared->Display.statusString, "AO9", 10, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Section borders
+	DrawCellBorder( "A1", 8, 8, 2, CONFIG_colWhite );	   // Telemetry
+	DrawCellBorder( "I1", 17, 7, 2, CONFIG_colWhite );	   // Controller
+	DrawCellBorder( "Z1", 15, 10, 2, CONFIG_colWhite );	   // Amplifier
+	DrawCellBorder( "AO1", 10, 8, 2, CONFIG_colWhite );	   // Task
+	DrawCellBorder( "A9", 25, 2, 2, CONFIG_colWhite );	   // System status text
+	DrawCellBorder( "I8", 2, 1, 2, CONFIG_colWhite );	   // System flags: Limits
+	DrawCellBorder( "P8", 6, 1, 2, CONFIG_colWhite );	   // System flags: Serial
+	DrawCellBorder( "AO9", 10, 2, 2, CONFIG_colWhite );	   // Serial packets
+
+	// Line on the right side to satisfy my OCD
+	cv::line( shared->Display.matFrameOverlay, cv::Point2i( 1598, CONFIG_PANEL_HEIGHT ), cv::Point2i( 1598, 1360 ), CONFIG_colWhite, 1 );
+}
+
+
+
+void DisplayClass::AddStaticDisplayPanels() {
+
+	// Build shortcuts
+	BuildKeyboardShortcuts();
+
+	// Build instructions
+	BuildChecklist();
+}
+
+/**
+ * Display the interface on the screen
+ */
+void DisplayClass::ShowInterface() {
+
+	// Catch mouse
+	// cv::setMouseCallback( winInterface, DisplayClass::onMouse, this );
+
+
+	// Show image
+	cv::imshow( winInterface, shared->Display.matFrameOverlay );
+	// cv::imshow( "Raw", shared->matFrameUndistorted );
+
+	// Output confirmation
+}
+
+
+
+/*
+ * 
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  
+ * =========================================================================================
+ *  ========================================================================================= 
+ * 
+ *   EEEEEEE  LL     EEEEEEE  MM   MM  EEEEEEE  NN   NN  TTTTTTTT   SSSSS
+ *   EE       LL     EE       MMM MMM  EE       NNN  NN     TT     SS
+ *   EE       LL     EE       MM M MM  EE       NN N NN     TT     SS
+ *   EEEEE    LL     EEEEE    MM   MM  EEEEE    NN  NNN     TT      SSSSS
+ *   EE       LL     EE       MM   MM  EE       NN   NN     TT          SS
+ *   EE       LL     EE       MM   MM  EE       NN   NN     TT          SS
+ *   EEEEEEE  LLLLL  EEEEEEE  MM   MM  EEEEEEE  NN   NN     TT      SSSSS
+ * 
+ *  ========================================================================================= 
+ *  ========================================================================================= 
+ */
+
+
+/**
+ * @brief Add camera elements to the main display
+ * 
+ * @return * void 
+ */
+void DisplayClass::AddCameraElements() {
 
 	// Draw detector crosshairs, changing colors based on if the target is present
 	cv::circle( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, CONFIG_DET_RADIUS, ( shared->Target.isTargetFound ? CONFIG_colGreMd : CONFIG_colRedDk ), 1 );
@@ -75,28 +222,21 @@ void DisplayClass::Update() {
 		cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, cv::Point2i( CONFIG_CAM_CENTER.x - shared->Target.velocityFilteredNewMM.x * MM2PX / 2.0f, CONFIG_CAM_CENTER.y + shared->Target.velocityFilteredNewMM.y * MM2PX / 2.0f ), CONFIG_colMagLt, 2 );
 	}
 
-	// Draw information for target marker if present
-	if ( shared->Ring.isRingFound ) {
-
-		//Draw vector to center of target
-		cv::line( shared->Display.matFrameOverlay, CONFIG_CAM_CENTER, shared->Ring.ringScreenPositionPX, CONFIG_colCyaMd, 2 );
-
-		// Draw border and axis elements of target marker
-		cv::polylines( shared->Display.matFrameOverlay, shared->Ring.ringCornersPX, true, CONFIG_colGreLt, 2 );
-	}
-
 
 
 	// Draw calibrated marker
-	if ( shared->calibrationComplete ) {
+	if ( shared->Calibration.isCalibrated ) {
 		// int newX = shared->calibrationOffsetPX.x - CONFIG_TOUCHSCREEN_CENTER.x + CONFIG_CAM_PRINCIPAL_X;
 		// int newY = shared->calibrationOffsetPX.y - CONFIG_TOUCHSCREEN_CENTER.y + CONFIG_CAM_PRINCIPAL_Y - 20 * MM2PX;
 		// cv::circle( shared->Display.matFrameOverlay, cv::Point2i( newX, newY ), 10 * MM2PX, CONFIG_colGreLt, 2 );
 		// cv::circle( shared->Display.matFrameOverlay, shared->, 10 * MM2PX, CONFIG_colGreLt, 2 );
 	}
+}
 
-	// Break components for PID
 
+void DisplayClass::AddPidElements() {
+
+	// PID Variables
 	uint8_t		rad = 80;
 	cv::Point2i centerProp( 1500, 100 );
 	cv::Point2i centerInt( 1500, 300 );
@@ -147,13 +287,13 @@ void DisplayClass::Update() {
 	cv::circle( shared->Display.matFrameOverlay, centerInt, rad, CONFIG_colGraMd, 2 );
 
 
-	// Base Int
+	// Base Deriv
 	cv::circle( shared->Display.matFrameOverlay, centerDeriv, rad, CONFIG_colGraBk, -1 );
 	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS35, centerDeriv.y - rad * SIN35 ), CONFIG_colGraMd, 2 );
 	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS145, centerDeriv.y - rad * SIN145 ), CONFIG_colGraMd, 2 );
 	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS270, centerDeriv.y - rad * SIN270 ), CONFIG_colGraMd, 2 );
 
-	// Components Int
+	// Components Deriv
 	cv::line( shared->Display.matFrameOverlay, centerDeriv, derA, CONFIG_colRedMd, 2 );
 	cv::line( shared->Display.matFrameOverlay, centerDeriv, derB, CONFIG_colRedMd, 2 );
 	cv::line( shared->Display.matFrameOverlay, centerDeriv, derC, CONFIG_colRedMd, 2 );
@@ -161,46 +301,13 @@ void DisplayClass::Update() {
 	cv::circle( shared->Display.matFrameOverlay, derB, 5, CONFIG_colRedMd, -1 );
 	cv::circle( shared->Display.matFrameOverlay, derC, 5, CONFIG_colRedMd, -1 );
 
-	// Outline Int
+	// Outline Deriv
 	cv::circle( shared->Display.matFrameOverlay, centerDeriv, rad, CONFIG_colGraMd, 2 );
-
-	// Add text
-	AddText();
-
-	// Show interface
-	ShowInterface();
-
-	// Check if other windows have been requested
-	CheckOptions();
 }
 
 
 
-/**
- * Display the interface on the screen
- */
-void DisplayClass::ShowInterface() {
-
-	// Catch mouse
-	// cv::setMouseCallback( winInterface, DisplayClass::onMouse, this );
-
-
-	// Show image
-	cv::imshow( winInterface, shared->Display.matFrameOverlay );
-	// cv::imshow( "Raw", shared->matFrameUndistorted );
-
-	// Output confirmation
-}
-
-
-
-/**
- * Add text to the overlay
- */
-void DisplayClass::AddText() {
-
-	// Section border
-	DrawCell( "", "A1", 40, 10, 0, CONFIG_colWhite, CONFIG_colBlack, false );
+void DisplayClass::AddTextTelemetry() {
 
 	// Telemetry
 	// Position
@@ -236,22 +343,24 @@ void DisplayClass::AddText() {
 	DrawCell( shared->FormatDecimal( shared->Target.positionIntegratedMM.z, 1, 0 ), "G6", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "xx", "G7", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "xx", "G8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+}
+
+
+void DisplayClass::AddTextController() {
 
 
 	// Handler for gains
 	auto& in = shared->Input;
 
-	// ( ( in.selectGainTarget == selectGainTargetEnum::ABD ) && ( in.selectGain == selectGainEnum::KP ) ? CONFIG_colYelDk : CONFIG_colBlack )
-
 	// Controller
 	DrawCell( "CONTROLLER", "I1", 17, 1, fontTitle, CONFIG_colWhite, CONFIG_colGraDk, true );
 	DrawCell( "Freq", "I2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( int( shared->Timing.measuredFrequency ) ), "I3", 2, 1, fontBody, CONFIG_colWhite, ( shared->Timing.measuredFrequency > 60 ? CONFIG_colGreBk : CONFIG_colRedBk ), true );
-	DrawCell( "ABD", "I4", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::ABD ? CONFIG_colYelBk : CONFIG_colGraBk ), true );
-	DrawCell( "ADD", "I5", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::ADD ? CONFIG_colYelBk : CONFIG_colGraBk ), true );
-	DrawCell( "FLEX", "I6", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::FLEX ? CONFIG_colYelBk : CONFIG_colGraBk ), true );
-	DrawCell( "EXT", "I7", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::EXT ? CONFIG_colYelBk : CONFIG_colGraBk ), true );
-	DrawCell( "Kp", "K2", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGain == selectGainEnum::KP ? CONFIG_colYelBk : CONFIG_colGraBk ), true );
+	DrawCell( "ABD", "I4", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::ABD ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( "ADD", "I5", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::ADD ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( "FLEX", "I6", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::FLEX ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( "EXT", "I7", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGainTarget == selectGainTargetEnum::EXT ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
+	DrawCell( "Kp", "K2", 2, 1, fontHeader, CONFIG_colWhite, ( in.selectGain == selectGainEnum::KP ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
 	DrawCell( "[u]", "K3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.abd, 1, 1 ), "K4", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::ABD ) && ( in.selectGain == selectGainEnum::KP ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
 	DrawCell( shared->FormatDecimal( shared->Controller.gainKp.add, 1, 1 ), "K5", 2, 1, fontBody, CONFIG_colWhite, ( ( in.selectGainTarget == selectGainTargetEnum::ADD ) && ( in.selectGain == selectGainEnum::KP ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
@@ -287,10 +396,13 @@ void DisplayClass::AddText() {
 	DrawCell( "[u]", "X3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.combinedPIDTerms.x, 1, 1 ), "X4", 2, 2, fontBody * 1.5f, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( shared->FormatDecimal( shared->Controller.combinedPIDTerms.y, 1, 1 ), "X6", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+}
 
+
+void DisplayClass::AddTextSystem() {
 
 	// System Flags
-	DrawCell( shared->Amplifier.isLimitSet ? "Limit Set" : "No Limits", "I8", 2, 1, fontHeader, CONFIG_colWhite, shared->Amplifier.isLimitSet ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( shared->Amplifier.isLimitSet ? "Limited" : "No Limit", "I8", 2, 1, fontHeader, CONFIG_colWhite, shared->Amplifier.isLimitSet ? CONFIG_colGreBk : CONFIG_colRedBk, true );
 	DrawCell( "Calib:", "K8", 2, 1, fontHeader, CONFIG_colWhite, shared->Calibration.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
 	DrawCell( std::to_string( shared->Calibration.calibratedOffetMM.x ), "M8", 1, 1, fontHeader * 0.65f, CONFIG_colWhite, shared->Calibration.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
 	DrawCell( std::to_string( shared->Calibration.calibratedOffetMM.y ), "N8", 1, 1, fontHeader * 0.65f, CONFIG_colWhite, shared->Calibration.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
@@ -308,11 +420,17 @@ void DisplayClass::AddText() {
 	} else {
 		DrawCell( "Amplifier Off ", "V8", 4, 1, fontHeader, CONFIG_colWhite, shared->Amplifier.isAmplifierActive ? CONFIG_colGreBk : CONFIG_colRedBk, true );
 	}
+}
 
 
+void DisplayClass::AddTextAmplifier() {
 
-	// Controller
+	// Handler for gains
+	auto& in = shared->Input;
+
+	// Amplifier
 	DrawCell( "AMPLIFIER", "Z1", 15, 1, fontTitle, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawCell( ( shared->Amplifier.isSafetySwitchEngaged ? "Safe" : "Released" ), "Z2", 3, 1, fontBody * 0.7f, CONFIG_colWhite, ( shared->Amplifier.isSafetySwitchEngaged ? CONFIG_colGreDk : CONFIG_colRedBk ), true );
 	DrawCell( "Motor", "Z3", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "A", "AC2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( "B", "AE2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -357,8 +475,11 @@ void DisplayClass::AddText() {
 	DrawCell( shared->FormatDecimal( shared->Amplifier.encoderLimitDegA, 2, 2 ), "AC10", 2, 1, fontBody, CONFIG_colWhite, ( shared->Amplifier.isMeasuringEncoderLimit ? CONFIG_colYelDk : CONFIG_colBlack ), true );
 	DrawCell( shared->FormatDecimal( shared->Amplifier.encoderLimitDegB, 2, 2 ), "AE10", 2, 1, fontBody, CONFIG_colWhite, ( shared->Amplifier.isMeasuringEncoderLimit ? CONFIG_colYelDk : CONFIG_colBlack ), true );
 	DrawCell( shared->FormatDecimal( shared->Amplifier.encoderLimitDegC, 2, 2 ), "AG10", 2, 1, fontBody, CONFIG_colWhite, ( shared->Amplifier.isMeasuringEncoderLimit ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+}
 
 
+
+void DisplayClass::AddTextSerial() {
 
 	// Serial I/O
 	DrawCell( "PC Out", "A9", 2, 1, fontHeader, CONFIG_colWhite, shared->Serial.isSerialSending ? CONFIG_colGreBk : CONFIG_colRedBk, true );
@@ -369,6 +490,11 @@ void DisplayClass::AddText() {
 	DrawCell( "Lag", "X9", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( shared->Serial.packetDelay ), "X10", 1, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "[ms]", "Y10", 1, 1, fontBody * 0.6f, CONFIG_colWhite, CONFIG_colGraBk, true );
+}
+
+
+void DisplayClass::AddTextMotorOutput() {
+
 
 	// Motor Output Block
 	DrawCell( "", "AI2", 6, 7, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
@@ -440,8 +566,11 @@ void DisplayClass::AddText() {
 	cv::circle( shared->Display.matFrameOverlay, encoderA, 18, CONFIG_colGraDk, 2 );
 	cv::circle( shared->Display.matFrameOverlay, encoderB, 18, CONFIG_colGraDk, 2 );
 	cv::circle( shared->Display.matFrameOverlay, encoderC, 18, CONFIG_colGraDk, 2 );
+}
 
 
+
+void DisplayClass::AddTextTask() {
 
 	// Task
 	DrawCell( "TASK MONITOR", "AO1", 10, 1, fontTitle, CONFIG_colWhite, CONFIG_colGraDk, true );
@@ -450,30 +579,230 @@ void DisplayClass::AddText() {
 	DrawCell( "User ID", "AU2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( shared->Task.userID ), "AW2", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "Time", "AO3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Task.elapsedTaskTime, 2, 3 ), "AQ3", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-
+	DrawCell( ( shared->Task.state == taskEnum::FITTS ) ? shared->FormatDecimal( shared->Task.elapsedTaskTime, 2, 3 ) : "0.00", "AQ3", 3, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "Touchscreen", "AO8", 4, 1, fontHeader, CONFIG_colWhite, shared->Touchscreen.isTouched ? CONFIG_colGreBk : CONFIG_colGraBk, true );
 	DrawCell( "x", "AS8", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( shared->Touchscreen.positionTouched.x ), "AT8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawCell( "y", "AV8", 1, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
 	DrawCell( std::to_string( shared->Touchscreen.positionTouched.y ), "AW8", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-
-	// Status block
-	DrawCell( shared->Display.statusString, "AO9", 10, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-
-	// Section borders
-	DrawCellBorder( "A1", 8, 8, 2, CONFIG_colWhite );	   // Telemetry
-	DrawCellBorder( "I1", 17, 7, 2, CONFIG_colWhite );	   // Controller
-	DrawCellBorder( "Z1", 15, 10, 2, CONFIG_colWhite );	   // Amplifier
-	DrawCellBorder( "AO1", 10, 8, 2, CONFIG_colWhite );	   // Task
-	DrawCellBorder( "A9", 25, 2, 2, CONFIG_colWhite );	   // System status text
-	DrawCellBorder( "I8", 2, 1, 2, CONFIG_colWhite );	   // System flags: Limits
-	DrawCellBorder( "P8", 6, 1, 2, CONFIG_colWhite );	   // System flags: Serial
-	DrawCellBorder( "AO9", 10, 2, 2, CONFIG_colWhite );	   // Serial packets
-
-	// Line on the right side to satisfy my OCD
-	cv::line( shared->Display.matFrameOverlay, cv::Point2i( 1598, CONFIG_PANEL_HEIGHT ), cv::Point2i( 1598, 1360 ), CONFIG_colWhite, 1 );
 }
+
+
+
+/*
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *    
+ * =========================================================================================
+ *  ========================================================================================= 
+ * 
+ *   KK   KK EEEEEEE  YY    YY  BBBBBBB    OOOOO     AAA    RRRRR    DDDDD
+ *   KK  KK  EE        YY  YY   BB   BBB  OO   OO   AA AA   RR   RR  DD   DD
+ *   KK KK   EE         YYYY    BB   BBB  OO   OO   AA AA   RR   RR  DD   DD
+ *   KKKK    EEEEE       YY     BBBBBBB   OO   OO  AAAAAAA  RRRRR    DD   DD
+ *   KK KK   EE          YY     BB   BBB  OO   OO  AA   AA  RR  RR   DD   DD
+ *   KK  KK  EE          YY     BB   BBB  OO   OO  AA   AA  RR   RR  DD   DD
+ *   KK   KK EEEEEEE     YY     BBBBBBB    OOOOO   AA   AA  RR   RR  DDDDD
+ * 
+ *  ========================================================================================= 
+ *  ========================================================================================= 
+ */
+
+
+void DisplayClass::BuildKeyboardShortcuts() {
+
+	// Create window
+	cv::namedWindow( winShortcuts, cv::WINDOW_AUTOSIZE );
+	cv::moveWindow( winShortcuts, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_KEY_WIDTH - 4, 0 );
+
+	DrawKeyCell( "Exit", "A1", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "SetActive1", "A2", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "SetActive2", "A3", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "SetActive3", "A4", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "SetActive4", "A5", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "SetActive5", "A6", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "SetActiveNone", "A7", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "AmplifierToggle", "A8", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "AmplifierTensionToggle", "A9", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "SerialToggle", "A10", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "DirSelect_Abduction", "A11", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "DirSelect_Adduction", "A12", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "DirSelect_Flexion", "A13", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "DirSelect_Extension", "A14", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "GainSelect_Proportional", "A15", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "GainSelect_Integral", "A16", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "GainSelect_Derivative", "A17", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "GainsZero", "A18", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "TenSelect_A", "A19", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "TenSelect_B", "A20", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "TenSelect_C", "A21", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "Increment", "A22", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "Decrement", "A23", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "EncoderZero", "A24", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "EncoderMeasureLimit", "A25", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "EncoderSetLimit", "A26", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "FittsStart", "A27", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "FittsStop", "A28", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "TaskCalibrationStart", "A29", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "LimitsSelectA", "A30", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "LimitsSelectB", "A31", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "LimitsSelectC", "A32", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "LimitsStart", "A33", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "LimitsReset", "A34", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "Esc", "F1", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "1", "F2", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "2", "F3", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "3", "F4", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "4", "F5", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "5", "F6", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "`", "F7", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "a", "F8", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "t", "F9", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "s", "F10", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n4", "F11", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n6", "F12", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n2", "F13", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n8", "F14", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "p", "F15", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "i", "F16", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "d", "F17", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n5", "F18", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n=", "F19", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n/", "F20", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n*", "F21", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n+", "F22", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n-", "F23", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "z", "F24", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "x", "F25", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "c", "F26", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "f", "F27", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "g", "F28", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "F7", "F29", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n9", "F30", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n7", "F31", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n5", "F32", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "n0", "F33", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "nCR", "F34", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+	// Display window
+	cv::imshow( winShortcuts, matShortcuts );
+}
+
+
+
+/* 
+ * 
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  
+ *  =========================================================================================
+ *  ========================================================================================= 
+ * 
+ *    CCCCCC  HH   HH  EEEEEEE   CCCCCC  KK    KK  LL      IIIIII   SSSSS  TTTTTTTT
+ *  CC        HH   HH  EE      CC        KK   KK   LL        II    SS         TT
+ *  CC        HH   HH  EE      CC        KK  KK    LL        II    SS         TT
+ *  CC        HHHHHHH  EEEEE   CC        KKKKK     LL        II     SSSSS     TT
+ *  CC        HH   HH  EE      CC        KK  KK    LL        II         SS    TT
+ *  CC        HH   HH  EE      CC        KK   KK   LL        II         SS    TT
+ *    CCCCCC  HH   HH  EEEEEEE   CCCCCC  KK    KK  LLLLLL  IIIIII   SSSSS     TT
+ * 
+ *  ========================================================================================= 
+ *  ========================================================================================= 
+ */
+
+
+void DisplayClass::BuildChecklist() {
+
+
+	// Create window
+	cv::namedWindow( winChecklist, cv::WINDOW_AUTOSIZE );
+	cv::moveWindow( winChecklist, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_KEY_WIDTH - CONFIG_DIS_KEY_WIDTH - 6, 0 );
+
+	// Checklist
+	DrawChecklistCell( "Establish serial connection", "A1", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "Set tensioning values", "A2", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Tension motor A", "A3", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Tension motor B", "A4", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Tension motor C", "A5", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Stop tensioning", "A6", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "Set torque limits", "A7", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Set torque limit A", "A8", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Set torque limit B", "A9", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Set torque limit C", "A10", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Zero torque limits", "A11", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "Start Fitts task", "A12", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "Tune PID controller", "A13", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Adjust proportional gain", "A14", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Adjust integral gain", "A15", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Adjust derivative gain", "A16", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Select abduction direction", "A17", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Select adduction direction", "A18", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Select extension direction", "A19", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Select flexion direction", "A20", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawChecklistCell( "   Zero all gains", "A21", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+
+	DrawChecklistCell( "s", "F1", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "t", "F2", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "=", "F3", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "/", "F4", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "*", "F5", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "t", "F6", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "0", "F7", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "7", "F8", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "9", "F9", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "5", "F10", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "f", "F11", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "CR", "F12", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "", "F13", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "p", "F14", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "i", "F15", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "d", "F16", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "4", "F17", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "6", "F18", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "8", "F19", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( "2", "F20", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawChecklistCell( ".", "F21", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+
+	// Display window
+	cv::imshow( winChecklist, matChecklist );
+}
+
+/*
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *   
+ *  =============================================================================================================================
+ *  ============================================================================================================================ 
+ *   
+ *   DDDDDD    RRRRRR     AAA    WW      WW      FFFFFFF  UU   UU  NN    NN   CCCCCC  TTTTTTT  IIIIII   OOOOO   NN    NN   SSSSS
+ *   DD    DD  RR   RR   AA AA   WW      WW      FF       UU   UU  NNN   NN  CC         TT       II    OO   OO  NNN   NN  SS
+ *   DD    DD  RR   RR   AA AA   WW  WW  WW      FF       UU   UU  NN NN NN  CC         TT       II    OO   OO  NN NN NN  SS
+ *   DD    DD  RRRRRR   AAAAAAA  WW  WW  WW      FFFFF    UU   UU  NN  NNNN  CC         TT       II    OO   OO  NN  NNNN   SSSSS
+ *   DD    DD  RR  RR   AA   AA   WW WW WW       FF       UU   UU  NN   NNN  CC         TT       II    OO   OO  NN   NNN       SS
+ *   DD    DD  RR   RR  AA   AA   WWW  WWW       FF       UU   UU  NN    NN  CC         TT       II    OO   OO  NN    NN       SS
+ *   DDDDDD    RR   RR  AA   AA   WW    WW       FF        UUUUU   NN    NN   CCCCCC    TT     IIIIII   OOOOO   NN    NN   SSSSS
+ *  
+ *  ============================================================================================================================= 
+ *  ============================================================================================================================= 
+ */
+
 
 
 /**
@@ -614,200 +943,209 @@ void DisplayClass::DrawKeyCell( std::string str, std::string cell0, short width,
 
 
 
-void DisplayClass::ShowShortcuts() {
+/**
+ * @brief Add text in a cell 
+ * @param str Text to add [string]
+ * @param cell0 Starting cell (e.g., "A1") [string]
+ * @param width Number of columns across
+ * @param height Number of columns down
+ * @param sz Font size
+ * @param textColor Color of body text
+ * @param fillColor Color of background fill
+ * @param centered Flag to center text
+ */
+void DisplayClass::DrawChecklistCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered ) {
 
-	// Create window
-	cv::namedWindow( winShortcuts, cv::WINDOW_AUTOSIZE );
-	cv::moveWindow( winShortcuts, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_KEY_WIDTH - 4, 0 );
-
-
-	DrawKeyCell( "Exit", "A1", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "SetActive1", "A2", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "SetActive2", "A3", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "SetActive3", "A4", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "SetActive4", "A5", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "SetActive5", "A6", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "SetActiveNone", "A7", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "AmplifierToggle", "A8", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "SerialToggle", "A9", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "DirSelect_Abduction", "A10", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "DirSelect_Adduction", "A11", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "DirSelect_Flexion", "A12", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "DirSelect_Extension", "A13", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "GainSelect_Proportional", "A14", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "GainSelect_Integral", "A15", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "GainSelect_Derivative", "A16", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "GainsZero", "A17", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "TenSelect_A", "A18", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "TenSelect_B", "A19", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "TenSelect_C", "A20", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "Increment", "A21", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "Decrement", "A22", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "EncoderZero", "A23", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "EncoderSet", "A24", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "EncoderSetLimit", "A25", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "FittsStart", "A26", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
-	DrawKeyCell( "FittsStop", "A27", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// Check if using double letters (e.g., AA, AB)
+	if ( std::isalpha( cell0[0] ) && !std::isalpha( cell0[1] ) ) {	  // Only one letter
+		key_c0 = ( cell0[0] - 'A' ) * key_WIDTH;
+		key_r0 = ( 1 ) + ( ( std::stoi( cell0.substr( 1 ) ) - 1 ) * key_HEIGHT - 1 );
+		key_rH = height * key_HEIGHT;
+		key_cW = width * key_WIDTH;
+	} else if ( std::isalpha( cell0[0] ) && std::isalpha( cell0[1] ) ) {	// Two letters)
+		key_c0 = ( 26 + ( cell0[1] - 'A' ) ) * key_WIDTH;
+		key_r0 = ( 1 ) + ( ( std::stoi( cell0.substr( 2 ) ) - 1 ) * key_HEIGHT - 1 );
+		key_rH = height * key_HEIGHT;
+		key_cW = width * key_WIDTH;
+	}
 
 
+	// Draw cell frame
+	cv::rectangle( matChecklist, cv::Rect( key_c0, key_r0, key_cW, key_rH ), fillColor, -1 );
+	cv::rectangle( matChecklist, cv::Rect( key_c0, key_r0, key_cW + 1, key_rH + 1 ), CONFIG_colWhite, 1 );
 
-	DrawKeyCell( "Esc", "F1", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "1", "F2", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "2", "F3", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "3", "F4", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "4", "F5", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "5", "F6", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "`", "F7", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "a", "F8", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "s", "F9", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "n4", "F10", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "n6", "F11", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "n2", "F12", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "n8", "F13", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "p", "F14", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "i", "F15", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "d", "F16", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "n5", "F17", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "n=", "F18", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "n/", "F19", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "n*", "F20", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "n+", "F21", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "n-", "F22", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "z", "F23", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "x", "F24", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "c", "F25", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "f", "F26", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "g", "F27", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// Calculate text dimensions
+	if ( sz >= key_fontHeader ) {
+		key_textSize = cv::getTextSize( str, cv::FONT_HERSHEY_DUPLEX, sz, 1, 0 );
+	} else {
+		key_textSize = cv::getTextSize( str, cv::FONT_HERSHEY_SIMPLEX, sz, 1, 0 );
+	}
 
+	// Calculate position for center
+	if ( centered ) {
+		key_textX = key_c0 + ( key_cW - key_textSize.width ) / 2;
+		key_textY = key_r0 + ( key_rH + key_textSize.height ) / 2 - 1;	  //+ ( cH - textSize.height ) / 2;
+	} else {
+		key_textX = key_c0 + 10;
+		key_textY = key_r0 + ( key_rH + key_textSize.height ) / 2 - 1;	  //+ ( cH - textSize.height ) / 2;
+	}
 
-
-	// Instructions
-
-
-	// Display window
-	cv::imshow( "Keyboard Shortcuts", matShortcuts );
+	// Place text
+	if ( sz >= key_fontHeader ) {
+		cv::putText( matChecklist, str, cv::Point( key_textX, key_textY ), cv::FONT_HERSHEY_DUPLEX, sz, textColor, 1 );
+	} else {
+		cv::putText( matChecklist, str, cv::Point( key_textX, key_textY ), cv::FONT_HERSHEY_SIMPLEX, sz, textColor, 1 );
+	}
 }
 
 
 
-void DisplayClass::ShowVisualizer() {
-
-	// Pre-calculate
-	ProjectedCorners.clear();	 // <-- Important: clear it each frame!
-
-	// Project corners
-	for ( const auto& pt : cubeCorners ) {
-		ProjectedCorners.push_back( ProjectIsometric( cv::Point3f( pt.z, pt.y, pt.x ) ) );	  // Swap x <-> z
-	}
-	// for ( const auto& pt : cubeCorners ) {
-	// 	ProjectedCorners.push_back( ProjectIsometric( cv::Point3f( pt.z, pt.y, pt.x ) ) );	  // Swap x <-> z
-	// }
-
-	// Create window
-	cv::namedWindow( winVisualizer, cv::WINDOW_AUTOSIZE );
-	cv::moveWindow( winVisualizer, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_VIZ_WIDTH - 6 - CONFIG_DIS_KEY_WIDTH, 0 );
-	cv::imshow( winVisualizer, matVisualizer );
-}
-
-
-// Working visualizer
-void DisplayClass::UpdateVisualizer() {
-
-
-	// Check if trail should be cleared
-	if ( shared->vizClear ) {
-		trailPoints.clear();
-		shared->vizClear = false;
-	}
-
-	// Clear canvas
-	matVisualizer = CONFIG_colWhite;
-
-
-	// Draw cube
-	for ( const auto& edge : edges ) {
-		cv::line( matVisualizer, ProjectedCorners[edge.first], ProjectedCorners[edge.second], CONFIG_colGraLt, 1 );
-	}
-
-	uint8_t markerSize = 20;
-	// Draw target square
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, -markerSize ) ), CONFIG_colGraLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, -markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
-
-	// X axis
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( 0, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( vizLimZ, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( 1000, -vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
-
-	// Y axis
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, -vizLimXY ) ), ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), ProjectIsometric( cv::Point3i( 1000, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
-
-	// Calculate camera + marker positions
-	cv::Point3i p3D		= cv::Point3i( shared->Target.positionFilteredNewMM.x, shared->Target.positionFilteredNewMM.y, shared->Target.positionFilteredNewMM.z );
-	cv::Point3i p3DInv	= cv::Point3i( shared->Target.positionFilteredNewMM.z, -shared->Target.positionFilteredNewMM.y, shared->Target.positionFilteredNewMM.x );
-	int			ptSizeX = int( float( ( 1000.0 - ( p3D.x + vizLimXY ) ) / 1000.0 ) * 10.0 );
-	int			ptSizeY = int( float( ( 1000.0 - ( -1 * p3D.y + vizLimXY ) ) / 1000.0 ) * 10.0 );
-	int			ptSizeZ = int( float( ( 1000.0 - p3D.z ) / 1000.0 ) * 10.0 );
-
-	// Line from marker to target
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, 0 ) ), ProjectIsometric( p3DInv ), CONFIG_colCyaMd, 2 );
-
-	// Moving local axis
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, p3DInv.y, vizLimXY ) ), ProjectIsometric( p3DInv ), CONFIG_colGreMd, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, vizLimXY, p3DInv.z ) ), ProjectIsometric( p3DInv ), CONFIG_colRedMd, 1 );
-	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, p3DInv.y, p3DInv.z ) ), ProjectIsometric( p3DInv ), CONFIG_colBluMd, 1 );
+/*
+ * 
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  =========================================================================================
+ *  ========================================================================================= 
+ * 
+ *   OOOOO   LL      DDDDDD
+ *  OO   OO  LL      DD    DD
+ *  OO   OO  LL      DD    DD
+ *  OO   OO  LL      DD    DD
+ *  OO   OO  LL      DD    DD
+ *  OO   OO  LL      DD    DD
+ *   OOOOO   LLLLLL  DDDDDD
+ * 
+ *  ========================================================================================= 
+ *  ========================================================================================= 
+ */
 
 
 
-	// Create color gradient
-	float zClamped = std::clamp( shared->Target.positionFilteredNewMM.z, 0.0f, 1000.0f );
-	// float intensity = 128.0f * ( zClamped / 1000.0f );
+// void DisplayClass::ShowVisualizer() {
 
-	// Add current point to trail
-	if ( trailCounter++ >= trailInterval ) {
-		trailPoints.push_back( p3DInv );
-		// trailColor.push_back( ( int )intensity );
-		trailCounter = 0;
+// 	// Pre-calculate
+// 	ProjectedCorners.clear();	 // <-- Important: clear it each frame!
 
-		// Limit trail length
-		if ( trailPoints.size() > trailLimit ) {
-			trailPoints.erase( trailPoints.begin() );
-			// trailColor.erase( trailColor.begin() );
-		}
-	}
+// 	// Project corners
+// 	for ( const auto& pt : cubeCorners ) {
+// 		ProjectedCorners.push_back( ProjectIsometric( cv::Point3f( pt.z, pt.y, pt.x ) ) );	  // Swap x <-> z
+// 	}
+// 	// for ( const auto& pt : cubeCorners ) {
+// 	// 	ProjectedCorners.push_back( ProjectIsometric( cv::Point3f( pt.z, pt.y, pt.x ) ) );	  // Swap x <-> z
+// 	// }
 
-	// Draw trail points
-	for ( int i = 0; i < trailPoints.size(); i++ ) {
-
-		float ratio		= static_cast<float>( i ) / static_cast<float>( trailPoints.size() );
-		int	  intensity = static_cast<int>( 191 * ( 1.0f - ratio ) );
-
-		// Z trail
-		cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( 0, trailPoints.at( i ).y, trailPoints.at( i ).z ) ), 2, cv::Scalar( 255, 64 + intensity, 64 + intensity ), -1 );
-
-		// Y trail
-		cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( trailPoints.at( i ).x, trailPoints.at( i ).y, vizLimXY ) ), 2, cv::Scalar( 64 + intensity, 255, 64 + intensity ), -1 );
-
-		// X trail
-		cv::circle( matVisualizer, ProjectIsometric( cv::Point3f( trailPoints.at( i ).x, vizLimXY, trailPoints.at( i ).z ) ), 2, cv::Scalar( 64 + intensity, 64 + intensity, 255 ), -1 );
-	}
-
-	// Shadow on wall
-	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, p3DInv.y, vizLimXY ) ), ptSizeX, CONFIG_colGreLt, -1 );	   // Shadow on YZ axis (right)
-	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( 0, p3DInv.y, p3DInv.z ) ), ptSizeZ, CONFIG_colBluWt, -1 );		   // Shadow on XY plane (bottom)
-	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, vizLimXY, p3DInv.z ) ), ptSizeY, CONFIG_colRedLt, -1 );	   // Shadow on XZ (screen)
-
-	// // Draw marker (last to place over other elements)
-	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 10, CONFIG_colWhite, -1 );
-	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 10, CONFIG_colBlack, 1 );
+// 	// Create window
+// 	cv::namedWindow( winVisualizer, cv::WINDOW_AUTOSIZE );
+// 	cv::moveWindow( winVisualizer, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_VIZ_WIDTH - 6 - CONFIG_DIS_KEY_WIDTH, 0 );
+// 	cv::imshow( winVisualizer, matVisualizer );
+// }
 
 
-	// Show
-	cv::imshow( "3D Visualizer", matVisualizer );
-}
+// // Working visualizer
+// void DisplayClass::UpdateVisualizer() {
+
+
+// 	// Check if trail should be cleared
+// 	if ( shared->vizClear ) {
+// 		trailPoints.clear();
+// 		shared->vizClear = false;
+// 	}
+
+// 	// Clear canvas
+// 	matVisualizer = CONFIG_colWhite;
+
+
+// 	// Draw cube
+// 	for ( const auto& edge : edges ) {
+// 		cv::line( matVisualizer, ProjectedCorners[edge.first], ProjectedCorners[edge.second], CONFIG_colGraLt, 1 );
+// 	}
+
+// 	uint8_t markerSize = 20;
+// 	// Draw target square
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, -markerSize ) ), CONFIG_colGraLt, 1 );
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -markerSize, -markerSize ) ), ProjectIsometric( cv::Point3i( 0, -markerSize, markerSize ) ), CONFIG_colGraLt, 1 );
+
+// 	// X axis
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( 0, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( vizLimZ, vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, -vizLimXY, 0 ) ), ProjectIsometric( cv::Point3i( 1000, -vizLimXY, 0 ) ), CONFIG_colRedLt, 1 );
+
+// 	// Y axis
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, -vizLimXY ) ), ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, vizLimXY ) ), ProjectIsometric( cv::Point3i( 1000, 0, vizLimXY ) ), CONFIG_colGreLt, 1 );
+
+// 	// Calculate camera + marker positions
+// 	cv::Point3i p3D		= cv::Point3i( shared->Target.positionFilteredNewMM.x, shared->Target.positionFilteredNewMM.y, shared->Target.positionFilteredNewMM.z );
+// 	cv::Point3i p3DInv	= cv::Point3i( shared->Target.positionFilteredNewMM.z, -shared->Target.positionFilteredNewMM.y, shared->Target.positionFilteredNewMM.x );
+// 	int			ptSizeX = int( float( ( 1000.0 - ( p3D.x + vizLimXY ) ) / 1000.0 ) * 10.0 );
+// 	int			ptSizeY = int( float( ( 1000.0 - ( -1 * p3D.y + vizLimXY ) ) / 1000.0 ) * 10.0 );
+// 	int			ptSizeZ = int( float( ( 1000.0 - p3D.z ) / 1000.0 ) * 10.0 );
+
+// 	// Line from marker to target
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, 0, 0 ) ), ProjectIsometric( p3DInv ), CONFIG_colCyaMd, 2 );
+
+// 	// Moving local axis
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, p3DInv.y, vizLimXY ) ), ProjectIsometric( p3DInv ), CONFIG_colGreMd, 1 );
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, vizLimXY, p3DInv.z ) ), ProjectIsometric( p3DInv ), CONFIG_colRedMd, 1 );
+// 	cv::line( matVisualizer, ProjectIsometric( cv::Point3i( 0, p3DInv.y, p3DInv.z ) ), ProjectIsometric( p3DInv ), CONFIG_colBluMd, 1 );
+
+
+
+// 	// Create color gradient
+// 	float zClamped = std::clamp( shared->Target.positionFilteredNewMM.z, 0.0f, 1000.0f );
+// 	// float intensity = 128.0f * ( zClamped / 1000.0f );
+
+// 	// Add current point to trail
+// 	if ( trailCounter++ >= trailInterval ) {
+// 		trailPoints.push_back( p3DInv );
+// 		// trailColor.push_back( ( int )intensity );
+// 		trailCounter = 0;
+
+// 		// Limit trail length
+// 		if ( trailPoints.size() > trailLimit ) {
+// 			trailPoints.erase( trailPoints.begin() );
+// 			// trailColor.erase( trailColor.begin() );
+// 		}
+// 	}
+
+// 	// Draw trail points
+// 	for ( int i = 0; i < trailPoints.size(); i++ ) {
+
+// 		float ratio		= static_cast<float>( i ) / static_cast<float>( trailPoints.size() );
+// 		int	  intensity = static_cast<int>( 191 * ( 1.0f - ratio ) );
+
+// 		// Z trail
+// 		cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( 0, trailPoints.at( i ).y, trailPoints.at( i ).z ) ), 2, cv::Scalar( 255, 64 + intensity, 64 + intensity ), -1 );
+
+// 		// Y trail
+// 		cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( trailPoints.at( i ).x, trailPoints.at( i ).y, vizLimXY ) ), 2, cv::Scalar( 64 + intensity, 255, 64 + intensity ), -1 );
+
+// 		// X trail
+// 		cv::circle( matVisualizer, ProjectIsometric( cv::Point3f( trailPoints.at( i ).x, vizLimXY, trailPoints.at( i ).z ) ), 2, cv::Scalar( 64 + intensity, 64 + intensity, 255 ), -1 );
+// 	}
+
+// 	// Shadow on wall
+// 	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, p3DInv.y, vizLimXY ) ), ptSizeX, CONFIG_colGreLt, -1 );	   // Shadow on YZ axis (right)
+// 	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( 0, p3DInv.y, p3DInv.z ) ), ptSizeZ, CONFIG_colBluWt, -1 );		   // Shadow on XY plane (bottom)
+// 	cv::circle( matVisualizer, ProjectIsometric( cv::Point3i( p3DInv.x, vizLimXY, p3DInv.z ) ), ptSizeY, CONFIG_colRedLt, -1 );	   // Shadow on XZ (screen)
+
+// 	// // Draw marker (last to place over other elements)
+// 	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 10, CONFIG_colWhite, -1 );
+// 	cv::circle( matVisualizer, ProjectIsometric( p3DInv ), 10, CONFIG_colBlack, 1 );
+
+
+// 	// Show
+// 	cv::imshow( "3D Visualizer", matVisualizer );
+// }
 
 
 
@@ -820,47 +1158,47 @@ void DisplayClass::UpdateVisualizer() {
 // }
 
 
-// Apply isometric camera transform and perspective
-cv::Point2i DisplayClass::ProjectIsometric( const cv::Point3i& p3d ) {
-	// Step 1: rotate the 3D point around X and Y axes
+// // Apply isometric camera transform and perspective
+// cv::Point2i DisplayClass::ProjectIsometric( const cv::Point3i& p3d ) {
+// 	// Step 1: rotate the 3D point around X and Y axes
 
 
-	// Rotation matrices
-	float cx = cos( elevation ), sx = sin( elevation );
-	float cy = cos( azimuth ), sy = sin( azimuth );
+// 	// Rotation matrices
+// 	float cx = cos( elevation ), sx = sin( elevation );
+// 	float cy = cos( azimuth ), sy = sin( azimuth );
 
-	// Rotate around Y axis (azimuth)
-	float x1 = p3d.x * cy + p3d.z * sy;
-	float y1 = p3d.y;
-	float z1 = -p3d.x * sy + p3d.z * cy;
+// 	// Rotate around Y axis (azimuth)
+// 	float x1 = p3d.x * cy + p3d.z * sy;
+// 	float y1 = p3d.y;
+// 	float z1 = -p3d.x * sy + p3d.z * cy;
 
-	// Then around X axis (elevation)
-	float x2 = x1;
-	float y2 = y1 * cx - z1 * sx;
-	float z2 = y1 * sx + z1 * cx;
+// 	// Then around X axis (elevation)
+// 	float x2 = x1;
+// 	float y2 = y1 * cx - z1 * sx;
+// 	float z2 = y1 * sx + z1 * cx;
 
-	// Step 2: perspective projection (same as before)
-	float x_proj = ( x2 * focalLength ) / ( z2 + 2500.0f ) + ( ( CONFIG_DIS_VIZ_WIDTH / 2 ) - 300 );
-	float y_proj = ( y2 * focalLength ) / ( z2 + 2500.0f ) + ( ( CONFIG_DIS_VIZ_HEIGHT / 2 ) - 150 );
+// 	// Step 2: perspective projection (same as before)
+// 	float x_proj = ( x2 * focalLength ) / ( z2 + 2500.0f ) + ( ( CONFIG_DIS_VIZ_WIDTH / 2 ) - 300 );
+// 	float y_proj = ( y2 * focalLength ) / ( z2 + 2500.0f ) + ( ( CONFIG_DIS_VIZ_HEIGHT / 2 ) - 150 );
 
-	return cv::Point2f( x_proj, y_proj );
-}
+// 	return cv::Point2f( x_proj, y_proj );
+// }
 
 
-cv::Point2i DisplayClass::GetForwardDirectionFromPose( const cv::Vec3d rvec, const cv::Vec3d tvec, const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, float axisLength ) {
-	// Define 3D points: origin and Z-axis point
-	std::vector<cv::Point3f> axisPoints;
-	axisPoints.push_back( cv::Point3f( 0, 0, 0 ) );				// Origin
-	axisPoints.push_back( cv::Point3f( 0, 0, axisLength ) );	// Forward along Z
+// cv::Point2i DisplayClass::GetForwardDirectionFromPose( const cv::Vec3d rvec, const cv::Vec3d tvec, const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, float axisLength ) {
+// 	// Define 3D points: origin and Z-axis point
+// 	std::vector<cv::Point3f> axisPoints;
+// 	axisPoints.push_back( cv::Point3f( 0, 0, 0 ) );				// Origin
+// 	axisPoints.push_back( cv::Point3f( 0, 0, axisLength ) );	// Forward along Z
 
-	// Project to 2D
-	std::vector<cv::Point2f> imagePoints;
-	cv::projectPoints( axisPoints, rvec, tvec, cameraMatrix, distCoeffs, imagePoints );
+// 	// Project to 2D
+// 	std::vector<cv::Point2f> imagePoints;
+// 	cv::projectPoints( axisPoints, rvec, tvec, cameraMatrix, distCoeffs, imagePoints );
 
-	// Direction vector from origin to Z point
-	cv::Point2i dir = imagePoints[1] - imagePoints[0];
-	return dir;
-}
+// 	// Direction vector from origin to Z point
+// 	cv::Point2i dir = imagePoints[1] - imagePoints[0];
+// 	return dir;
+// }
 
 
 
@@ -929,25 +1267,26 @@ cv::Point2i DisplayClass::GetForwardDirectionFromPose( const cv::Vec3d rvec, con
 // }
 
 
-void DisplayClass::CheckOptions() {
 
-	// Launch viz if requested
-	if ( shared->vizEnabled ) {
+// void DisplayClass::CheckOptions() {
 
-		// Check if window loaded
-		if ( shared->vizLoaded ) {
-			// Update
-			UpdateVisualizer();
-		} else {
-			ShowVisualizer();
-			shared->vizLoaded = true;
-		}
-	} else {
+// 	// Launch viz if requested
+// 	if ( shared->vizEnabled ) {
 
-		// Check if window loaded
-		if ( shared->vizLoaded ) {
-			shared->vizLoaded = false;
-			cv::destroyWindow( winVisualizer );
-		}
-	}
-}
+// 		// Check if window loaded
+// 		if ( shared->vizLoaded ) {
+// 			// Update
+// 			UpdateVisualizer();
+// 		} else {
+// 			ShowVisualizer();
+// 			shared->vizLoaded = true;
+// 		}
+// 	} else {
+
+// 		// Check if window loaded
+// 		if ( shared->vizLoaded ) {
+// 			shared->vizLoaded = false;
+// 			cv::destroyWindow( winVisualizer );
+// 		}
+// 	}
+// }

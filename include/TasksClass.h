@@ -84,9 +84,9 @@ private:
 	cv::Point2i errorMm		   = cv::Point2i( 0, 0 );
 
 	// Limits
-	void LimitsStart() ;
-	void LimitsUpdate() ;
-	void LimitsFinish() ;
+	void LimitsStart();
+	void LimitsUpdate();
+	void LimitsFinish();
 
 	// General
 	void InitializeInterface( taskEnum task );

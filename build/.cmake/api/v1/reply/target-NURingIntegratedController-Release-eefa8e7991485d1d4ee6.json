@@ -94,8 +94,7 @@
 				10,
 				11,
 				12,
-				13,
-				14
+				13
 			]
 		}
 	],
@@ -480,8 +479,7 @@
 				10,
 				11,
 				12,
-				13,
-				14
+				13
 			]
 		}
 	],
@@ -515,12 +513,6 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/DisplayClass.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "src/FittsClass.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{

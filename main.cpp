@@ -38,8 +38,8 @@ SerialClass		 Serial( dataHandle, 2 );				  // Serial interface
 LoggingClass	 Logging( dataHandle );					  // Logging interface
 ControllerClass	 Controller( dataHandle );				  // Controller
 KalmanClass		 Kalman( dataHandle );					  // Kalman filter
-KalmanClass		 KalmanRing( dataHandle );				  // Kalman filter
 TasksClass		 Tasks( dataHandle, Timing, Logging );	  // Tasks interface
+
 
 
 // Function prototypes
@@ -51,6 +51,12 @@ void PrintState();
 
 
 
+// SYSTEM FLAGS
+bool FLAG_PrintOpenCVBuildInfo = false;
+bool FLAG_PrintState		   = false;
+
+
+
 /**
  * @brief Main program loop
  * 
@@ -59,7 +65,7 @@ void PrintState();
 int main() {
 
 	// Testing
-	shared->Amplifier.commandedLimits = cv::Point3f( 0.4f, 0.4f, 0.4f );
+	shared->Amplifier.commandedLimits = cv::Point3f( 0.2f, 0.2f, 0.2f );
 	shared->Controller.isLimitSet	  = true;
 	shared->Calibration.isCalibrated  = false;
 
@@ -75,8 +81,10 @@ int main() {
 	std::cout.setf( std::ios::unitbuf );
 
 	// For debugging
-	// std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
-	// cv::utils::logging::setLogLevel( cv::utils::logging::LOG_LEVEL_VERBOSE );
+	if ( FLAG_PrintOpenCVBuildInfo ) {
+		std::cout << "OpenCV Build: " << cv::getBuildInformation() << std::endl;
+		cv::utils::logging::setLogLevel( cv::utils::logging::LOG_LEVEL_VERBOSE );
+	}
 
 	// Status update
 	std::cout << "\nMain:         Program running...\n\n";
@@ -85,7 +93,8 @@ int main() {
 	Timing.StartTimer();
 
 	// Add shortcut panel
-	Canvas.ShowShortcuts();
+	// Canvas.BuildKeyboardShortcuts();
+	Canvas.AddStaticDisplayPanels();
 
 	// Initialize kalman filter
 	shared->KalmanFilter.pMatrix = cv::Mat::eye( 6, 6, CV_32F ) * 1.0f;
@@ -97,7 +106,9 @@ int main() {
 	while ( shared->System.isMainRunning ) {
 
 		// For debugging
-		// PrintState();
+		if ( FLAG_PrintState ) {
+			PrintState();
+		}
 
 		// Update timer (for measuring loop frequency)
 		Timing.Update();
@@ -185,6 +196,10 @@ void SelectTask() {
 
 		case taskEnum::IDLE: {
 
+			// Defaults
+			shared->Task.command = 'z';
+			shared->Task.name	 = "";
+
 			// Do nothing
 			break;
 		}
@@ -203,36 +218,6 @@ void SelectTask() {
 			shared->Task.name = "FITTS";
 			Tasks.Fitts();
 
-
-			// // Initialize logging
-			// if ( shared->Logging.isLoggingEnabled && !shared->Logging.isLoggingActivelyRunning && shared->Task.isRunning ) {
-
-			// 	// Set logging headers
-			// 	shared->loggingHeader1 = "TouchDetected";
-			// 	shared->loggingHeader2 = "OutgoingPacket";
-			// 	shared->loggingHeader3 = "IncomingPacket";
-			// 	shared->loggingHeader4 = "Serial0Enabled,Serial0Open,Serial1Enabled,Serial1Open";
-			// 	shared->loggingHeader5 = "kpx,kpy,kix,kiy,kdx,kdy";
-
-			// 	// Start timer and logging
-			// 	Timing.TaskTimerStart();
-			// 	Logging.Initialize();
-
-			// 	shared->Logging.isLoggingActivelyRunning = true;
-
-			// }
-			// // Save logging info each loop
-			// else {
-
-			// 	shared->loggingVariable1 = std::to_string( shared->Touchscreen.isTouched );
-			// 	shared->loggingVariable2 = shared->Serial.packetOut.substr( 0, shared->Serial.packetOut.length() - 1 );
-			// 	shared->loggingVariable3 = shared->Serial.packetIn.substr( 0, shared->Serial.packetIn.length() - 1 );
-			// 	shared->loggingVariable4 = std::to_string( shared->Serial.isSerialSending ) + "," + std::to_string( shared->Serial.isSerialSendOpen ) + "," + std::to_string( shared->Serial.isSerialReceiving ) + "," + std::to_string( shared->Serial.isSerialReceiveOpen );
-			// 	shared->loggingVariable5 = shared->FormatDecimal( shared->controllerKp.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKp.y, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.y, 1, 1 ) + ","
-			// 		+ shared->FormatDecimal( shared->controllerKd.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKd.y, 1, 1 );
-			// 	Logging.AddEntry();
-			// }
-			// TaskFitts();	// Fallback to just this
 			break;
 		}
 
@@ -242,6 +227,19 @@ void SelectTask() {
 			Tasks.Calibration();
 
 			break;
+		}
+
+		case taskEnum::LIMIT: {
+			shared->Task.name = "LIMITS";
+			Tasks.Limits();
+			break;
+		}
+
+		default: {
+
+			// Defaults
+			shared->Task.command = 'z';
+			shared->Task.name	 = "";
 		}
 	}
 }
@@ -276,20 +274,7 @@ void UpdateSystem() {
 		if ( shared->Calibration.isCalibrated ) {
 
 			// Offset based on calibrated touch
-			shared->Target.positionFilteredNewMM.x = shared->Target.positionFilteredNewMM.x + shared->Calibration.calibratedOffetMM.x;
-			shared->Target.positionFilteredNewMM.y = shared->Target.positionFilteredNewMM.y + CONFIG_TARGET_OFFSET_Y_MM + shared->calibrationOffsetMM.y;
 		}
-
-		if ( shared->System.useRing ) {
-
-			std::cout << "Ring: " << shared->Ring.ringPositionMm << "   Finger: " << shared->Ring.fingerPositionMm << "   Delta: " << shared->Target.positionFilteredNewMM - shared->Ring.fingerPositionMm << "\n";
-			shared->Target.positionFilteredNewMM = shared->Target.positionFilteredNewMM - shared->Ring.fingerPositionMm - cv::Point3f( 0.0f, 25.0f, 0.0f );
-		}
-
-		// std::cout << "dE = " << shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x << "dE/dt = " << ( shared->targetMarkerPosition3dOld.x - shared->targetMarkerPosition3dNew.x ) / shared->kalmanDt << "\n" ;
-
-		// Get covariance from Kalman filter
-		// shared->kalmanP = Kalman.GetCovariance();
 	}
 }
 
@@ -333,31 +318,118 @@ void PrintState() {
 
 	// enum class stateEnum { IDLE, DRIVING_PWM, MEASURING_LIMITS, MEASURING_CURRENT, ZERO_ENCODER };
 
-	switch ( shared->System.state ) {
+	std::cout << "State tracker: ";
 
-		case stateEnum::IDLE: {
-			std::cout << "State: IDLE\n";
-			break;
-		}
-
-		case stateEnum::DRIVING_PWM: {
-			std::cout << "State: DRIVING_PWM\n";
-			break;
-		}
-
-		case stateEnum::MEASURING_LIMITS: {
-			std::cout << "State: MEASURING_LIMITS\n";
-			break;
-		}
-
-
-		case stateEnum::ZERO_ENCODER: {
-			std::cout << "State: ZERO_ENCODER\n";
-			break;
-		}
+	// System
+	if ( shared->System.state == stateEnum::IDLE ) {
+		std::cout << "System::IDLE";
+	} else if ( shared->System.state == stateEnum::DRIVING_PWM ) {
+		std::cout << "System::DRIVING_PWM";
+	} else if ( shared->System.state == stateEnum::MEASURING_LIMITS ) {
+		std::cout << "System::MEASURING_LIMITS";
+	} else if ( shared->System.state == stateEnum::ZERO_ENCODER ) {
+		std::cout << "System::ZERO_ENCODER";
+	} else {
+		std::cout << "System::ERROR!";
 	}
+
+	std::cout << "\t ";
+
+	// Task
+	if ( shared->Task.state == taskEnum::IDLE ) {
+		std::cout << "Task::IDLE";
+	} else if ( shared->Task.state == taskEnum::CALIBRATE ) {
+		std::cout << "Task::CALIBRATE";
+	} else if ( shared->Task.state == taskEnum::FITTS ) {
+		std::cout << "Task::FITTS";
+	} else if ( shared->Task.state == taskEnum::LIMIT ) {
+		std::cout << "Task::LIMIT";
+	} else {
+		std::cout << "Task::ERROR!";
+	}
+
+	std::cout << "\t ";
+
+	// Gain motor target
+	if ( shared->Input.selectGainTarget == selectGainTargetEnum::NONE ) {
+		std::cout << "GainMotorTarget::NONE";
+	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::ABD ) {
+		std::cout << "GainMotorTarget::ABD";
+	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::ADD ) {
+		std::cout << "GainMotorTarget::ADD";
+	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::FLEX ) {
+		std::cout << "GainMotorTarget::FLEX";
+	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::EXT ) {
+		std::cout << "GainMotorTarget::EXT";
+	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPA ) {
+		std::cout << "GainMotorTarget::AMPA";
+	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPB ) {
+		std::cout << "GainMotorTarget::AMPB";
+	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPC ) {
+		std::cout << "GainMotorTarget::AMPC";
+	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::LIMITS ) {
+		std::cout << "GainMotorTarget::LIMITS";
+	} else if ( shared->Input.selectGainTarget == selectGainTargetEnum::TORQUE ) {
+		std::cout << "GainMotorTarget::TORQUE";
+	} else {
+		std::cout << "GainMotorTarget::ERROR!";
+	}
+
+	std::cout << "\t ";
+
+	// Gain target
+	if ( shared->Input.selectGain == selectGainEnum::NONE ) {
+		std::cout << "SelectGain::NONE";
+	} else if ( shared->Input.selectGain == selectGainEnum::KP ) {
+		std::cout << "SelectGain::KP";
+	} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+		std::cout << "SelectGain::KI";
+	} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+		std::cout << "SelectGain::KD";
+	} else {
+		std::cout << "SelectGain::ERROR!";
+	}
+
+	std::cout << "\t ";
+
+	// Torque target
+	if ( shared->Input.selectTorqueTarget == selectTorqueTargetEnum::NONE ) {
+		std::cout << "TorqueTarget::NONE";
+	} else if ( shared->Input.selectTorqueTarget == selectTorqueTargetEnum::ABD ) {
+		std::cout << "TorqueTarget::ABD";
+	} else if ( shared->Input.selectTorqueTarget == selectTorqueTargetEnum::ADD ) {
+		std::cout << "TorqueTarget::ADD";
+	} else if ( shared->Input.selectTorqueTarget == selectTorqueTargetEnum::FLEX ) {
+		std::cout << "TorqueTarget::FLEX";
+	} else if ( shared->Input.selectTorqueTarget == selectTorqueTargetEnum::EXT ) {
+		std::cout << "TorqueTarget::EXT";
+	} else {
+		std::cout << "TorqueTarget::ERROR!";
+	}
+
+	std::cout << "\t ";
+
+	// Torque target
+	if ( shared->Input.selectLimit == selectLimitEnum::NONE ) {
+		std::cout << "SelectLimit::NONE";
+	} else if ( shared->Input.selectLimit == selectLimitEnum::AMP_A ) {
+		std::cout << "SelectLimit::AMP_A";
+	} else if ( shared->Input.selectLimit == selectLimitEnum::AMP_B ) {
+		std::cout << "SelectLimit::AMP_B";
+	} else if ( shared->Input.selectLimit == selectLimitEnum::AMP_C ) {
+		std::cout << "SelectLimit::AMP_C";
+	}
+
+	std::cout << "\n";
 }
 
+
+// enum class stateEnum { IDLE, DRIVING_PWM, MEASURING_LIMITS, ZERO_ENCODER };
+// enum class taskEnum { IDLE, CALIBRATE, FITTS, LIMIT };
+// enum class selectGainTargetEnum { NONE, ABD, ADD, FLEX, EXT, AMPA, AMPB, AMPC, TORQUE, LIMITS };
+// enum class selectGainEnum { NONE, KP, KI, KD };
+// enum class selectTorqueTargetEnum { NONE, ABD, ADD, FLEX, EXT };
+// enum class selectLimitEnum { NONE, AMP_A, AMP_B, AMP_C };
 
 /**
  * @brief Shutdown safely if error occurs
@@ -368,54 +440,3 @@ void SignalHandler( int signum ) {
 	Touch.Close();
 	exit( signum );
 }
-
-
-// /**
-//  * @brief Start fitts law testing
-//  */
-// void TaskFitts() {
-
-// 	// Initialize logging file and update entries
-// 	if ( shared->Logging.isEnabled && !shared->Logging.isRunning && shared->Task.isRunning ) {
-
-// 		// Customize header
-// 		shared->loggingHeader1 = "TouchDetected";
-// 		shared->loggingHeader2 = "OutgoingPacket";
-// 		shared->loggingHeader3 = "IncomingPacket";
-// 		shared->loggingHeader4 = "Serial0Enabled,Serial0Open,Serial1Enabled,Serial1Open";
-// 		shared->loggingHeader5 = "kpx,kpy,kix,kiy,kdx,kdy";
-
-// 		// Initialize and add initial entry
-// 		// Start timer for measuring loop frequency
-// 		Timing.TaskTimerStart();
-// 		Logging.Initialize();
-// 		// Timing.StartTimer();
-// 		// Logging.AddEntry();
-// 		shared->Logging.isRunning = true;
-
-// 	} else if ( shared->Logging.isEnabled && shared->Logging.isRunning ) {
-
-// 		shared->loggingVariable1 = std::to_string( shared->Touchscreen.isTouched );
-// 		shared->loggingVariable2 = shared->Serial.packetOut.substr( 0, shared->Serial.packetOut.length() - 1 );
-// 		shared->loggingVariable3 = shared->Serial.packetIn.substr( 0, shared->Serial.packetIn.length() - 1 );
-// 		shared->loggingVariable4 = std::to_string( shared->Serial.isSerialSending ) + "," + std::to_string( shared->Serial.isSerialSendOpen ) + "," + std::to_string( shared->Serial.isSerialReceiving ) + "," + std::to_string( shared->Serial.isSerialReceiveOpen );
-// 		shared->loggingVariable5 = shared->FormatDecimal( shared->controllerKp.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKp.y, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKi.y, 1, 1 ) + ","
-// 			+ shared->FormatDecimal( shared->controllerKd.x, 1, 1 ) + "," + shared->FormatDecimal( shared->controllerKd.y, 1, 1 );
-// 		Logging.AddEntry();
-// 	}
-
-// 	// std::cout << "0: " << shared->serialPacket0.substr( 0, shared->serialPacket0.length() ) << "  1: " << shared->serialPacket1.substr( 0, shared->serialPacket1.length() ) << "\n";
-
-// 	// Run task
-// 	if ( !shared->Task.isRunning ) {
-
-// 		shared->Task.isRunning = true;
-// 		// shared->Task.isComplete			= false;
-// 		shared->Telemetry.isTargetFound = 1;
-// 		Fitts.Initialize();
-// 		Fitts.StartTest( 'z' );	   // x , y , z, t , v, f
-// 	} else {
-// 		Timing.UpdateTaskTime();
-// 		Fitts.Update();
-// 	}
-// }

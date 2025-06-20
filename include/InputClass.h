@@ -41,9 +41,18 @@ private:
 	// Key map
 	std::unordered_map<int, std::function<void()>> keyBindings;
 
+	// Increment / decrement
+	void AdjustValue( float& target, float step, float min, float max );
+	void Increment( float& target, float step, float max );
+	void Decrement( float& target, float step, float min );
 
-	void SafeDecrement( float& target, float decrement );
-
+	void AdjustGain( float dir );
+	void AdjustGainP( float step, float min, float max );
+	void AdjustGainI( float step, float min, float max );
+	void AdjustGainD( float step, float min, float max );
+	void AdjustTension( float dir );
+	void AdjustLimits( float dir );
+	void PrintStates() ;
 
 
 	// Functions
@@ -83,4 +92,7 @@ private:
 	void K_LimitsSelectA();
 	void K_LimitsSelectB();
 	void K_LimitsSelectC();
+	void K_LimitsStart();
+	void K_LimitsReset();
+	void K_DeselectAdjustment();
 };

@@ -31,11 +31,11 @@ public:
 
 	// Public functions
 	void Update();
-	void ShowShortcuts();
-	void ShowVisualizer();
-	void UpdateVisualizer();
-	void ClearVisualizer();
-	void CheckOptions();
+	void AddStaticDisplayPanels();
+	// void ShowVisualizer();
+	// void UpdateVisualizer();
+	// void ClearVisualizer();
+	// void CheckOptions();
 
 
 	// Public variables
@@ -50,21 +50,14 @@ private:
 	SystemDataManager&			 dataHandle;
 	std::shared_ptr<ManagedData> shared;
 
-	// Private functions
-	void		ShowInterface();
-	void		AddText();
-	void		DrawCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
-	void		DrawCellBorder( std::string cell0, short width, short height, uint8_t thickness, cv::Scalar color );
-	void		DrawKeyCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
-	cv::Point2i ProjectIsometric( const cv::Point3i& p3d );
-	cv::Point2i GetForwardDirectionFromPose( const cv::Vec3d rvec, const cv::Vec3d tvec, const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, float axisLength );
-	static void onMouse( int event, int x, int y, int flags, void* userData );
+
 
 	// Window names
 	std::string winAngle	  = "Angle Visualizer";
 	std::string winInterface  = "NURing Interface";
 	std::string winShortcuts  = "Keyboard Shortcuts";
 	std::string winVisualizer = "3D Visualizer";
+	std::string winChecklist  = "Checklist";
 
 	// Private variables
 	float	 fontTitle	= 0.0f;
@@ -100,27 +93,42 @@ private:
 
 	// Visualizer settings
 	std::vector<cv::Point2i> ProjectedCorners;
-	cv::Mat					 matShortcuts  = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_KEY_WIDTH, CV_8UC3 );
-	cv::Mat					 matVisualizer = cv::Mat( CONFIG_DIS_VIZ_HEIGHT, CONFIG_DIS_VIZ_WIDTH, CV_8UC3 );
-	cv::Mat					 matAngles	   = cv::Mat( CONFIG_DIS_ANGLE_HEIGHT, CONFIG_DIS_ANGLE_WIDTH, CV_8UC3 );
-	int						 vizLimXY	   = 500;
-	int						 vizLimZ	   = 1000;
-	const float				 focalLength   = 2400.0f;		//800
-	float					 azimuth	   = CV_PI / 4;		// 45 degrees 4
-	float					 elevation	   = CV_PI / 16;	// 30 degrees 6
-
-	// Define 3D corners of a cube
-	const std::vector<cv::Point3i> cubeCorners = { { -vizLimXY, -vizLimXY, 0 }, { vizLimXY, -vizLimXY, 0 }, { vizLimXY, vizLimXY, 0 }, { -vizLimXY, vizLimXY, 0 }, { -vizLimXY, -vizLimXY, vizLimZ }, { vizLimXY, -vizLimXY, vizLimZ }, { vizLimXY, vizLimXY, vizLimZ }, { -vizLimXY, vizLimXY, vizLimZ } };
+	cv::Mat					 matShortcuts = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_KEY_WIDTH, CV_8UC3 );
+	cv::Mat					 matChecklist = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_KEY_WIDTH, CV_8UC3 );
 
 	// Variables for motor viz
 	float limA = 0.0f;
 	float limB = 0.0f;
 	float limC = 0.0f;
 
-	// Edges of 3D cube
-	const std::vector<std::pair<int, int>> edges = {
-		{ 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 },	   // bottom face
-		{ 4, 5 }, { 5, 6 }, { 6, 7 }, { 7, 4 },	   // top face
-		{ 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }	   // vertical edges
-	};
+
+	// Private functions
+	// Interface
+	void ShowInterface();
+	void BuildReadoutInterface();
+	void BuildKeyboardShortcuts();
+	void BuildChecklist();
+
+	// Drawing helper functions
+	void DrawCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
+	void DrawCellBorder( std::string cell0, short width, short height, uint8_t thickness, cv::Scalar color );
+	void DrawKeyCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
+	void DrawChecklistCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
+	
+	// Add element functions
+	void AddCameraElements();
+	void AddPidElements();
+	void AddTextTelemetry();
+	void AddTextController();
+	void AddTextSystem();
+	void AddTextAmplifier();
+	void AddTextSerial();
+	void AddTextMotorOutput();
+	void AddTextTask();
+
+
+	// Outdated visualization
+	cv::Point2i ProjectIsometric( const cv::Point3i& p3d );
+	cv::Point2i GetForwardDirectionFromPose( const cv::Vec3d rvec, const cv::Vec3d tvec, const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs, float axisLength );
+	static void onMouse( int event, int x, int y, int flags, void* userData );
 };

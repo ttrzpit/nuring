@@ -432,6 +432,73 @@ void TasksClass::FittsLoggingUpdate() {
 }
 
 
+/*
+ *
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  =========================================================================================
+ *  ========================================================================================= 
+ * 
+ *   LL     IIIIII  MM   MM  IIIIII  TTTTTTT   SSSSS
+ *   LL       II    MMM MMM    II      TT     SS
+ *   LL       II    MM M MM    II      TT     SS
+ *   LL       II    MM   MM    II      TT      SSSSS
+ *   LL       II    MM   MM    II      TT          SS
+ *   LL       II    MM   MM    II      TT          SS
+ *   LLLLL  IIIIII  MM   MM  IIIIII    TT      SSSSS
+ * 
+ *  ========================================================================================= 
+ *  ========================================================================================= 
+ */
+
+void TasksClass::Limits() {
+
+	// If the task isn't running, start it
+	if ( !shared->Task.isRunning ) {
+
+		LimitsStart();
+	} else {
+		// Update
+		LimitsUpdate();
+	}
+}
+
+
+
+void TasksClass::LimitsStart() {
+
+	// Turn off targets
+	shared->Target.activeID = 99;
+
+	// Set runtime flags
+	shared->Task.isRunning		 = true;
+	isFinishing					 = false;
+	shared->Task.name			 = "LIMITS";
+	shared->Display.statusString = "Starting limits task...";
+}
+
+
+
+void TasksClass::LimitsUpdate() {
+
+	// // Send limit value to encoders
+	// shared->Controller.commandedPercentageABC = shared->Amplifier.commandedLimits;
+}
+
+
+
+void TasksClass::LimitsFinish() {
+	shared->Task.isRunning = false;
+	shared->Task.name	   = "";
+	shared->Task.state	   = taskEnum::IDLE;
+}
+
+
+
 /* 
  *
  * 

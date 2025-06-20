@@ -7,7 +7,6 @@
 // System data manager
 #include "SystemDataManager.h"
 
-#include "FittsClass.h"
 
 // Constructor
 InputClass::InputClass( SystemDataManager& ctx )
@@ -17,7 +16,7 @@ InputClass::InputClass( SystemDataManager& ctx )
 	// Register key bindings
 	RegisterKeyBindings();
 
-	std::cout << "InputClass:   Input initialized.\n";
+	std::cout << "Input:   Input initialized.\n";
 }
 
 
@@ -27,7 +26,7 @@ void InputClass::ParseInput( int key ) {
 	if ( key != 255 ) {
 
 		// Uncomment to be able to read detected key presses
-		std::cout << "InputClass:   Detected key press, index = " << key << "\n";
+		std::cout << "Input:   Detected key press, index = " << key << "\n";
 
 		// Check if binding present
 		if ( keyBindings.count( key ) ) {
@@ -49,7 +48,7 @@ void InputClass::IncrementValueF( std::string name, float& target, float increme
 	}
 
 	// Update
-	shared->Display.statusString = "InputClass: " + name + ( ( increment > 0 ) ? " increased to " : " decreased to " ) + shared->FormatDecimal( target, 1, 2 );
+	shared->Display.statusString = "Input: " + name + ( ( increment > 0 ) ? " increased to " : " decreased to " ) + shared->FormatDecimal( target, 1, 2 );
 }
 
 
@@ -99,7 +98,7 @@ void InputClass::RegisterKeyBindings() {
 	keyBindings['p'] = [this]() { K_GainSelect_Proportional(); };
 	keyBindings['i'] = [this]() { K_GainSelect_Integral(); };
 	keyBindings['d'] = [this]() { K_GainSelect_Derivative(); };
-	keyBindings[181] = [this]() { K_GainsZero(); };
+	keyBindings[174] = [this]() { K_GainsZero(); };
 	keyBindings[61]	 = [this]() { K_TenSelect_A(); };
 	keyBindings[175] = [this]() { K_TenSelect_B(); };
 	keyBindings[170] = [this]() { K_TenSelect_C(); };
@@ -111,9 +110,12 @@ void InputClass::RegisterKeyBindings() {
 	keyBindings['f'] = [this]() { K_FittsStart(); };
 	keyBindings['g'] = [this]() { K_FittsStop(); };
 	keyBindings[196] = [this]() { K_TaskCalibrationStart(); };
-	keyBindings[185] = [this]() { K_LimitsSelectA(); };
-	keyBindings[183] = [this]() { K_LimitsSelectB(); };
-	keyBindings[178] = [this]() { K_LimitsSelectC(); };
+	keyBindings[183] = [this]() { K_LimitsSelectA(); };
+	keyBindings[185] = [this]() { K_LimitsSelectB(); };
+	keyBindings[181] = [this]() { K_LimitsSelectC(); };
+	keyBindings[176] = [this]() { K_LimitsStart(); };
+	keyBindings[141] = [this]() { K_LimitsReset(); };
+	keyBindings[8]	 = [this]() { K_DeselectAdjustment(); };
 }
 
 
@@ -144,17 +146,9 @@ void InputClass::RegisterKeyBindings() {
 
 /** KEYBOUND FUNCTIONS */
 
-void InputClass::SafeDecrement( float& target, float decrement ) {
-
-	if ( target >= abs( decrement ) ) {
-		target += decrement;
-	}
-}
-
-
 // Exit program
 void InputClass::K_Exit() {
-	shared->Display.statusString		= "InputClass: Shutting down...";
+	shared->Display.statusString		= "Input: Shutting down...";
 	shared->System.state				= stateEnum::IDLE;
 	shared->Amplifier.isAmplifierActive = false;
 	shared->Serial.isSerialSending		= false;
@@ -166,32 +160,32 @@ void InputClass::K_Exit() {
 
 void InputClass::K_SetActive1() {
 	shared->Target.activeID		 = 1;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
+	shared->Display.statusString = "Input: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_SetActive2() {
 	shared->Target.activeID		 = 2;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
+	shared->Display.statusString = "Input: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_SetActive3() {
 	shared->Target.activeID		 = 3;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
+	shared->Display.statusString = "Input: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_SetActive4() {
 	shared->Target.activeID		 = 4;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
+	shared->Display.statusString = "Input: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_SetActive5() {
 	shared->Target.activeID		 = 5;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
+	shared->Display.statusString = "Input: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_SetActiveNone() {
 	shared->Target.activeID		 = 0;
-	shared->Display.statusString = "InputClass: Updated active marker to #" + shared->Target.activeID;
+	shared->Display.statusString = "Input: Updated active marker to #" + shared->Target.activeID;
 }
 
 void InputClass::K_AmplifierToggle() {
@@ -210,36 +204,13 @@ void InputClass::K_AmplifierToggle() {
 		shared->Controller.rampPercentage = 0.0f;
 		shared->Controller.rampStartTime  = shared->Timing.elapsedRunningTime;
 		shared->System.state			  = stateEnum::DRIVING_PWM;
-		shared->Display.statusString	  = "InputClass: Amplifiers enabled.";
+		shared->Display.statusString	  = "Input: Amplifiers enabled.";
 	} else {
 		// shared->Serial.packetOut = "DX\n";
 		// shared->FLAG_PACKET_WAITING = true;
 		shared->System.state		 = stateEnum::IDLE;
-		shared->Display.statusString = "InputClass: Amplifiers disabled.";
+		shared->Display.statusString = "Input: Amplifiers disabled.";
 	}
-}
-
-void InputClass::K_AmplifierTensionToggle() {
-
-	// If tension disabled, enable
-	if ( !shared->Amplifier.isTensionOnly ) {
-
-		shared->Amplifier.isTensionOnly		= true;
-		shared->Amplifier.isAmplifierActive = true;
-		shared->System.state				= stateEnum::DRIVING_PWM;
-
-	}
-	// If tension enabled, disable
-	else {
-
-		shared->Amplifier.isTensionOnly		= false;
-		shared->Amplifier.isAmplifierActive = false;
-		// if ( shared->System.state != stateEnum::IDLE ) {
-		// 	shared->System.state = stateEnum::IDLE;
-		// }
-	}
-
-	shared->Display.statusString = "InputClass: Tension-only is " + std::string( shared->Amplifier.isTensionOnly ? "enabled." : "disabled." );
 }
 
 
@@ -251,69 +222,239 @@ void InputClass::K_SerialToggle() {
 	shared->Serial.isSerialReceiving = !shared->Serial.isSerialReceiving;
 
 	if ( shared->Serial.isSerialSending ) {
-		shared->Display.statusString	 = "InputClass: Enabling serial IO.";
+		shared->Display.statusString	 = "Input: Enabling serial IO.";
 		shared->Serial.isSerialSending	 = true;
 		shared->Serial.isSerialReceiving = true;
 	} else {
 		shared->Serial.isSerialSending	 = false;
 		shared->Serial.isSerialReceiving = false;
-		shared->Display.statusString	 = "InputClass: Disabling serial IO.";
+		shared->Display.statusString	 = "Input: Disabling serial IO.";
 	}
 }
 
-void InputClass::K_DirSelect_Abduction() {
-	shared->Input.selectGainTarget = ( shared->Input.selectGainTarget == selectGainTargetEnum::ABD ) ? selectGainTargetEnum::NONE : selectGainTargetEnum::ABD;
-	shared->Display.statusString   = "InputClass: Selected abduction axis...";
+
+void InputClass::K_DeselectAdjustment() {
+
+	shared->Input.selectedAdjustmentSystem	  = selectSystemEnum::NONE;
+	shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::NONE;
+	shared->Display.statusString			  = "Input: Adjustment systems deselected.";
 }
 
-void InputClass::K_DirSelect_Adduction() {
-	shared->Input.selectGainTarget = ( shared->Input.selectGainTarget == selectGainTargetEnum::ADD ) ? selectGainTargetEnum::NONE : selectGainTargetEnum::ADD;
-	shared->Display.statusString   = "InputClass: Selected adduction axis...";
+
+/*
+ *
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  =========================================================================================
+ *  ========================================================================================= 
+ * 
+ *   IIIIII  NN   NN   CCCCCC  RRRRRR   EEEEEEE  MM   MM  EEEEEEE  NN   NN  TTTTTTTT
+ *     II    NNN  NN  CC       RR   RR  EE       MMM MMM  EE       NNN  NN     TT
+ *     II    NN N NN  CC       RR   RR  EE       MM M MM  EE       NN N NN     TT
+ *     II    NN  NNN  CC       RRRRRR   EEEEE    MM   MM  EEEEE    NN  NNN     TT
+ *     II    NN   NN  CC       RR  RR   EE       MM   MM  EE       NN   NN     TT
+ *     II    NN   NN  CC       RR   RR  EE       MM   MM  EE       NN   NN     TT
+ *   IIIIII  NN   NN   CCCCCC  RR   RR  EEEEEEE  MM   MM  EEEEEEE  NN   NN     TT
+ * 
+ *  ========================================================================================= 
+ *  ========================================================================================= 
+ */
+
+
+
+void InputClass::K_Increment() {
+
+	PrintStates();
+
+	// Shortcut handlers
+	auto& system = shared->Input.selectedAdjustmentSystem;
+
+	// No system selected
+	if ( system == selectSystemEnum::NONE ) {
+		// Deselect subsystems
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::NONE;
+	}
+	// Gain system
+	else if ( system == selectSystemEnum::GAIN_PROPORTIONAL || system == selectSystemEnum::GAIN_INTEGRAL || system == selectSystemEnum::GAIN_DERIVATIVE ) {
+		AdjustGain( 1.0f );
+	}
+	// Tension system
+	else if ( system == selectSystemEnum::AMP_TENSION ) {
+		AdjustTension( 1.0f );
+	}
+	// Power limit system
+	else if ( system == selectSystemEnum::AMP_LIMIT ) {
+		AdjustLimits( 1.0f );
+	}
+	// Fallback
+	else {
+		std::cout << "Input: Increment error!";
+	}
 }
 
-void InputClass::K_DirSelect_Flexion() {
-	shared->Input.selectGainTarget = ( shared->Input.selectGainTarget == selectGainTargetEnum::FLEX ) ? selectGainTargetEnum::NONE : selectGainTargetEnum::FLEX;
-	shared->Display.statusString   = "InputClass: Selected flexion axis...";
+
+
+void InputClass::K_Decrement() {
+
+	PrintStates();
+
+	// Shortcut handlers
+	auto& system = shared->Input.selectedAdjustmentSystem;
+
+
+	// No system selected
+	if ( system == selectSystemEnum::NONE ) {
+
+		// Deselect subsystems
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::NONE;
+	}
+	// Gain system
+	else if ( system == selectSystemEnum::GAIN_PROPORTIONAL || system == selectSystemEnum::GAIN_INTEGRAL || system == selectSystemEnum::GAIN_DERIVATIVE ) {
+		AdjustGain( -1.0f );
+	}
+	// Tension system
+	else if ( system == selectSystemEnum::AMP_TENSION ) {
+
+		AdjustTension( -1.0f );
+	}
+	// Power limit system
+	else if ( system == selectSystemEnum::AMP_LIMIT ) {
+
+		AdjustLimits( -1.0f );
+	}
+	// Fallback
+	else {
+		std::cout << "Input: System target not understood.\n";
+	}
 }
 
-void InputClass::K_DirSelect_Extension() {
-	shared->Input.selectGainTarget = ( shared->Input.selectGainTarget == selectGainTargetEnum::EXT ) ? selectGainTargetEnum::NONE : selectGainTargetEnum::EXT;
-	shared->Display.statusString   = "InputClass: Selected extension axis...";
+
+void InputClass::AdjustValue( float& target, float step, float min, float max ) {
+
+	// Increment
+	if ( step > 0 ) {
+
+		// Check bounds
+		if ( ( target + step ) < max ) {
+			target += step;
+		}
+
+	} else if ( step < 0 ) {
+
+		// Check bounds
+		if ( target >= abs( step ) ) {
+			target += step;
+		}
+	}
 }
 
-void InputClass::K_TenSelect_A() {
-	shared->Input.selectGainTarget = ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPA ) ? selectGainTargetEnum::NONE : selectGainTargetEnum::AMPA;
-	shared->Input.selectGain	   = selectGainEnum::NONE;
-	shared->Display.statusString   = "InputClass: Selected tension A gain...";
-	shared->Vibration.isRunning	   = !shared->Vibration.isRunning;
+
+
+void InputClass::K_EncoderZero() {
+
+	shared->System.state		 = stateEnum::ZERO_ENCODER;
+	shared->Display.statusString = "Input: Encoder values set to zero.";
 }
 
-void InputClass::K_TenSelect_B() {
-	shared->Input.selectGainTarget = ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPB ) ? selectGainTargetEnum::NONE : selectGainTargetEnum::AMPB;
-	shared->Input.selectGain	   = selectGainEnum::NONE;
-	shared->Display.statusString   = "InputClass: Selected tension B gain...";
+
+void InputClass::K_EncoderMeasureLimit() {
+
+
+	shared->Amplifier.isMeasuringEncoderLimit = true;
+	// shared->Amplifier.isLimitSet			  = false;
+	shared->Amplifier.encoderLimitDegA = 0.0f;
+	shared->Amplifier.encoderLimitDegB = 0.0f;
+	shared->Amplifier.encoderLimitDegC = 0.0f;
+
+	shared->Display.statusString = "Input: Measuring Encoder limits.";
 }
 
-void InputClass::K_TenSelect_C() {
-	shared->Input.selectGainTarget = ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPC ) ? selectGainTargetEnum::NONE : selectGainTargetEnum::AMPC;
-	shared->Input.selectGain	   = selectGainEnum::NONE;
-	shared->Display.statusString   = "InputClass: Selected tension C gain...";
+void InputClass::K_EncoderSetLimit() {
+
+	shared->Amplifier.isLimitSet			  = true;
+	shared->Amplifier.isMeasuringEncoderLimit = false;
+	shared->Display.statusString			  = "Input: Encoder limit set.";
 }
+
+
+void InputClass::K_TaskCalibrationStart() {
+
+	// Update state
+	shared->Task.state			 = taskEnum::CALIBRATE;
+	shared->Display.statusString = "Input: Starting calibration.";
+}
+
+
+void InputClass::K_FittsStart() {
+	// Run fitts-law test
+	shared->Target.activeID		   = 1;
+	shared->Target.isTargetReset   = true;
+	shared->Controller.isRampingUp = true;
+	shared->Touchscreen.isTouched  = 0;
+	shared->Task.isRunning		   = false;
+	shared->Task.state			   = taskEnum::FITTS;
+	shared->Task.repetitionNumber++;
+	shared->Display.statusString = "Input: Starting fitts test.";
+}
+
+
+void InputClass::K_FittsStop() {
+
+	shared->Touchscreen.isTouched = 1;
+	// shared->Task.state			  = taskEnum::IDLE;
+	shared->Display.statusString = "Input: Ending fitts test.";
+}
+
+
+/*
+ *
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  ===========================================
+ *  ===========================================
+ * 
+ *   GGGGGG     AAA    IIIIII  NN   NN   SSSSS
+ *  GG         AA AA     II    NNN  NN  SS
+ *  GG         AA AA     II    NN N NN  SS
+ *  GG   GGG  AAAAAAA    II    NN  NNN   SSSSS
+ *  GG    GG  AA   AA    II    NN   NN       SS
+ *  GG    GG  AA   AA    II    NN   NN       SS
+ *   GGGGGG   AA   AA  IIIIII  NN   NN   SSSSS
+ * 
+ *  ===========================================
+ *  ===========================================
+ */
+
 
 
 void InputClass::K_GainSelect_Proportional() {
-	shared->Input.selectGain	 = selectGainEnum::KP;
-	shared->Display.statusString = "InputClass: Selected proportional gain...";
+
+	shared->Input.selectedAdjustmentSystem	  = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::GAIN_PROPORTIONAL ) ? selectSystemEnum::NONE : selectSystemEnum::GAIN_PROPORTIONAL;
+	shared->Input.selectedAdjustmentSubsystem = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::GAIN_PROPORTIONAL ) ? selectSubsystemEnum::ALL : selectSubsystemEnum::NONE;
+	shared->Display.statusString			  = "Input: Selected proportional gain...";
 }
 
 void InputClass::K_GainSelect_Integral() {
-	shared->Input.selectGain	 = selectGainEnum::KI;
-	shared->Display.statusString = "InputClass: Selected integral gain...";
+	shared->Input.selectedAdjustmentSystem	  = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::GAIN_INTEGRAL ) ? selectSystemEnum::NONE : selectSystemEnum::GAIN_INTEGRAL;
+	shared->Input.selectedAdjustmentSubsystem = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::GAIN_INTEGRAL ) ? selectSubsystemEnum::ALL : selectSubsystemEnum::NONE;
+	shared->Display.statusString			  = "Input: Selected integral gain...";
 }
 
 void InputClass::K_GainSelect_Derivative() {
-	shared->Input.selectGain	 = selectGainEnum::KD;
-	shared->Display.statusString = "InputClass: Selected derivative gain...";
+	shared->Input.selectedAdjustmentSystem	  = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::GAIN_DERIVATIVE ) ? selectSystemEnum::NONE : selectSystemEnum::GAIN_DERIVATIVE;
+	shared->Input.selectedAdjustmentSubsystem = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::GAIN_DERIVATIVE ) ? selectSubsystemEnum::ALL : selectSubsystemEnum::NONE;
+	shared->Display.statusString			  = "Input: Selected derivative gain...";
 }
 
 void InputClass::K_GainsZero() {
@@ -330,526 +471,241 @@ void InputClass::K_GainsZero() {
 	shared->Controller.gainKd.add = 0.0f;
 	shared->Controller.gainKd.flx = 0.0f;
 	shared->Controller.gainKd.ext = 0.0f;
-	shared->Display.statusString  = "InputClass: Gains set to zero.";
+	shared->Display.statusString  = "Input: Gains set to zero.";
 }
 
-void InputClass::K_Increment() {
+void InputClass::K_DirSelect_Abduction() {
 
-	// Handler for gains
-	auto& gains = shared->Controller;
+	shared->Input.selectedAdjustmentSubsystem = ( shared->Input.selectedAdjustmentSubsystem == selectSubsystemEnum::ABD ) ? selectSubsystemEnum::NONE : selectSubsystemEnum::ABD;
+	shared->Display.statusString			  = "Input: Selected abduction axis...";
+}
 
-	// Increment value
-	float increment = 0.0f;
+void InputClass::K_DirSelect_Adduction() {
+	shared->Input.selectedAdjustmentSubsystem = ( shared->Input.selectedAdjustmentSubsystem == selectSubsystemEnum::ADD ) ? selectSubsystemEnum::NONE : selectSubsystemEnum::ADD;
+	shared->Display.statusString			  = "Input: Selected adduction axis...";
+}
 
-	// Select appropriate increment for PID gains
-	if ( shared->Input.selectGain == selectGainEnum::KP ) {
-		increment = 0.1f;
+void InputClass::K_DirSelect_Flexion() {
+	shared->Input.selectedAdjustmentSubsystem = ( shared->Input.selectedAdjustmentSubsystem == selectSubsystemEnum::FLEX ) ? selectSubsystemEnum::NONE : selectSubsystemEnum::FLEX;
+	shared->Display.statusString			  = "Input: Selected flexion axis...";
+}
 
-	} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-		increment = 0.1f;
+void InputClass::K_DirSelect_Extension() {
+	shared->Input.selectedAdjustmentSubsystem = ( shared->Input.selectedAdjustmentSubsystem == selectSubsystemEnum::EXT ) ? selectSubsystemEnum::NONE : selectSubsystemEnum::EXT;
+	shared->Display.statusString			  = "Input: Selected extension axis...";
+}
 
-	} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-		increment = 0.01f;
+void InputClass::AdjustGain( float dir ) {
 
-	} else if ( shared->Input.selectGain == selectGainEnum::NONE ) {
-		increment = 0.0f;
+	// Shortcut handlers
+	auto& system = shared->Input.selectedAdjustmentSystem;
 
-	} else {
-		increment = 0.01f;
-	}
+	// Params
+	float step = 0.0f;
+	float min  = 0.0f;
+	float max  = 1.0f;
 
-	// Select appropriate increment for tension gains
-	if ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPA || shared->Input.selectGainTarget == selectGainTargetEnum::AMPB || shared->Input.selectGainTarget == selectGainTargetEnum::AMPC ) {
-		increment = 0.01;
-	}
+	// Select gain system
+	switch ( system ) {
 
-	switch ( shared->Input.selectGainTarget ) {
-
-		// Abduction
-		case selectGainTargetEnum::ABD: {
-
-			if ( shared->Input.selectGain == selectGainEnum::KP ) {
-				gains.gainKp.abd += increment;
-				shared->Display.statusString = "InputClass: Abduction Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.abd, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-				gains.gainKi.abd += increment;
-				shared->Display.statusString = "InputClass: Abduction Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.abd, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-				gains.gainKd.abd += increment;
-				shared->Display.statusString = "InputClass: Abduction Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.abd, 2, 2 );
-			}
+		// Adjust proportional
+		case ( selectSystemEnum::GAIN_PROPORTIONAL ): {
+			std::cout << "Selecting prop\n";
+			step = 0.1f * dir;
+			min	 = 0.0f;
+			max	 = 5.0f;
+			AdjustGainP( step, min, max );
 			break;
 		}
 
-		// Adduction
-		case selectGainTargetEnum::ADD: {
-
-			if ( shared->Input.selectGain == selectGainEnum::KP ) {
-				gains.gainKp.add += increment;
-				shared->Display.statusString = "InputClass: Adduction Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.add, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-				gains.gainKi.add += increment;
-				shared->Display.statusString = "InputClass: Adduction Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.add, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-				gains.gainKd.add += increment;
-				shared->Display.statusString = "InputClass: Adduction Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.add, 2, 2 );
-			}
+		// Adjust Integral
+		case ( selectSystemEnum::GAIN_INTEGRAL ): {
+			step = 0.1f * dir;
+			min	 = 0.0f;
+			max	 = 5.0f;
+			AdjustGainI( step, min, max );
 			break;
 		}
 
-		// Flexion
-		case selectGainTargetEnum::FLEX: {
-
-			if ( shared->Input.selectGain == selectGainEnum::KP ) {
-				gains.gainKp.flx += increment;
-				shared->Display.statusString = "InputClass: Flexion Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.flx, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-				gains.gainKi.flx += increment;
-				shared->Display.statusString = "InputClass: Flexion Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.flx, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-				gains.gainKd.flx += increment;
-				shared->Display.statusString = "InputClass: Flexion Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.flx, 2, 2 );
-			}
-			break;
-		}
-
-		// Extension
-		case selectGainTargetEnum::EXT: {
-
-			if ( shared->Input.selectGain == selectGainEnum::KP ) {
-				gains.gainKp.ext += increment;
-				shared->Display.statusString = "InputClass: Extension Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.ext, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-				gains.gainKi.ext += increment;
-				shared->Display.statusString = "InputClass: Extension Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.ext, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-				gains.gainKd.ext += increment;
-				shared->Display.statusString = "InputClass: Extension Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.ext, 2, 2 );
-			}
-			break;
-		}
-
-
-		// Amp A
-		case selectGainTargetEnum::AMPA: {
-
-			gains.commandedTensionABC.x += increment;
-			shared->Display.statusString = "InputClass: Tension A increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.x, 2, 2 );
-
-			break;
-		}
-
-		// Amp B
-		case selectGainTargetEnum::AMPB: {
-
-			gains.commandedTensionABC.y += increment;
-			shared->Display.statusString = "InputClass: Tension B increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.y, 2, 2 );
-
-			break;
-		}
-
-		// Amp C
-		case selectGainTargetEnum::AMPC: {
-
-			gains.commandedTensionABC.z += increment;
-			shared->Display.statusString = "InputClass: Tension C increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.z, 2, 2 );
-
-			break;
-		}
-
-		// Torque limits
-		case selectGainTargetEnum::TORQUE: {
-
-			// Deselect active marker
-			shared->Target.activeID = 0;
-
-			// Pick direction
-			switch ( shared->Input.selectTorqueTarget ) {
-
-				// Abduction (left)
-				case selectTorqueTargetEnum::ABD: {
-
-					// Increment virtual error
-					shared->Target.positionFilteredNewMM.x -= increment;
-
-					if ( shared->Controller.commandedPercentageABC.y > shared->Amplifier.commandedLimits.y ) {
-						shared->Amplifier.commandedLimits.y = shared->Controller.commandedPercentageABC.y;
-					}
-
-					if ( shared->Controller.commandedPercentageABC.z > shared->Amplifier.commandedLimits.z ) {
-						shared->Amplifier.commandedLimits.z = shared->Controller.commandedPercentageABC.z;
-					}
-
-					break;
-				}
-			}
-		}
-
-		// Amplifier Limits
-		case selectGainTargetEnum::LIMITS: {
-
-			switch ( shared->Input.selectLimit ) {
-
-				// Amplifier A
-				case selectLimitEnum::AMP_A: {
-
-					// Only increment if under limit
-					if ( shared->Amplifier.commandedLimits.x < 0.99f ) {
-						shared->Amplifier.commandedLimits.x += 0.01f;
-						shared->Display.statusString = "InputClass: Motor A max power increased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
-					}
-
-					break;
-				}
-
-				// Amplifier B
-				case selectLimitEnum::AMP_B: {
-
-					// Only increment if under limit
-					if ( shared->Amplifier.commandedLimits.y < 0.99f ) {
-						shared->Amplifier.commandedLimits.y += 0.01f;
-						shared->Display.statusString = "InputClass: Motor B max power increased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.y, 2, 2 );
-					}
-
-					break;
-				}
-
-				// Amplifier C
-				case selectLimitEnum::AMP_C: {
-
-					// Only increment if under limit
-					if ( shared->Amplifier.commandedLimits.z < 0.99f ) {
-						shared->Amplifier.commandedLimits.z += 0.01f;
-						shared->Display.statusString = "InputClass: Motor C max power increased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.z, 2, 2 );
-					}
-
-					break;
-				}
-			}
-
-
-			break;
-		}
-
-		// None
-		case selectGainTargetEnum::NONE: {
-
-			if ( shared->Input.selectGain == selectGainEnum::KP ) {
-				gains.gainKp.abd += increment;
-				gains.gainKp.add += increment;
-				gains.gainKp.flx += increment;
-				gains.gainKp.ext += increment;
-				shared->Display.statusString = "InputClass: Kp increased.";
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-				gains.gainKi.abd += increment;
-				gains.gainKi.add += increment;
-				gains.gainKi.flx += increment;
-				gains.gainKi.ext += increment;
-				shared->Display.statusString = "InputClass: Ki increased.";
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-				gains.gainKd.abd += increment;
-				gains.gainKd.add += increment;
-				gains.gainKd.flx += increment;
-				gains.gainKd.ext += increment;
-				shared->Display.statusString = "InputClass: Kd increased.";
-			}
+		// Adjust Derivative
+		case ( selectSystemEnum::GAIN_DERIVATIVE ): {
+			step = 0.05f * dir;
+			min	 = 0.0f;
+			max	 = 5.0f;
+			AdjustGainD( step, min, max );
 			break;
 		}
 
 		default: {
-
-			// Shouldn't be here...
+			std::cout << "Input: Error in AdjustGain!\n";
 			break;
 		}
 	}
 }
 
-void InputClass::K_Decrement() {
 
-	// Handler for gains
-	auto& gains = shared->Controller;
 
-	// Increment value
-	float increment = 0.0f;
+void InputClass::AdjustGainP( float step, float min, float max ) {
 
-	// Select appropriate increment for PID gains
-	if ( shared->Input.selectGain == selectGainEnum::KP ) {
-		increment = 0.1f;
+	// Shortcut handlers
+	auto& subsystem = shared->Input.selectedAdjustmentSubsystem;
+	auto& kp		= shared->Controller.gainKp;
 
-	} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-		increment = 0.1f;
+	switch ( subsystem ) {
 
-	} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-		increment = 0.01f;
-
-	} else if ( shared->Input.selectGain == selectGainEnum::NONE ) {
-		increment = 0.0f;
-
-	} else {
-		increment = 0.0f;
-	}
-
-	// Select appropriate increment for tension gains
-	if ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPA || shared->Input.selectGainTarget == selectGainTargetEnum::AMPB || shared->Input.selectGainTarget == selectGainTargetEnum::AMPC ) {
-		increment = 0.01;
-	}
-
-	increment = increment * -1.0f;
-
-	switch ( shared->Input.selectGainTarget ) {
-
-		// Abduction
-		case selectGainTargetEnum::ABD: {
-
-			if ( shared->Input.selectGain == selectGainEnum::KP ) {
-				SafeDecrement( gains.gainKp.abd, increment );
-				shared->Display.statusString = "InputClass: Abduction Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.abd, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-				SafeDecrement( gains.gainKi.abd, increment );
-				shared->Display.statusString = "InputClass: Abduction Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.abd, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-				SafeDecrement( gains.gainKd.abd, increment );
-				shared->Display.statusString = "InputClass: Abduction Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.abd, 2, 2 );
-			}
+		// Adjust all
+		case ( selectSubsystemEnum::ALL ): {
+			std::cout << "all\n";
+			AdjustValue( kp.abd, step, min, max );
+			AdjustValue( kp.add, step, min, max );
+			AdjustValue( kp.flx, step, min, max );
+			AdjustValue( kp.ext, step, min, max );
 			break;
 		}
 
-		// Adduction
-		case selectGainTargetEnum::ADD: {
-
-			if ( shared->Input.selectGain == selectGainEnum::KP ) {
-				SafeDecrement( gains.gainKp.add, increment );
-				shared->Display.statusString = "InputClass: Adduction Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.add, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-				SafeDecrement( gains.gainKi.add, increment );
-				shared->Display.statusString = "InputClass: Adduction Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.add, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-				SafeDecrement( gains.gainKd.add, increment );
-				shared->Display.statusString = "InputClass: Adduction Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.add, 2, 2 );
-			}
+		// Adjust abd
+		case ( selectSubsystemEnum::ABD ): {
+			std::cout << "abd\n";
+			AdjustValue( kp.abd, step, min, max );
 			break;
 		}
 
-		// Flexion
-		case selectGainTargetEnum::FLEX: {
-
-			if ( shared->Input.selectGain == selectGainEnum::KP ) {
-				SafeDecrement( gains.gainKp.flx, increment );
-				shared->Display.statusString = "InputClass: Flexion Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.flx, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-				SafeDecrement( gains.gainKi.flx, increment );
-				shared->Display.statusString = "InputClass: Flexion Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.flx, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-				SafeDecrement( gains.gainKd.flx, increment );
-				shared->Display.statusString = "InputClass: Flexion Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.flx, 2, 2 );
-			}
+		// Adjust add
+		case ( selectSubsystemEnum::ADD ): {
+			AdjustValue( kp.add, step, min, max );
 			break;
 		}
 
-		// Extension
-		case selectGainTargetEnum::EXT: {
-
-			if ( shared->Input.selectGain == selectGainEnum::KP ) {
-				SafeDecrement( gains.gainKp.ext, increment );
-				shared->Display.statusString = "InputClass: Extension Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.ext, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-				SafeDecrement( gains.gainKi.ext, increment );
-				shared->Display.statusString = "InputClass: Extension Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.ext, 2, 2 );
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-				SafeDecrement( gains.gainKd.ext, increment );
-				shared->Display.statusString = "InputClass: Extension Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.ext, 2, 2 );
-			}
+		// Adjust ext
+		case ( selectSubsystemEnum::EXT ): {
+			AdjustValue( kp.ext, step, min, max );
 			break;
 		}
 
-
-		// Amp A
-		case selectGainTargetEnum::AMPA: {
-
-			SafeDecrement( gains.commandedTensionABC.x, increment );
-			// gains.commandedTensionABC.x += increment;
-			shared->Display.statusString = "InputClass: Tension A increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.x, 2, 2 );
-
+		// Adjust flx
+		case ( selectSubsystemEnum::FLEX ): {
+			AdjustValue( kp.flx, step, min, max );
 			break;
 		}
 
-		// Amp B
-		case selectGainTargetEnum::AMPB: {
-
-			SafeDecrement( gains.commandedTensionABC.y, increment );
-			shared->Display.statusString = "InputClass: Tension B increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.y, 2, 2 );
-
-			break;
-		}
-
-		// Amp C
-		case selectGainTargetEnum::AMPC: {
-
-			SafeDecrement( gains.commandedTensionABC.z, increment );
-			shared->Display.statusString = "InputClass: Tension C increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.z, 2, 2 );
-
-			break;
-		}
-
-
-
-		// Amplifier Limits
-		case selectGainTargetEnum::LIMITS: {
-
-			switch ( shared->Input.selectLimit ) {
-
-				// Amplifier A
-				case selectLimitEnum::AMP_A: {
-
-					// Only decrement if under limit
-					if ( shared->Amplifier.commandedLimits.x > 0.01f ) {
-						SafeDecrement( shared->Amplifier.commandedLimits.x, -0.01f );
-						shared->Display.statusString = "InputClass: Motor A max power decreased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
-					}
-
-					break;
-				}
-
-				// Amplifier B
-				case selectLimitEnum::AMP_B: {
-
-					// Only decrement if under limit
-					if ( shared->Amplifier.commandedLimits.y > 0.01f ) {
-						SafeDecrement( shared->Amplifier.commandedLimits.y, -0.01f );
-						shared->Display.statusString = "InputClass: Motor A max power decreased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
-					}
-
-					break;
-				}
-
-				// Amplifier C
-				case selectLimitEnum::AMP_C: {
-
-					// Only decrement if under limit
-					if ( shared->Amplifier.commandedLimits.z > 0.01f ) {
-						SafeDecrement( shared->Amplifier.commandedLimits.z, -0.01f );
-						shared->Display.statusString = "InputClass: Motor A max power decreased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
-					}
-
-					break;   
-				}
-			}
-		}
-
-
-
-		// None
-		case selectGainTargetEnum::NONE: {
-
-			if ( shared->Input.selectGain == selectGainEnum::KP ) {
-				SafeDecrement( gains.gainKp.add, increment );
-				SafeDecrement( gains.gainKp.abd, increment );
-				SafeDecrement( gains.gainKp.flx, increment );
-				SafeDecrement( gains.gainKp.ext, increment );
-				shared->Display.statusString = "InputClass: Kp decreased.";
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
-				SafeDecrement( gains.gainKi.add, increment );
-				SafeDecrement( gains.gainKi.abd, increment );
-				SafeDecrement( gains.gainKi.flx, increment );
-				SafeDecrement( gains.gainKi.ext, increment );
-				shared->Display.statusString = "InputClass: Ki decreased.";
-
-			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
-				SafeDecrement( gains.gainKd.add, increment );
-				SafeDecrement( gains.gainKd.abd, increment );
-				SafeDecrement( gains.gainKd.flx, increment );
-				SafeDecrement( gains.gainKd.ext, increment );
-				shared->Display.statusString = "InputClass: Kd decreased.";
-			}
-			break;
-		}
-
-
-		default: {
-
-			// Shouldn't be here...
+		// Adjust none
+		case ( selectSubsystemEnum::NONE ): {
 			break;
 		}
 	}
 }
 
-void InputClass::K_EncoderZero() {
-
-	shared->System.state		 = stateEnum::ZERO_ENCODER;
-	shared->Display.statusString = "InputClass: Encoder values set to zero.";
-}
 
 
-void InputClass::K_EncoderMeasureLimit() {
+void InputClass::AdjustGainI( float step, float min, float max ) {
 
+	// Shortcut handlers
+	auto& subsystem = shared->Input.selectedAdjustmentSubsystem;
+	auto& ki		= shared->Controller.gainKi;
 
-	shared->Amplifier.isMeasuringEncoderLimit = true;
-	// shared->Amplifier.isLimitSet			  = false;
-	shared->Amplifier.encoderLimitDegA = 0.0f;
-	shared->Amplifier.encoderLimitDegB = 0.0f;
-	shared->Amplifier.encoderLimitDegC = 0.0f;
+	switch ( subsystem ) {
 
-	shared->Display.statusString = "InputClass: Measuring Encoder limits.";
-}
+		// Adjust all
+		case ( selectSubsystemEnum::ALL ): {
+			AdjustValue( ki.abd, step, min, max );
+			AdjustValue( ki.add, step, min, max );
+			AdjustValue( ki.flx, step, min, max );
+			AdjustValue( ki.ext, step, min, max );
+			break;
+		}
 
-void InputClass::K_EncoderSetLimit() {
+		// Adjust abd
+		case ( selectSubsystemEnum::ABD ): {
+			AdjustValue( ki.abd, step, min, max );
+			break;
+		}
 
-	shared->Amplifier.isLimitSet			  = true;
-	shared->Amplifier.isMeasuringEncoderLimit = false;
-	shared->Display.statusString			  = "InputClass: Encoder limit set.";
-}
+		// Adjust add
+		case ( selectSubsystemEnum::ADD ): {
+			AdjustValue( ki.add, step, min, max );
+			break;
+		}
 
+		// Adjust ext
+		case ( selectSubsystemEnum::EXT ): {
+			AdjustValue( ki.ext, step, min, max );
+			break;
+		}
 
-void InputClass::K_TaskCalibrationStart() {
+		// Adjust flx
+		case ( selectSubsystemEnum::FLEX ): {
+			AdjustValue( ki.flx, step, min, max );
+			break;
+		}
 
-	// Update state
-	shared->Task.state			 = taskEnum::CALIBRATE;
-	shared->Display.statusString = "InputClass: Starting calibration.";
-}
-
-
-void InputClass::K_FittsStart() {
-	// Run fitts-law test
-	shared->Target.activeID		   = 1;
-	shared->Target.isTargetReset   = true;
-	shared->Controller.isRampingUp = true;
-	shared->Touchscreen.isTouched  = 0;
-	shared->Task.isRunning		   = false;
-	shared->Task.state			   = taskEnum::FITTS;
-	shared->Task.repetitionNumber++;
-	shared->Display.statusString = "InputClass: Starting fitts test.";
-}
-
-
-void InputClass::K_FittsStop() {
-
-	shared->Touchscreen.isTouched = 1;
-	// shared->Task.state			  = taskEnum::IDLE;
-	shared->Display.statusString = "InputClass: Ending fitts test.";
+		// Adjust none
+		case ( selectSubsystemEnum::NONE ): {
+			break;
+		}
+	}
 }
 
 
 
-/* ===================================================
+void InputClass::AdjustGainD( float step, float min, float max ) {
+
+	// Shortcut handlers
+	auto& subsystem = shared->Input.selectedAdjustmentSubsystem;
+	auto& kd		= shared->Controller.gainKd;
+
+	switch ( subsystem ) {
+
+		// Adjust all
+		case ( selectSubsystemEnum::ALL ): {
+			AdjustValue( kd.abd, step, min, max );
+			AdjustValue( kd.add, step, min, max );
+			AdjustValue( kd.flx, step, min, max );
+			AdjustValue( kd.ext, step, min, max );
+			break;
+		}
+
+		// Adjust abd
+		case ( selectSubsystemEnum::ABD ): {
+			AdjustValue( kd.abd, step, min, max );
+			break;
+		}
+
+		// Adjust add
+		case ( selectSubsystemEnum::ADD ): {
+			AdjustValue( kd.add, step, min, max );
+			break;
+		}
+
+		// Adjust ext
+		case ( selectSubsystemEnum::EXT ): {
+			AdjustValue( kd.ext, step, min, max );
+			break;
+		}
+
+		// Adjust flx
+		case ( selectSubsystemEnum::FLEX ): {
+			AdjustValue( kd.flx, step, min, max );
+			break;
+		}
+
+		// Adjust none
+		case ( selectSubsystemEnum::NONE ): {
+			break;
+		}
+	}
+}
+
+
+
+/* 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  ===================================================
  *  ==================================================
  * 
  *   LL    IIIIII  MM     MM  IIIIII  TTTTTTT   SSSSS
@@ -865,270 +721,797 @@ void InputClass::K_FittsStop() {
  */
 
 
+
+void InputClass::AdjustLimits( float dir ) {
+
+	// Shortcut handlers
+	auto& subsystem = shared->Input.selectedAdjustmentSubsystem;
+	auto& amp		= shared->Amplifier.commandedLimits;
+
+	// Params
+	float step = 0.01f * dir;
+	float min  = 0.0f;
+	float max  = 1.0f;
+
+	// Select gain system
+	switch ( subsystem ) {
+
+		// Adjust amp A
+		case ( selectSubsystemEnum::AMP_A ): {
+			AdjustValue( amp.x, step, min, max );
+			break;
+		}
+
+		// Adjust amp B
+		case ( selectSubsystemEnum::AMP_B ): {
+			AdjustValue( amp.y, step, min, max );
+			break;
+		}
+
+		// Adjust amp C
+		case ( selectSubsystemEnum::AMP_C ): {
+			AdjustValue( amp.z, step, min, max );
+			break;
+		}
+
+		// Adjust amp C
+		case ( selectSubsystemEnum::ALL ): {
+			AdjustValue( amp.x, step, min, max );
+			AdjustValue( amp.y, step, min, max );
+			AdjustValue( amp.z, step, min, max );
+			break;
+		}
+
+		default: {
+			std::cout << "Input: Error in AdjustLimits!\n";
+			break;
+		}
+	}
+}
+
+
+void InputClass::K_LimitsStart() {
+
+	// Start if not runnign
+	if ( shared->Input.selectedAdjustmentSystem != selectSystemEnum::AMP_LIMIT ) {
+		shared->Amplifier.isAmplifierActive		  = true;
+		shared->Amplifier.isTensionOnly			  = false;
+		shared->Input.selectedAdjustmentSystem	  = selectSystemEnum::AMP_LIMIT;
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::ALL;
+		shared->System.state					  = stateEnum::MEASURING_LIMITS;
+		shared->Task.state						  = taskEnum::LIMIT;
+		shared->Task.name						  = "LIMITS";
+		shared->Display.statusString			  = "Input: Setting limits...";
+	} else {
+		shared->Amplifier.isLimitSet			  = true;
+		shared->Target.activeID					  = 0;
+		shared->Amplifier.isAmplifierActive		  = false;
+		shared->Input.selectedAdjustmentSystem	  = selectSystemEnum::NONE;
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::NONE;
+		shared->System.state					  = stateEnum::IDLE;
+		shared->Task.state						  = taskEnum::IDLE;
+		shared->Task.name						  = "";
+		shared->Display.statusString			  = "Input: Finished with limits...";
+	}
+}
+
 void InputClass::K_LimitsSelectA() {
 
 	shared->Input.selectLimit	   = ( shared->Input.selectLimit == selectLimitEnum::AMP_A ) ? selectLimitEnum::NONE : selectLimitEnum::AMP_A;
 	shared->Input.selectGainTarget = selectGainTargetEnum::LIMITS;
+	shared->Display.statusString   = "Input: Setting limits for Motor A.";
 }
 
 void InputClass::K_LimitsSelectB() {
 
 	shared->Input.selectLimit	   = ( shared->Input.selectLimit == selectLimitEnum::AMP_B ) ? selectLimitEnum::NONE : selectLimitEnum::AMP_B;
 	shared->Input.selectGainTarget = selectGainTargetEnum::LIMITS;
+	shared->Display.statusString   = "Input: Setting limits for Motor B.";
 }
 
 void InputClass::K_LimitsSelectC() {
 
 	shared->Input.selectLimit	   = ( shared->Input.selectLimit == selectLimitEnum::AMP_C ) ? selectLimitEnum::NONE : selectLimitEnum::AMP_C;
 	shared->Input.selectGainTarget = selectGainTargetEnum::LIMITS;
+	shared->Display.statusString   = "Input: Setting limits for Motor C.";
+}
+
+
+void InputClass::K_LimitsReset() {
+	shared->Amplifier.isLimitSet	  = false;
+	shared->Amplifier.commandedLimits = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	shared->Display.statusString	  = "Input: Resetting motor limits.";
 }
 
 
 
-/** OLD
+/*
+ *
+ *
  * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  ==============================================================
+ *  ==============================================================
+ * 
+ *   TTTTTTTT  EEEEEEE  NN   NN   SSSSS   IIIIII   OOOOO   NN   NN
+ *      TT     EE       NNN  NN  SS         II    OO   OO  NNN  NN
+ *      TT     EE       NN N NN  SS         II    OO   OO  NN N NN
+ *      TT     EEEEE    NN  NNN   SSSSS     II    OO   OO  NN  NNN
+ *      TT     EE       NN   NN       SS    II    OO   OO  NN   NN
+ *      TT     EE       NN   NN       SS    II    OO   OO  NN   NN
+ *      TT     EEEEEEE  NN   NN   SSSSS   IIIIII   OOOOO   NN   NN
+ * 
+ *  ==============================================================
+ *  ==============================================================
+ */
+
+
+void InputClass::K_TenSelect_A() {
+	shared->Input.selectedAdjustmentSystem	  = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::AMP_TENSION ) ? selectSystemEnum::NONE : selectSystemEnum::AMP_TENSION;
+	shared->Input.selectedAdjustmentSubsystem = ( ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::AMP_TENSION ) ) ? selectSubsystemEnum::AMP_A : selectSubsystemEnum::NONE;
+	shared->Display.statusString			  = "Input: Selected tension A gain...";
+	shared->Vibration.isRunning				  = false;
+}
+
+void InputClass::K_TenSelect_B() {
+	shared->Input.selectedAdjustmentSystem	  = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::AMP_TENSION ) ? selectSystemEnum::NONE : selectSystemEnum::AMP_TENSION;
+	shared->Input.selectedAdjustmentSubsystem = ( ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::AMP_TENSION ) ) ? selectSubsystemEnum::AMP_B : selectSubsystemEnum::NONE;
+	shared->Display.statusString			  = "Input: Selected tension B gain...";
+}
+
+void InputClass::K_TenSelect_C() {
+	shared->Input.selectedAdjustmentSystem	  = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::AMP_TENSION ) ? selectSystemEnum::NONE : selectSystemEnum::AMP_TENSION;
+	shared->Input.selectedAdjustmentSubsystem = ( ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::AMP_TENSION ) ) ? selectSubsystemEnum::AMP_C : selectSubsystemEnum::NONE;
+	shared->Display.statusString			  = "Input: Selected tension C gain...";
+}
+
+
+void InputClass::K_AmplifierTensionToggle() {
+
+	// If tension disabled, enable
+	if ( !shared->Amplifier.isTensionOnly ) {
+
+		shared->Amplifier.isTensionOnly			  = true;
+		shared->Amplifier.isAmplifierActive		  = true;
+		shared->System.state					  = stateEnum::DRIVING_PWM;
+		shared->Input.selectedAdjustmentSystem	  = selectSystemEnum::AMP_TENSION;
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::ALL;
+
+	}
+	// If tension enabled, disable
+	else {
+
+		shared->Amplifier.isTensionOnly			  = false;
+		shared->Amplifier.isAmplifierActive		  = false;
+		shared->Input.selectedAdjustmentSystem	  = selectSystemEnum::NONE;
+		shared->Input.selectedAdjustmentSubsystem = selectSubsystemEnum::NONE;
+		// if ( shared->System.state != stateEnum::IDLE ) {
+		// 	shared->System.state = stateEnum::IDLE;
+		// }
+	}
+
+	shared->Display.statusString = "Input: Tension-only is " + std::string( shared->Amplifier.isTensionOnly ? "enabled." : "disabled." );
+}
+
+
+void InputClass::AdjustTension( float dir ) {
+
+	// Shortcut handlers
+	auto& subsystem = shared->Input.selectedAdjustmentSubsystem;
+	auto& amp		= shared->Controller.commandedTensionABC;
+
+	// Params
+	float step = 0.01f * dir;
+	float min  = 0.0f;
+	float max  = 1.0f;
+
+	// Select gain system
+	switch ( subsystem ) {
+
+		// Adjust amp A
+		case ( selectSubsystemEnum::AMP_A ): {
+			AdjustValue( amp.x, step, min, max );
+			break;
+		}
+
+		// Adjust amp B
+		case ( selectSubsystemEnum::AMP_B ): {
+			AdjustValue( amp.y, step, min, max );
+			break;
+		}
+
+		// Adjust amp C
+		case ( selectSubsystemEnum::AMP_C ): {
+			AdjustValue( amp.z, step, min, max );
+			break;
+		}
+
+		// Adjust all amps
+		case ( selectSubsystemEnum::ALL ): {
+
+			AdjustValue( amp.x, step, min, max );
+			AdjustValue( amp.y, step, min, max );
+			AdjustValue( amp.z, step, min, max );
+			break;
+		}
+
+
+		default: {
+			std::cout << "Input: Error in AdjustTension!\n";
+			break;
+		}
+	}
+}
+
+
+
+/*
+ *
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  =============================================
+ *  =============================================
+ * 
+ *   PPPPPP    RRRRR    IIIIII  NN   NN  TTTTTTTT
+ *   PP    PP  RR   RR    II    NNN  NN     TT
+ *   PP    PP  RR   RR    II    NN N NN     TT
+ *   PPPPPP    RRRRR      II    NN  NNN     TT
+ *   PP        RR  RR     II    NN   NN     TT
+ *   PP        RR   RR    II    NN   NN     TT
+ *   PP        RR   RR  IIIIII  NN   NN     TT
+ * 
+ *  =============================================
+ *  =============================================
  */
 
 
 
-// void InputClass::ParseInput( int key ) {
+void InputClass::PrintStates() {
 
-// 	// Ignore mouse clicks or arrows
-// 	if ( key != 255 ) {
+	// Handle
+	auto& system	= shared->Input.selectedAdjustmentSystem;
+	auto& subsystem = shared->Input.selectedAdjustmentSubsystem;
 
-// 		// Uncomment to be able to read detected key presses
-// 		std::cout << "InputClass:   Detected key press, index = " << key << "\n";
+	// System state
+	if ( system == selectSystemEnum::NONE ) {
+		std::cout << "System::NONE";
+	} else if ( system == selectSystemEnum::GAIN_PROPORTIONAL ) {
+		std::cout << "System::GAIN_PROPORTIONAL";
+	} else if ( system == selectSystemEnum::GAIN_INTEGRAL ) {
+		std::cout << "System::GAIN_INTEGRAL";
+	} else if ( system == selectSystemEnum::GAIN_DERIVATIVE ) {
+		std::cout << "System::GAIN_DERIVATIVE";
+	} else if ( system == selectSystemEnum::AMP_TENSION ) {
+		std::cout << "System::AMP_TENSION";
+	} else if ( system == selectSystemEnum::AMP_LIMIT ) {
+		std::cout << "System::AMP_LIMIT";
+	} else {
+		std::cout << "Input: System error!";
+	}
 
-// 		switch ( key ) {
-// 			case 27: {	  // ESC key 1048603
-// 				shared->Display.statusString		= "InputClass: Shutting down...";
-// 				shared->System.state				= stateEnum::IDLE;
-// 				shared->Amplifier.isAmplifierActive = false;
-// 				shared->Serial.isSerialSending		= false;
-// 				shared->Serial.isSerialSendOpen		= false;
-// 				cv::destroyAllWindows();
-// 				std::cout << "Shutdown initiated.\n";
-// 				shared->System.isShuttingDown = true;
-// 				break;
+	std::cout << "\t";
+
+	// Subsystem state
+	if ( subsystem == selectSubsystemEnum::NONE ) {
+		std::cout << "Subsystem::NONE";
+	} else if ( subsystem == selectSubsystemEnum::ABD ) {
+		std::cout << "Subsystem::ABD";
+	} else if ( subsystem == selectSubsystemEnum::ADD ) {
+		std::cout << "Subsystem::ADD";
+	} else if ( subsystem == selectSubsystemEnum::EXT ) {
+		std::cout << "Subsystem::EXT";
+	} else if ( subsystem == selectSubsystemEnum::FLEX ) {
+		std::cout << "Subsystem::FLX";
+	} else if ( subsystem == selectSubsystemEnum::ALL ) {
+		std::cout << "Subsystem::ALL";
+	} else if ( subsystem == selectSubsystemEnum::AMP_A ) {
+		std::cout << "Subsystem::AMP_A";
+	} else if ( subsystem == selectSubsystemEnum::AMP_B ) {
+		std::cout << "Subsystem::AMP_B";
+	} else if ( subsystem == selectSubsystemEnum::AMP_C ) {
+		std::cout << "Subsystem::AMP_C";
+	} else {
+		std::cout << "Input: Subsystem error!";
+	}
+
+	std::cout << "\n";
+}
+
+
+
+/*
+ * 
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *  =========================================================================================
+ *  ========================================================================================= 
+ * 
+ *   OOOOO   LL      DDDDDD
+ *  OO   OO  LL      DD    DD
+ *  OO   OO  LL      DD    DD
+ *  OO   OO  LL      DD    DD
+ *  OO   OO  LL      DD    DD
+ *  OO   OO  LL      DD    DD
+ *   OOOOO   LLLLLL  DDDDDD
+ * 
+ *  ========================================================================================= 
+ *  ========================================================================================= 
+ */
+
+
+
+// void InputClass::K_Increment() {
+
+// 	// Handler for gains
+// 	auto& gains = shared->Controller;
+
+// 	// Increment value
+// 	float increment = 0.0f;
+
+// 	// Select appropriate increment for PID gains
+// 	if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 		increment = 0.1f;
+
+// 	} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 		increment = 0.1f;
+
+// 	} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 		increment = 0.01f;
+
+// 	} else if ( shared->Input.selectGain == selectGainEnum::NONE ) {
+// 		increment = 0.0f;
+
+// 	} else {
+// 		increment = 0.01f;
+// 	}
+
+// 	// Select appropriate increment for tension gains
+// 	if ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPA || shared->Input.selectGainTarget == selectGainTargetEnum::AMPB || shared->Input.selectGainTarget == selectGainTargetEnum::AMPC ) {
+// 		increment = 0.01;
+// 	}
+
+// 	switch ( shared->Input.selectGainTarget ) {
+
+// 		// Abduction
+// 		case selectGainTargetEnum::ABD: {
+
+// 			if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 				gains.gainKp.abd += increment;
+// 				shared->Display.statusString = "Input: Abduction Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.abd, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 				gains.gainKi.abd += increment;
+// 				shared->Display.statusString = "Input: Abduction Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.abd, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 				gains.gainKd.abd += increment;
+// 				shared->Display.statusString = "Input: Abduction Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.abd, 2, 2 );
 // 			}
-// 			case '1': {	   // '1'
-// 				shared->Telemetry.activeID	 = 1;
-// 				shared->Display.statusString = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 1 ? "1." : "0." );
-// 				break;
+// 			break;
+// 		}
+
+// 		// Adduction
+// 		case selectGainTargetEnum::ADD: {
+
+// 			if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 				gains.gainKp.add += increment;
+// 				shared->Display.statusString = "Input: Adduction Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.add, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 				gains.gainKi.add += increment;
+// 				shared->Display.statusString = "Input: Adduction Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.add, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 				gains.gainKd.add += increment;
+// 				shared->Display.statusString = "Input: Adduction Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.add, 2, 2 );
 // 			}
-// 			case '2': {	   // '2'
-// 				shared->Telemetry.activeID	 = 2;
-// 				shared->Display.statusString = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 2 ? "2." : "0." );
-// 				break;
+// 			break;
+// 		}
+
+// 		// Flexion
+// 		case selectGainTargetEnum::FLEX: {
+
+// 			if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 				gains.gainKp.flx += increment;
+// 				shared->Display.statusString = "Input: Flexion Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.flx, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 				gains.gainKi.flx += increment;
+// 				shared->Display.statusString = "Input: Flexion Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.flx, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 				gains.gainKd.flx += increment;
+// 				shared->Display.statusString = "Input: Flexion Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.flx, 2, 2 );
 // 			}
-// 			case '3': {	   // '3'
-// 				shared->Telemetry.activeID	 = 3;
-// 				shared->Display.statusString = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 3 ? "3." : "0." );
-// 				break;
+// 			break;
+// 		}
+
+// 		// Extension
+// 		case selectGainTargetEnum::EXT: {
+
+// 			if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 				gains.gainKp.ext += increment;
+// 				shared->Display.statusString = "Input: Extension Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.ext, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 				gains.gainKi.ext += increment;
+// 				shared->Display.statusString = "Input: Extension Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.ext, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 				gains.gainKd.ext += increment;
+// 				shared->Display.statusString = "Input: Extension Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.ext, 2, 2 );
 // 			}
-// 			case '4': {	   // '4'
-// 				shared->Telemetry.activeID	 = 4;
-// 				shared->Display.statusString = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 4 ? "4." : "0." );
-// 				break;
-// 			}
-// 			case '5': {	   // '5'
-// 				shared->Telemetry.activeID	 = 5;
-// 				shared->Display.statusString = "InputClass: Updated active marker to #" + std::string( shared->Telemetry.activeID == 5 ? "5." : "0." );
-// 				break;
-// 			}
-// 			case '`': {	   // ` (tilde)
-// 				shared->Display.statusString = "InputClass: Disabling all active markers.";
-// 				shared->Telemetry.activeID	 = 0;
-// 				break;
-// 			}
-// 			case 'a': {	   // 'e'
-// 				shared->Amplifier.isAmplifierActive = !shared->Amplifier.isAmplifierActive;
-// 				if ( shared->Amplifier.isAmplifierActive ) {
-// 					shared->Telemetry.isTargetReset	  = true;
-// 					shared->Controller.isRampingUp	  = true;
-// 					shared->Controller.rampPercentage = 0.0f;
-// 					shared->Controller.rampStartTime  = shared->Timing.elapsedRunningTime;
-// 					shared->System.state			  = stateEnum::DRIVING_PWM;
-// 					shared->Display.statusString	  = "InputClass: Amplifiers enabled.";
-// 				} else {
-// 					// shared->Serial.packetOut = "DX\n";
-// 					// shared->FLAG_PACKET_WAITING = true;
-// 					shared->System.state		 = stateEnum::IDLE;
-// 					shared->Display.statusString = "InputClass: Amplifiers disabled.";
+// 			break;
+// 		}
+
+
+// 		// Amp A
+// 		case selectGainTargetEnum::AMPA: {
+
+// 			gains.commandedTensionABC.x += increment;
+// 			shared->Display.statusString = "Input: Tension A increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.x, 2, 2 );
+
+// 			break;
+// 		}
+
+// 		// Amp B
+// 		case selectGainTargetEnum::AMPB: {
+
+// 			gains.commandedTensionABC.y += increment;
+// 			shared->Display.statusString = "Input: Tension B increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.y, 2, 2 );
+
+// 			break;
+// 		}
+
+// 		// Amp C
+// 		case selectGainTargetEnum::AMPC: {
+
+// 			gains.commandedTensionABC.z += increment;
+// 			shared->Display.statusString = "Input: Tension C increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.z, 2, 2 );
+
+// 			break;
+// 		}
+
+// 		// Torque limits
+// 		case selectGainTargetEnum::TORQUE: {
+
+// 			// Deselect active marker
+// 			shared->Target.activeID = 0;
+
+// 			// Pick direction
+// 			switch ( shared->Input.selectTorqueTarget ) {
+
+// 				// Abduction (left)
+// 				case selectTorqueTargetEnum::ABD: {
+
+// 					// Increment virtual error
+// 					shared->Target.positionFilteredNewMM.x -= increment;
+
+// 					if ( shared->Controller.commandedPercentageABC.y > shared->Amplifier.commandedLimits.y ) {
+// 						shared->Amplifier.commandedLimits.y = shared->Controller.commandedPercentageABC.y;
+// 					}
+
+// 					if ( shared->Controller.commandedPercentageABC.z > shared->Amplifier.commandedLimits.z ) {
+// 						shared->Amplifier.commandedLimits.z = shared->Controller.commandedPercentageABC.z;
+// 					}
+
+// 					break;
 // 				}
-// 				break;
-// 			}
-// 			case 's': {	   // 's'
-// 				// Toggle serial flags
-// 				shared->Serial.isSerialSending	 = !shared->Serial.isSerialSending;
-// 				shared->Serial.isSerialReceiving = !shared->Serial.isSerialReceiving;
-// 				if ( shared->Serial.isSerialSending ) {
-// 					shared->Display.statusString		 = "InputClass: Enabling serial IO.";
-// 					shared->Serial.isSerialSending		 = true;
-// 					shared->Serial.isSerialReceiving	 = true;
-// 					shared->Teensy.isAmplifierResponding = false;
-// 				} else {
-// 					shared->Serial.isSerialSending		 = false;
-// 					shared->Serial.isSerialReceiving	 = false;
-// 					shared->Teensy.isAmplifierResponding = false;
-// 					shared->Display.statusString		 = "InputClass: Disabling serial IO.";
-// 				}
-// 				break;
-// 			}
-// 			// case 'x': {	   // 'x'
-// 			// 	shared->Display.statusString = "InputClass: Software E-Stop Triggered. Amplifiers and serial output disabled.";
-// 			// 	if ( shared->Serial.isSerialSendOpen ) {
-// 			// 	}
-// 			// 	shared->Amplifier.isAmplifierActive = false;
-// 			// 	break;
-// 			// }
-
-// 			// Reset gains
-// 			case 116: {	   // 'y'
-// 				shared->controllerKp		 = cv::Point3f( 0.0f, 0.0f, 0.0f );
-// 				shared->controllerKi		 = cv::Point3f( 0.0f, 0.0f, 0.0f );
-// 				shared->controllerKd		 = cv::Point3f( 0.0f, 0.0f, 0.0f );
-// 				shared->Display.statusString = "InputClass: Setting gains to 0";
-// 				break;
-// 			}
-
-
-// 			// Gains X
-// 			case 'u': {	   // 'u'
-// 				IncrementValueF( "Kp(x)", shared->controllerKp.x, -0.2f );
-// 				break;
-// 			}
-// 			case 'i': {	   // 'i'
-// 				IncrementValueF( "Kp(x)", shared->controllerKp.x, 0.2f );
-// 				break;
-// 			}
-// 			case 'o': {	   // 'o'
-// 				IncrementValueF( "Ki(x)", shared->controllerKi.x, -0.2f );
-// 				break;
-// 			}
-// 			case 'p': {	   // 'p'
-// 				IncrementValueF( "Ki(x)", shared->controllerKi.x, 0.2f );
-// 				break;
-// 			}
-// 			case '[': {	   // '['
-// 				IncrementValueF( "Kd(x)", shared->controllerKd.x, -0.01f );
-// 				break;
-// 			}
-// 			case ']': {	   // ']'
-// 				IncrementValueF( "Kd(x)", shared->controllerKd.x, 0.01f );
-// 				break;
-// 			}
-
-// 			// Gains Y
-// 			case 'h': {	   // 'h'
-// 				IncrementValueF( "Kp(y)", shared->controllerKp.y, -0.2f );
-// 				break;
-// 			}
-// 			case 'j': {	   // 'j'
-// 				IncrementValueF( "Kp(y)", shared->controllerKp.y, 0.2f );
-// 				break;
-// 			}
-// 			case 'k': {	   // 'k'
-// 				IncrementValueF( "Ki(y)", shared->controllerKi.y, -0.2f );
-// 				break;
-// 			}
-// 			case 'l': {	   // 'l'
-// 				IncrementValueF( "Ki(y)", shared->controllerKi.y, 0.2f );
-// 				break;
-// 			}
-// 			case ';': {	   // ';'
-// 				IncrementValueF( "Kd(y)", shared->controllerKd.y, -0.01f );
-// 				break;
-// 			}
-// 			case 39: {	  // '''
-// 				IncrementValueF( "Kd(y)", shared->controllerKd.y, 0.01f );
-// 				break;
-// 			}
-
-// 			case 183: {	   // numpad 7
-// 				IncrementValueF( "Tension A", shared->Controller.commandedTensionABC.x, 0.01 );
-// 				break;
-// 			}
-// 			case 180: {	   // numpad 4
-// 				IncrementValueF( "Tension A", shared->Controller.commandedTensionABC.x, -0.01 );
-// 				break;
-// 			}
-// 			case 184: {	   // numpad 8
-// 				IncrementValueF( "Tension B", shared->Controller.commandedTensionABC.y, 0.01 );
-// 				break;
-// 			}
-// 			case 181: {	   // numpad 5
-// 				IncrementValueF( "Tension B", shared->Controller.commandedTensionABC.y, -0.01 );
-// 				break;
-// 			}
-// 			case 185: {	   // numpad 9
-// 				IncrementValueF( "Tension B", shared->Controller.commandedTensionABC.z, 0.01 );
-// 				break;
-// 			}
-// 			case 182: {	   // numpad 6
-// 				IncrementValueF( "Tension B", shared->Controller.commandedTensionABC.z, -0.01 );
-// 				break;
-// 			}
-// 			case 122: {	   // 'z'
-// 				shared->vizClear			 = true;
-// 				shared->Display.statusString = "InputClass: Resetting visualization trails.";
-// 				break;
-// 			}
-// 			case 99: {	  // 'c'
-// 				shared->Task.name			 = "CALIB";
-// 				shared->calibrationComplete	 = false;
-// 				shared->Display.statusString = "InputClass: Starting calibration.";
-// 				break;
-// 			}
-// 			case 118: {	   // 'v'
-// 				shared->vizEnabled			 = !shared->vizEnabled;
-// 				shared->Display.statusString = "InputClass: 3D Visualization " + std::string( shared->vizEnabled ? "enabled." : "disabled." );
-// 				break;
-// 			}
-// 			// case 116: {	   // 't'
-// 			// 	shared->angleEnabled  = !shared->angleEnabled;
-// 			// 	shared->displayString = "InputClass: Angle Visualization " + std::string( shared->angleEnabled ? "enabled." : "disabled." );
-// 			// 	break;
-// 			// }
-// 			case 102: {	   // 'f'
-// 				// Run fitts-law test
-// 				shared->Telemetry.isTargetReset = true;
-// 				shared->Controller.isRampingUp	= true;
-// 				shared->Touchscreen.isTouched	= 0;
-// 				shared->Task.isRunning			= false;
-// 				shared->Task.name				= "FITTS";
-// 				shared->Task.repetitionNumber++;
-// 				// shared->TASK_RUNNING = true;
-// 				// shared->fittsTestStarted = false;
-// 				shared->Display.statusString = "InputClass: Starting fitts-law test.";
-// 				break;
-// 			}
-// 			case 103: {	   // 'g'
-// 				// End test
-// 				shared->Touchscreen.isTouched = 1;
-// 				// shared->TASK_RUNNING = false;
-// 				// shared->TASK_NAME	 = "FITTS_ANGLE";
-// 				// shared->angleEnabled = true;
-// 				// shared->TASK_RUNNING = true;
-// 				// shared->fittsTestStarted = false;
-// 				shared->Display.statusString = "InputClass: Starting angle test.";
-// 				break;
-// 			}
-// 			case 98: {	  // 'b'
-// 				shared->Touchscreen.isTouched = 1;
-// 				shared->Display.statusString  = "InputClass: Ending angle test.";
-// 				break;
-// 			}
-// 			case 113: {	   // 'q'
-// 				shared->System.state		 = stateEnum::MEASURING_LIMITS;
-// 				shared->Display.statusString = "InputClass: Encoder reset.";
-// 				break;
-// 			}
-// 			default: {
-// 				shared->Display.statusString = "InputClass: Unknown input.";
-// 				break;
 // 			}
 // 		}
+
+// 		// Amplifier Limits
+// 		case selectGainTargetEnum::LIMITS: {
+
+// 			switch ( shared->Input.selectLimit ) {
+
+// 				// Amplifier A
+// 				case selectLimitEnum::AMP_A: {
+
+// 					// Only increment if under limit
+// 					if ( shared->Amplifier.commandedLimits.x < 0.99f ) {
+// 						shared->Amplifier.commandedLimits.x += 0.01f;
+// 						shared->Display.statusString = "Input: Motor A max power increased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
+// 					}
+
+// 					break;
+// 				}
+
+// 				// Amplifier B
+// 				case selectLimitEnum::AMP_B: {
+
+// 					// Only increment if under limit
+// 					if ( shared->Amplifier.commandedLimits.y < 0.99f ) {
+// 						shared->Amplifier.commandedLimits.y += 0.01f;
+// 						shared->Display.statusString = "Input: Motor B max power increased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.y, 2, 2 );
+// 					}
+
+// 					break;
+// 				}
+
+// 				// Amplifier C
+// 				case selectLimitEnum::AMP_C: {
+
+// 					// Only increment if under limit
+// 					if ( shared->Amplifier.commandedLimits.z < 0.99f ) {
+// 						shared->Amplifier.commandedLimits.z += 0.01f;
+// 						shared->Display.statusString = "Input: Motor C max power increased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.z, 2, 2 );
+// 					}
+
+// 					break;
+// 				}
+// 			}
+
+
+// 			break;
+// 		}
+
+// 		// None
+// 		case selectGainTargetEnum::NONE: {
+
+// 			if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 				gains.gainKp.abd += increment;
+// 				gains.gainKp.add += increment;
+// 				gains.gainKp.flx += increment;
+// 				gains.gainKp.ext += increment;
+// 				shared->Display.statusString = "Input: Kp increased.";
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 				gains.gainKi.abd += increment;
+// 				gains.gainKi.add += increment;
+// 				gains.gainKi.flx += increment;
+// 				gains.gainKi.ext += increment;
+// 				shared->Display.statusString = "Input: Ki increased.";
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 				gains.gainKd.abd += increment;
+// 				gains.gainKd.add += increment;
+// 				gains.gainKd.flx += increment;
+// 				gains.gainKd.ext += increment;
+// 				shared->Display.statusString = "Input: Kd increased.";
+// 			}
+// 			break;
+// 		}
+
+// 		default: {
+
+// 			// Shouldn't be here...
+// 			break;
+// 		}
+// 	}
+// // }
+
+// void InputClass::K_Decrement() {
+
+// 	// Handler for gains
+// 	auto& gains = shared->Controller;
+
+// 	// Increment value
+// 	float increment = 0.0f;
+
+// 	// Select appropriate increment for PID gains
+// 	if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 		increment = 0.1f;
+
+// 	} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 		increment = 0.1f;
+
+// 	} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 		increment = 0.01f;
+
+// 	} else if ( shared->Input.selectGain == selectGainEnum::NONE ) {
+// 		increment = 0.0f;
+
 // 	} else {
+// 		increment = 0.0f;
+// 	}
+
+// 	// Select appropriate increment for tension gains
+// 	if ( shared->Input.selectGainTarget == selectGainTargetEnum::AMPA || shared->Input.selectGainTarget == selectGainTargetEnum::AMPB || shared->Input.selectGainTarget == selectGainTargetEnum::AMPC ) {
+// 		increment = 0.01;
+// 	}
+
+// 	increment = increment * -1.0f;
+
+// 	switch ( shared->Input.selectGainTarget ) {
+
+// 		// Abduction
+// 		case selectGainTargetEnum::ABD: {
+
+// 			if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 				SafeDecrement( gains.gainKp.abd, increment );
+// 				shared->Display.statusString = "Input: Abduction Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.abd, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 				SafeDecrement( gains.gainKi.abd, increment );
+// 				shared->Display.statusString = "Input: Abduction Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.abd, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 				SafeDecrement( gains.gainKd.abd, increment );
+// 				shared->Display.statusString = "Input: Abduction Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.abd, 2, 2 );
+// 			}
+// 			break;
+// 		}
+
+// 		// Adduction
+// 		case selectGainTargetEnum::ADD: {
+
+// 			if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 				SafeDecrement( gains.gainKp.add, increment );
+// 				shared->Display.statusString = "Input: Adduction Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.add, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 				SafeDecrement( gains.gainKi.add, increment );
+// 				shared->Display.statusString = "Input: Adduction Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.add, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 				SafeDecrement( gains.gainKd.add, increment );
+// 				shared->Display.statusString = "Input: Adduction Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.add, 2, 2 );
+// 			}
+// 			break;
+// 		}
+
+// 		// Flexion
+// 		case selectGainTargetEnum::FLEX: {
+
+// 			if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 				SafeDecrement( gains.gainKp.flx, increment );
+// 				shared->Display.statusString = "Input: Flexion Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.flx, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 				SafeDecrement( gains.gainKi.flx, increment );
+// 				shared->Display.statusString = "Input: Flexion Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.flx, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 				SafeDecrement( gains.gainKd.flx, increment );
+// 				shared->Display.statusString = "Input: Flexion Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.flx, 2, 2 );
+// 			}
+// 			break;
+// 		}
+
+// 		// Extension
+// 		case selectGainTargetEnum::EXT: {
+
+// 			if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 				SafeDecrement( gains.gainKp.ext, increment );
+// 				shared->Display.statusString = "Input: Extension Kp increased to " + shared->FormatDecimal( shared->Controller.gainKp.ext, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 				SafeDecrement( gains.gainKi.ext, increment );
+// 				shared->Display.statusString = "Input: Extension Ki increased to " + shared->FormatDecimal( shared->Controller.gainKi.ext, 2, 2 );
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 				SafeDecrement( gains.gainKd.ext, increment );
+// 				shared->Display.statusString = "Input: Extension Kd increased to " + shared->FormatDecimal( shared->Controller.gainKd.ext, 2, 2 );
+// 			}
+// 			break;
+// 		}
+
+
+// 		// Amp A
+// 		case selectGainTargetEnum::AMPA: {
+
+// 			SafeDecrement( gains.commandedTensionABC.x, increment );
+// 			// gains.commandedTensionABC.x += increment;
+// 			shared->Display.statusString = "Input: Tension A increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.x, 2, 2 );
+
+// 			break;
+// 		}
+
+// 		// Amp B
+// 		case selectGainTargetEnum::AMPB: {
+
+// 			SafeDecrement( gains.commandedTensionABC.y, increment );
+// 			shared->Display.statusString = "Input: Tension B increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.y, 2, 2 );
+
+// 			break;
+// 		}
+
+// 		// Amp C
+// 		case selectGainTargetEnum::AMPC: {
+
+// 			SafeDecrement( gains.commandedTensionABC.z, increment );
+// 			shared->Display.statusString = "Input: Tension C increased to " + shared->FormatDecimal( shared->Controller.commandedTensionABC.z, 2, 2 );
+
+// 			break;
+// 		}
+
+
+
+// 		// Amplifier Limits
+// 		case selectGainTargetEnum::LIMITS: {
+
+// 			switch ( shared->Input.selectLimit ) {
+
+// 				// Amplifier A
+// 				case selectLimitEnum::AMP_A: {
+
+// 					// Only decrement if under limit
+// 					if ( shared->Amplifier.commandedLimits.x > 0.01f ) {
+// 						SafeDecrement( shared->Amplifier.commandedLimits.x, -0.01f );
+// 						shared->Display.statusString = "Input: Motor A max power decreased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
+// 					}
+
+// 					break;
+// 				}
+
+// 				// Amplifier B
+// 				case selectLimitEnum::AMP_B: {
+
+// 					// Only decrement if under limit
+// 					if ( shared->Amplifier.commandedLimits.y > 0.01f ) {
+// 						SafeDecrement( shared->Amplifier.commandedLimits.y, -0.01f );
+// 						shared->Display.statusString = "Input: Motor A max power decreased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
+// 					}
+
+// 					break;
+// 				}
+
+// 				// Amplifier C
+// 				case selectLimitEnum::AMP_C: {
+
+// 					// Only decrement if under limit
+// 					if ( shared->Amplifier.commandedLimits.z > 0.01f ) {
+// 						SafeDecrement( shared->Amplifier.commandedLimits.z, -0.01f );
+// 						shared->Display.statusString = "Input: Motor A max power decreased to " + shared->FormatDecimal( shared->Amplifier.commandedLimits.x, 2, 2 );
+// 					}
+
+// 					break;
+// 				}
+// 			}
+// 		}
+
+
+
+// 		// None
+// 		case selectGainTargetEnum::NONE: {
+
+// 			if ( shared->Input.selectGain == selectGainEnum::KP ) {
+// 				SafeDecrement( gains.gainKp.add, increment );
+// 				SafeDecrement( gains.gainKp.abd, increment );
+// 				SafeDecrement( gains.gainKp.flx, increment );
+// 				SafeDecrement( gains.gainKp.ext, increment );
+// 				shared->Display.statusString = "Input: Kp decreased.";
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KI ) {
+// 				SafeDecrement( gains.gainKi.add, increment );
+// 				SafeDecrement( gains.gainKi.abd, increment );
+// 				SafeDecrement( gains.gainKi.flx, increment );
+// 				SafeDecrement( gains.gainKi.ext, increment );
+// 				shared->Display.statusString = "Input: Ki decreased.";
+
+// 			} else if ( shared->Input.selectGain == selectGainEnum::KD ) {
+// 				SafeDecrement( gains.gainKd.add, increment );
+// 				SafeDecrement( gains.gainKd.abd, increment );
+// 				SafeDecrement( gains.gainKd.flx, increment );
+// 				SafeDecrement( gains.gainKd.ext, increment );
+// 				shared->Display.statusString = "Input: Kd decreased.";
+// 			}
+// 			break;
+// 		}
+
+
+// 		default: {
+
+// 			// Shouldn't be here...
+// 			break;
+// 		}
 // 	}
 // }

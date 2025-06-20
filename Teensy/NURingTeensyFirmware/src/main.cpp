@@ -9,17 +9,15 @@ SharedDataManager DataHandle;
 
 // Custom libraries
 
-#include "T_AmplifierClass.h"		// Amplifier header
-#include "T_Config.h"				// Global config constants
-#include "T_LEDClass.h"				// LED header
-#include "T_SerialClass.h"			// Serial header
-#include "T_VIbrotactileClass.h"	// Vibrating motor
+#include "T_AmplifierClass.h"	 // Amplifier header
+#include "T_Config.h"			 // Global config constants
+#include "T_LEDClass.h"			 // LED header
+#include "T_SerialClass.h"		 // Serial header
 
 // Custom classes
-T_AmplifierClass	Amplifier( DataHandle );
-T_LEDClass			LEDs( DataHandle );
-T_SerialClass		SerialPort( DataHandle );
-T_VibrotactileClass Vibrotactile( DataHandle );
+T_AmplifierClass Amplifier( DataHandle );
+T_LEDClass		 LEDs( DataHandle );
+T_SerialClass	 SerialPort( DataHandle );
 
 // Handle to shared data
 auto shared = DataHandle.getData();
@@ -38,7 +36,7 @@ void IT_Callback_WriteToAmplifiers();
 void IT_Callback_SendSerialToPC();
 void IT_Callback_ReadFromAmplifiers();
 void UpdateSystemState();
-
+void ReadSafetySwitch() ;
 
 /**
  * @brief Main program setup
@@ -46,13 +44,12 @@ void UpdateSystemState();
  */
 void setup() {
 
-
+	// Initialize safety switch
+	pinMode( PIN_SAFETY_SWITCH, INPUT_PULLDOWN );
 
 	// Initialize LEDs
 	LEDs.Begin();
 
-	// Start vibrating motor
-	// Vibrotactile.Begin();
 
 	// Initialize serial ports
 	SerialPort.Begin();
@@ -85,6 +82,8 @@ void setup() {
  */
 void loop() {
 
+	// Check safety switch
+	ReadSafetySwitch();
 
 
 	// Update LEDs
@@ -177,8 +176,17 @@ void UpdateSystemState() {
 		// Driving PWM
 		case stateEnum::DRIVING_PWM: {
 
-			// Update amplifier state
-			shared->Amplifier.isEnabled = true;
+			// Only enable if safety switch enabled
+			if ( shared->System.isSafetySwitchEngaged ) {
+
+				// Update amplifier state
+				shared->Amplifier.isEnabled = true;
+
+			} else {
+
+				// Update amplifier state
+				shared->Amplifier.isEnabled = false;
+			}
 
 			// Update LEDs
 			shared->LED.isCommunicatingWithPC = true;
@@ -226,4 +234,15 @@ void UpdateSystemState() {
 			break;
 		}
 	}
+}
+
+
+/**
+ * @brief Read safety switch 
+ * 
+ */
+void ReadSafetySwitch() {
+
+	// Read switch
+	shared->System.isSafetySwitchEngaged = digitalRead( PIN_SAFETY_SWITCH );
 }
