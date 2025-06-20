@@ -396,20 +396,7 @@ void PrintState() {
 
 		std::cout << "\t ";
 
-	// Torque target
-	if ( shared->Input.selectTorqueTarget == selectTorqueTargetEnum::NONE ) {
-		std::cout << "TorqueTarget::NONE";
-	} else if ( shared->Input.selectTorqueTarget == selectTorqueTargetEnum::ABD ) {
-		std::cout << "TorqueTarget::ABD";
-	} else if ( shared->Input.selectTorqueTarget == selectTorqueTargetEnum::ADD ) {
-		std::cout << "TorqueTarget::ADD";
-	} else if ( shared->Input.selectTorqueTarget == selectTorqueTargetEnum::FLEX ) {
-		std::cout << "TorqueTarget::FLEX";
-	} else if ( shared->Input.selectTorqueTarget == selectTorqueTargetEnum::EXT ) {
-		std::cout << "TorqueTarget::EXT";
-	} else {
-		std::cout << "TorqueTarget::ERROR!";
-	}
+
 
 	std::cout << "\t ";
 

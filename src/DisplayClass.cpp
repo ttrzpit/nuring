@@ -454,16 +454,22 @@ void DisplayClass::AddTextAmplifier() {
 
 	// Motor selection
 	DrawCell( "Motor", "Z3", 3, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "A", "AC2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "B", "AE2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( "C", "AG2", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "A", "AC2", 2, 1, fontHeader, CONFIG_colWhite, ( ( ( ( system == selectSystemEnum::AMP_LIMIT ) || ( system == selectSystemEnum::AMP_TENSION ) ) && ( ( subsystem == selectSubsystemEnum::AMP_A ) || ( subsystem == selectSubsystemEnum::ALL ) ) ) ? CONFIG_colYelDk : CONFIG_colGraBk ),
+			  true );
+	DrawCell( "B", "AE2", 2, 1, fontHeader, CONFIG_colWhite, ( ( ( ( system == selectSystemEnum::AMP_LIMIT ) || ( system == selectSystemEnum::AMP_TENSION ) ) && ( ( subsystem == selectSubsystemEnum::AMP_B ) || ( subsystem == selectSubsystemEnum::ALL ) ) ) ? CONFIG_colYelDk : CONFIG_colGraBk ),
+			  true );
+	DrawCell( "C", "AG2", 2, 1, fontHeader, CONFIG_colWhite, ( ( ( ( system == selectSystemEnum::AMP_LIMIT ) || ( system == selectSystemEnum::AMP_TENSION ) ) && ( ( subsystem == selectSubsystemEnum::AMP_C ) || ( subsystem == selectSubsystemEnum::ALL ) ) ) ? CONFIG_colYelDk : CONFIG_colGraBk ),
+			  true );
 
 	// Tension
-	DrawCell( "Tension", "Z3", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Tension", "Z3", 2, 1, fontHeader, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_TENSION ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
 	DrawCell( "[%]", "AB3", 1, 1, fontHeader * 0.8f, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.x * 100.0, 3, 1 ), "AC3", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_TENSION ) && ( subsystem == selectSubsystemEnum::AMP_A ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.y * 100.0, 3, 1 ), "AE3", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_TENSION ) && ( subsystem == selectSubsystemEnum::AMP_B ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
-	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.z * 100.0, 3, 1 ), "AG3", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_TENSION ) && ( subsystem == selectSubsystemEnum::AMP_C ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.x * 100.0, 3, 1 ), "AC3", 2, 1, fontBody, CONFIG_colWhite,
+			  ( ( system == selectSystemEnum::AMP_TENSION ) && ( ( subsystem == selectSubsystemEnum::AMP_A ) || ( subsystem == selectSubsystemEnum::ALL ) ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.y * 100.0, 3, 1 ), "AE3", 2, 1, fontBody, CONFIG_colWhite,
+			  ( ( system == selectSystemEnum::AMP_TENSION ) && ( ( subsystem == selectSubsystemEnum::AMP_B ) || ( subsystem == selectSubsystemEnum::ALL ) ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Controller.commandedTensionABC.z * 100.0, 3, 1 ), "AG3", 2, 1, fontBody, CONFIG_colWhite,
+			  ( ( system == selectSystemEnum::AMP_TENSION ) && ( ( subsystem == selectSubsystemEnum::AMP_C ) || ( subsystem == selectSubsystemEnum::ALL ) ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
 
 	// Drive command
 	DrawCell( "Drive", "Z4", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
@@ -480,11 +486,14 @@ void DisplayClass::AddTextAmplifier() {
 	DrawCell( shared->FormatDecimal( shared->Controller.commandedPercentageABC.z * 100.0, 3, 1 ), "AG5", 2, 1, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 	// Max command
-	DrawCell( "Max", "Z6", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );
+	DrawCell( "Max", "Z6", 2, 1, fontHeader, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_LIMIT ) ? CONFIG_colYelDk : CONFIG_colGraBk ), true );
 	DrawCell( "[%]", "AB6", 1, 1, fontHeader * 0.6f, CONFIG_colWhite, CONFIG_colGraBk, true );
-	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.x * 100.0f, 3, 1 ), "AC6", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_LIMIT ) && ( subsystem == selectSubsystemEnum::AMP_A ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
-	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.y * 100.0f, 3, 1 ), "AE6", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_LIMIT ) && ( subsystem == selectSubsystemEnum::AMP_B ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
-	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.z * 100.0f, 3, 1 ), "AG6", 2, 1, fontBody, CONFIG_colWhite, ( ( system == selectSystemEnum::AMP_LIMIT ) && ( subsystem == selectSubsystemEnum::AMP_C ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.x * 100.0f, 3, 1 ), "AC6", 2, 1, fontBody, CONFIG_colWhite,
+			  ( ( system == selectSystemEnum::AMP_LIMIT ) && ( ( subsystem == selectSubsystemEnum::AMP_A ) || ( subsystem == selectSubsystemEnum::ALL ) ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.y * 100.0f, 3, 1 ), "AE6", 2, 1, fontBody, CONFIG_colWhite,
+			  ( ( system == selectSystemEnum::AMP_LIMIT ) && ( ( subsystem == selectSubsystemEnum::AMP_B ) || ( subsystem == selectSubsystemEnum::ALL ) ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
+	DrawCell( shared->FormatDecimal( shared->Amplifier.commandedLimits.z * 100.0f, 3, 1 ), "AG6", 2, 1, fontBody, CONFIG_colWhite,
+			  ( ( system == selectSystemEnum::AMP_LIMIT ) && ( ( subsystem == selectSubsystemEnum::AMP_C ) || ( subsystem == selectSubsystemEnum::ALL ) ) ? CONFIG_colYelDk : CONFIG_colBlack ), true );
 
 	// PWM mapping
 	DrawCell( "PWM", "Z7", 2, 1, fontHeader, CONFIG_colWhite, CONFIG_colGraBk, true );

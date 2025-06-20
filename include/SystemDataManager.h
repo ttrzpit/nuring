@@ -164,12 +164,12 @@ struct InputStruct {
 	// Enumerated gain selection
 	// selectGainTargetEnum   selectGainTarget	  = selectGainTargetEnum::NONE;
 	// selectGainEnum		   selectGain		  = selectGainEnum::NONE;
-	selectTorqueTargetEnum selectTorqueTarget = selectTorqueTargetEnum::NONE;
-	selectLimitEnum		   selectLimit		  = selectLimitEnum::NONE;
+	// selectTorqueTargetEnum selectTorqueTarget = selectTorqueTargetEnum::NONE;
+	selectLimitEnum selectLimit = selectLimitEnum::NONE;
 
 	// Selection
 	selectSystemEnum	selectedAdjustmentSystem	= selectSystemEnum::NONE;
-	selectSubsystemEnum selectedAdjustmentSubsystem = selectSubsystemEnum::ALL;
+	selectSubsystemEnum selectedAdjustmentSubsystem = selectSubsystemEnum::NONE;
 };
 
 struct KalmanFilterStruct {
