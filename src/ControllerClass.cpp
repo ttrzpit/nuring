@@ -16,8 +16,18 @@ void ControllerClass::Update() {
 	// Reset ramp if target was reset
 	if ( shared->Target.isTargetReset ) {
 
-		// Handle ramping up
-		RampUp();
+		shared->Controller.rampPercentage = 0.0f;
+		shared->Controller.rampStartTime  = shared->Timing.elapsedRunningTime;
+	}
+
+	// Ramp-up value
+	if ( shared->Controller.isRampingUp && shared->Target.isTargetFound ) {
+		float elapsed					  = shared->Timing.elapsedRunningTime - shared->Controller.rampStartTime;
+		shared->Controller.rampPercentage = std::clamp( elapsed / shared->Controller.rampDurationTime, 0.0f, 1.0f );
+
+		if ( shared->Controller.rampPercentage >= 1.0f ) {
+			shared->Controller.isRampingUp = false;
+		}
 	}
 
 	if ( shared->Target.isTargetFound ) {
@@ -28,8 +38,8 @@ void ControllerClass::Update() {
 		shared->Target.positionFilteredNewMM.y < 0 ? ( shared->Controller.proportionalTerm.y = shared->Controller.gainKp.flx * shared->Target.positionFilteredNewMM.y ) : ( shared->Controller.proportionalTerm.y = shared->Controller.gainKp.ext * shared->Target.positionFilteredNewMM.y );
 
 		// Calculate derivative term
-		// shared->Telemetry.velocityFilteredNewMM.x < 0 ? ( shared->Controller.derivativeTerm.x = -shared->Controller.gainKd.abd * shared->Telemetry.velocityFilteredNewMM.x ) : ( shared->Controller.derivativeTerm.x = shared->Controller.gainKd.add * shared->Telemetry.velocityFilteredNewMM.x );
-		// shared->Telemetry.velocityFilteredNewMM.y < 0 ? ( shared->Controller.derivativeTerm.y = shared->Controller.gainKd.flx * shared->Telemetry.velocityFilteredNewMM.y ) : ( shared->Controller.derivativeTerm.y = shared->Controller.gainKd.ext * shared->Telemetry.velocityFilteredNewMM.y );
+		// shared->Target.velocityFilteredNewMM.x < 0 ? ( shared->Controller.derivativeTerm.x = -shared->Controller.gainKd.abd * shared->Target.velocityFilteredNewMM.x ) : ( shared->Controller.derivativeTerm.x = shared->Controller.gainKd.add * shared->Target.velocityFilteredNewMM.x );
+		// shared->Target.velocityFilteredNewMM.y < 0 ? ( shared->Controller.derivativeTerm.y = shared->Controller.gainKd.flx * shared->Target.velocityFilteredNewMM.y ) : ( shared->Controller.derivativeTerm.y = shared->Controller.gainKd.ext * shared->Target.velocityFilteredNewMM.y );
 
 
 		// Direction to target
@@ -75,8 +85,6 @@ void ControllerClass::Update() {
 	shared->Controller.percentageProportional = MapToContributionTerm( shared->Controller.proportionalTerm );
 	shared->Controller.percentageIntegral	  = MapToContributionTerm( shared->Controller.integralTerm );
 	shared->Controller.percentageDerivative	  = MapToContributionTerm( shared->Controller.derivativeTerm );
-
-	// std::cout << "P: " << shared->Controller.percentageProportional << "   I: " << shared->Controller.percentageIntegral << "   D: " << shared->Controller.percentageDerivative << "\n";
 }
 
 
@@ -108,39 +116,39 @@ void ControllerClass::UpdateAmplifier() {
 	shared->Amplifier.encoderMeasuredDegB = ( shared->Amplifier.encoderMeasuredCountB / 4096.0f ) * 360.0f;
 	shared->Amplifier.encoderMeasuredDegC = ( shared->Amplifier.encoderMeasuredCountC / 4096.0f ) * 360.0f;
 
-	// Measure limits if set
-	if ( shared->Amplifier.isLimitSet ) {
-		if ( shared->Amplifier.encoderMeasuredDegA > shared->Amplifier.encoderLimitDegA ) {
-			shared->Amplifier.isOverLimitA = true;
-		} else {
-			shared->Amplifier.isOverLimitA = false;
-		}
-		if ( shared->Amplifier.encoderMeasuredDegB > shared->Amplifier.encoderLimitDegB ) {
-			shared->Amplifier.isOverLimitB = true;
-		} else {
-			shared->Amplifier.isOverLimitB = false;
-		}
-		if ( shared->Amplifier.encoderMeasuredDegC > shared->Amplifier.encoderLimitDegC ) {
-			shared->Amplifier.isOverLimitC = true;
-		} else {
-			shared->Amplifier.isOverLimitC = false;
-		}
-	}
+	// // Measure limits if set
+	// if ( shared->Amplifier.isLimitSet ) {
+	// 	if ( shared->Amplifier.encoderMeasuredDegA > shared->Amplifier.encoderLimitDegA ) {
+	// 		shared->Amplifier.isOverLimitA = true;
+	// 	} else {
+	// 		shared->Amplifier.isOverLimitA = false;
+	// 	}
+	// 	if ( shared->Amplifier.encoderMeasuredDegB > shared->Amplifier.encoderLimitDegB ) {
+	// 		shared->Amplifier.isOverLimitB = true;
+	// 	} else {
+	// 		shared->Amplifier.isOverLimitB = false;
+	// 	}
+	// 	if ( shared->Amplifier.encoderMeasuredDegC > shared->Amplifier.encoderLimitDegC ) {
+	// 		shared->Amplifier.isOverLimitC = true;
+	// 	} else {
+	// 		shared->Amplifier.isOverLimitC = false;
+	// 	}
+	// }
 
-	// Update measured limits
-	if ( shared->Amplifier.isMeasuringEncoderLimit ) {
+	// // Update measured limits
+	// if ( shared->Amplifier.isMeasuringEncoderLimit ) {
 
-		// Update values with limits
-		if ( shared->Amplifier.encoderMeasuredDegA > shared->Amplifier.encoderLimitDegA ) {
-			shared->Amplifier.encoderLimitDegA = shared->Amplifier.encoderMeasuredDegA;
-		}
-		if ( shared->Amplifier.encoderMeasuredDegB > shared->Amplifier.encoderLimitDegB ) {
-			shared->Amplifier.encoderLimitDegB = shared->Amplifier.encoderMeasuredDegB;
-		}
-		if ( shared->Amplifier.encoderMeasuredDegC > shared->Amplifier.encoderLimitDegC ) {
-			shared->Amplifier.encoderLimitDegC = shared->Amplifier.encoderMeasuredDegC;
-		}
-	}
+	// 	// Update values with limits
+	// 	if ( shared->Amplifier.encoderMeasuredDegA > shared->Amplifier.encoderLimitDegA ) {
+	// 		shared->Amplifier.encoderLimitDegA = shared->Amplifier.encoderMeasuredDegA;
+	// 	}
+	// 	if ( shared->Amplifier.encoderMeasuredDegB > shared->Amplifier.encoderLimitDegB ) {
+	// 		shared->Amplifier.encoderLimitDegB = shared->Amplifier.encoderMeasuredDegB;
+	// 	}
+	// 	if ( shared->Amplifier.encoderMeasuredDegC > shared->Amplifier.encoderLimitDegC ) {
+	// 		shared->Amplifier.encoderLimitDegC = shared->Amplifier.encoderMeasuredDegC;
+	// 	}
+	// }
 }
 
 
@@ -204,67 +212,17 @@ void ControllerClass::MapToContributionABC( cv::Point3f terms ) {
 		// std::cout << "|B+C| Angle: " << shared->FormatDecimal( thTarget * RAD2DEG, 2 ) << "   Contrib: B: " << shared->FormatDecimal( contribution.y, 2 ) << " , C: " << shared->FormatDecimal( contribution.z, 2 ) << "   rMax: " << shared->FormatDecimal( rMax, 2 ) << "\n";
 	}
 
-	if ( shared->System.state == stateEnum::MEASURING_LIMITS ) {
-	}
-
 	// Update percentage and constrain to max depending on torque
-	if ( ( shared->Amplifier.isTensionOnly ) && ( shared->System.state == stateEnum::DRIVING_PWM ) ) {
+	if ( shared->Amplifier.isTensionOnly ) {
 
 		shared->Controller.commandedPercentageABC.x = std::clamp( shared->Controller.commandedTensionABC.x, 0.0f, shared->Amplifier.commandedLimits.x );
 		shared->Controller.commandedPercentageABC.y = std::clamp( shared->Controller.commandedTensionABC.y, 0.0f, shared->Amplifier.commandedLimits.y );
 		shared->Controller.commandedPercentageABC.z = std::clamp( shared->Controller.commandedTensionABC.z, 0.0f, shared->Amplifier.commandedLimits.z );
-
-	} else if ( ( !shared->Amplifier.isTensionOnly ) && ( shared->System.state == stateEnum::DRIVING_PWM ) ) {
+	} else {
 
 		shared->Controller.commandedPercentageABC.x = std::clamp( ( contribution.x + shared->Controller.commandedTensionABC.x ), 0.0f, shared->Amplifier.commandedLimits.x );
 		shared->Controller.commandedPercentageABC.y = std::clamp( ( contribution.y + shared->Controller.commandedTensionABC.y ), 0.0f, shared->Amplifier.commandedLimits.y );
 		shared->Controller.commandedPercentageABC.z = std::clamp( ( contribution.z + shared->Controller.commandedTensionABC.z ), 0.0f, shared->Amplifier.commandedLimits.z );
-
-	} else if ( shared->System.state == stateEnum::MEASURING_LIMITS ) {
-
-		// Only drive limits on active motor
-		switch ( shared->Input.selectLimit ) {
-
-			// Amp A
-			case ( selectLimitEnum::AMP_A ): {
-
-				shared->Controller.commandedPercentageABC.x = shared->Amplifier.commandedLimits.x;
-				shared->Controller.commandedPercentageABC.y = 0.0f;
-				shared->Controller.commandedPercentageABC.z = 0.0f;
-
-				break;
-			}
-
-			// Amp B
-			case ( selectLimitEnum::AMP_B ): {
-
-				shared->Controller.commandedPercentageABC.x = 0.0f;
-				shared->Controller.commandedPercentageABC.y = shared->Amplifier.commandedLimits.y;
-				shared->Controller.commandedPercentageABC.z = 0.0f;
-
-				break;
-			}
-
-			// Amp C
-			case ( selectLimitEnum::AMP_C ): {
-
-				shared->Controller.commandedPercentageABC.x = 0.0f;
-				shared->Controller.commandedPercentageABC.y = 0.0f;
-				shared->Controller.commandedPercentageABC.z = shared->Amplifier.commandedLimits.z;
-
-				break;
-			}
-
-			// Amp C
-			case ( selectLimitEnum::NONE ): {
-
-				shared->Controller.commandedPercentageABC.x = 0.0f;
-				shared->Controller.commandedPercentageABC.y = 0.0f;
-				shared->Controller.commandedPercentageABC.z = 0.0f;
-
-				break;
-			}
-		}
 	}
 
 

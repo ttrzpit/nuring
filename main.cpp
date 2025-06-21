@@ -53,7 +53,7 @@ void PrintState();
 
 // SYSTEM FLAGS
 bool FLAG_PrintOpenCVBuildInfo = false;
-bool FLAG_PrintState		   = false;
+bool FLAG_PrintState		   = true;
 
 
 
@@ -67,11 +67,11 @@ int main() {
 	// Testing
 	shared->Amplifier.commandedLimits = cv::Point3f( 0.2f, 0.2f, 0.2f );
 	shared->Controller.isLimitSet	  = true;
-	shared->Calibration.isCalibrated  = false;
+	shared->Calibration.isCalibrated  = true;
 
 	// Settings
 	shared->Logging.isEnabled	 = true;
-	shared->Task.userID			 = 626;
+	shared->Task.userID			 = 610;
 	shared->Target.isTargetFound = 1;
 
 	shared->System.useRing = false;
