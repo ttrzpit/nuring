@@ -142,13 +142,6 @@ int main() {
 		// Update display
 		Canvas.Update();
 
-		// Save logging file
-		// if ( shared->Task.isComplete ) {
-		// Logging.Save();
-		// std::cout << "File saved!\n";
-		// shared->Task.isComplete = false;
-		// }
-		//
 		// Update shutdown flags for clean shutdown
 		if ( shared->System.isShuttingDown ) {
 			shared->System.isMainRunning = false;
