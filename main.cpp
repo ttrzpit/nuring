@@ -53,7 +53,7 @@ void PrintState();
 
 // SYSTEM FLAGS
 bool FLAG_PrintOpenCVBuildInfo = false;
-bool FLAG_PrintState		   = true;
+bool FLAG_PrintState		   = false;
 
 
 
@@ -71,7 +71,7 @@ int main() {
 
 	// Settings
 	shared->Logging.isEnabled	 = true;
-	shared->Task.userID			 = 610;
+	shared->Task.userID			 = 123;
 	shared->Target.isTargetFound = 1;
 
 	shared->System.useRing = false;

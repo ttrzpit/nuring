@@ -1,17 +1,17 @@
 # ninja log v5
-2	1234	1750467593596451263	CMakeFiles/NURingIntegratedController.dir/src/DisplayClass.cpp.o	ea3b5e816d1f03e3
 4	868	1750460229179182848	CMakeFiles/NURingIntegratedController.dir/src/SerialClass.cpp.o	abadc2f7b4ed3fef
+2	1234	1750467593596451263	CMakeFiles/NURingIntegratedController.dir/src/DisplayClass.cpp.o	ea3b5e816d1f03e3
 2	793	1750461808778522313	CMakeFiles/NURingIntegratedController.dir/src/InputClass.cpp.o	fa5edcb443ab685b
-3	488	1750460228799178514	CMakeFiles/NURingIntegratedController.dir/src/CaptureClass.cpp.o	93fdfec14187b803
+586	722	1750777347487401465	NURingIntegratedController	ce46e2c3bf956441
 3	548	1750460228858179187	CMakeFiles/NURingIntegratedController.dir/src/KalmanClass.cpp.o	1dd00b6a99b6c173
-450	588	1750468852703989595	NURingIntegratedController	ce46e2c3bf956441
+3	488	1750460228799178514	CMakeFiles/NURingIntegratedController.dir/src/CaptureClass.cpp.o	93fdfec14187b803
 2	804	1750460229115182118	CMakeFiles/NURingIntegratedController.dir/src/ArucoClass.cpp.o	ab2c363b1984f25e
 4	480	1750460228791178423	CMakeFiles/NURingIntegratedController.dir/src/TouchscreenClass.cpp.o	4d47f2439786e555
 3	1031	1750460229342184707	CMakeFiles/NURingIntegratedController.dir/src/LoggingClass.cpp.o	10d336cc098c7e9b
 4	561	1750460228872179347	CMakeFiles/NURingIntegratedController.dir/src/SystemDataManager.cpp.o	2f60328534e89e50
-2	593	1750468124081464407	CMakeFiles/NURingIntegratedController.dir/main.cpp.o	86777b8f9d9babed
+2	586	1750777347353399825	CMakeFiles/NURingIntegratedController.dir/main.cpp.o	86777b8f9d9babed
 3	703	1750441573480201985	CMakeFiles/NURingIntegratedController.dir/src/config.cpp.o	bfea0df4cc0d5520
 4	779	1750460229089181821	CMakeFiles/NURingIntegratedController.dir/src/TimingClass.cpp.o	61dd24da71161c30
 1	4	0	clean	a31eedcededa8236
-4	891	1750460229202183110	CMakeFiles/NURingIntegratedController.dir/src/TasksClass.cpp.o	44828e86067ac96e
 3	450	1750468852567987864	CMakeFiles/NURingIntegratedController.dir/src/ControllerClass.cpp.o	6355ccfa340075b5
+4	891	1750460229202183110	CMakeFiles/NURingIntegratedController.dir/src/TasksClass.cpp.o	44828e86067ac96e
