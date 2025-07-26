@@ -97,6 +97,7 @@ struct ArUcoStruct {
 };
 
 struct CaptureStruct {
+	bool	rotateCamera = false;
 	bool	isFrameReady = false;
 	cv::Mat frameRaw	 = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );
 	cv::Mat frameGray	 = cv::Mat( CONFIG_CAM_HEIGHT, CONFIG_CAM_WIDTH, CV_8UC3 );

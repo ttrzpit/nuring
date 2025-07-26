@@ -91,6 +91,10 @@ void DisplayClass::Update() {
  */
 void DisplayClass::BuildReadoutInterface() {
 
+	// Draw black box at bottom of screen // y=1100
+
+	cv::rectangle( shared->Display.matFrameOverlay, cv::Rect( 0, 1100, 1600, 1360 ), CONFIG_colBlack, -1 );
+
 	// Section border
 	DrawCell( "", "A1", 40, 10, 0, CONFIG_colWhite, CONFIG_colBlack, false );
 
@@ -710,6 +714,9 @@ void DisplayClass::BuildKeyboardShortcuts() {
 	DrawKeyCell( "LimitsSelectC", "A32", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
 	DrawKeyCell( "LimitsStart", "A33", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
 	DrawKeyCell( "LimitsReset", "A34", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "Change reverse mode", "A35", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	DrawKeyCell( "Rotate camera", "A36", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+
 	DrawKeyCell( "Esc", "F1", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawKeyCell( "1", "F2", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawKeyCell( "2", "F3", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
@@ -744,6 +751,9 @@ void DisplayClass::BuildKeyboardShortcuts() {
 	DrawKeyCell( "n5", "F32", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawKeyCell( "n0", "F33", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawKeyCell( "nCR", "F34", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "r", "F35", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "q", "F35", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
 
 	// Display window
 	cv::imshow( winShortcuts, matShortcuts );

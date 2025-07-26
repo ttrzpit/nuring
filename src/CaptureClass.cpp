@@ -97,6 +97,12 @@ void CaptureClass::GetFrame() {
 		shared->Capture.GpuMatFrameUndistorted.download( shared->Capture.matFrameUndistorted );
 		shared->Capture.GpuMatFrameGray.download( shared->Capture.frameGray );
 
+		if ( shared->Capture.rotateCamera ) {
+			// Rotate 180 degrees on GPU (flip both axes)
+			cv::flip( shared->Capture.frameGray, shared->Capture.frameGray, -1 );
+			cv::flip( shared->Capture.matFrameUndistorted, shared->Capture.matFrameUndistorted, -1 );
+		}
+
 		// Update flag
 		shared->Capture.isFrameReady = true;
 

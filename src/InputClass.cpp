@@ -116,6 +116,8 @@ void InputClass::RegisterKeyBindings() {
 	keyBindings[176] = [this]() { K_LimitsSelectAll(); };
 	keyBindings[141] = [this]() { K_LimitsReset(); };
 	keyBindings[8]	 = [this]() { K_DeselectAdjustment(); };
+	keyBindings['r'] = [this]() { K_SetReverseType(); };
+	keyBindings['q'] = [this]() { K_RotateCamera(); };
 }
 
 
@@ -240,6 +242,17 @@ void InputClass::K_DeselectAdjustment() {
 	shared->Display.statusString			  = "Input: Adjustment systems deselected.";
 }
 
+
+// Set type of reversal
+void InputClass::K_SetReverseType() {
+	shared->Amplifier.isReverseConstant = !shared->Amplifier.isReverseConstant;
+	shared->Display.statusString		= ( shared->Amplifier.isReverseConstant ? "Input: Sustained reverse cue activated." : "Input: Vibrating reverse cue activated." );
+}
+
+// Rotate camera
+void InputClass::K_RotateCamera() {
+	shared->Capture.rotateCamera = !shared->Capture.rotateCamera;
+}
 
 /*
  *
@@ -455,9 +468,6 @@ void InputClass::K_GainSelect_Derivative() {
 	shared->Input.selectedAdjustmentSystem	  = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::GAIN_DERIVATIVE ) ? selectSystemEnum::NONE : selectSystemEnum::GAIN_DERIVATIVE;
 	shared->Input.selectedAdjustmentSubsystem = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::GAIN_DERIVATIVE ) ? selectSubsystemEnum::ALL : selectSubsystemEnum::NONE;
 	shared->Display.statusString			  = "Input: Selected derivative gain...";
-
-
-	shared->Amplifier.isReverseConstant = !shared->Amplifier.isReverseConstant;
 }
 
 void InputClass::K_GainsZero() {

@@ -95,4 +95,6 @@ private:
 	void K_LimitsSelectC();
 	void K_LimitsReset();
 	void K_DeselectAdjustment();
+	void K_SetReverseType();
+	void K_RotateCamera();
 };

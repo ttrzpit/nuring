@@ -260,7 +260,7 @@ void SerialClass::SendPacketToTeensy() {
 		outgoingPacket.pwmC = shared->Controller.commandedPwmABC.z;
 
 		// Toggle Reverse
-		if ( shared->Controller.toggleReverse ) {
+		if ( shared->Controller.toggleReverse && shared->Task.isRunning ) {
 			if ( shared->Amplifier.isReverseConstant ) {
 				outgoingPacket.reverseToggle = 1;
 			} else {
