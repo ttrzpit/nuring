@@ -27,6 +27,7 @@
 // Amplifier constants
 inline constexpr unsigned short AMPLIFIER_PWM_ZERO = 2047;	  // Minimum PWM value
 inline constexpr unsigned short AMPLIFIER_PWM_MAX  = 1;		  // Maximum PWM value
+// inline constexpr unsigned short AMPLIFIER_PWM_MAX  = 4096;		  // Maximum PWM value
 
 /**
  * @brief LED config values 

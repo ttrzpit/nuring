@@ -64,6 +64,10 @@ bool FLAG_PrintState		   = false;
  */
 int main() {
 
+	// Reverse type
+	shared->Amplifier.isReverseConstant = true;	   // ( constant = 1 )
+
+
 	// Testing
 	shared->Amplifier.commandedLimits = cv::Point3f( 0.2f, 0.2f, 0.2f );
 	shared->Controller.isLimitSet	  = true;

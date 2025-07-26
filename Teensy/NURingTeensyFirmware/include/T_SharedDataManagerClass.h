@@ -28,6 +28,10 @@ struct AmplifierStruct {
 	bool isHWSerialEnabled = false;
 	bool useDebugPort	   = true;
 
+	// Reverse flag
+	int toggleReverse = 0;
+
+
 	bool isQuerySent = false;
 
 	// Packet variables
@@ -90,8 +94,7 @@ struct SerialStruct {
  */
 struct SystemStruct {
 
-	stateEnum state					= stateEnum::WAITING;
-	bool	  isSafetySwitchEngaged = false;
+	stateEnum state = stateEnum::WAITING;
 };
 
 

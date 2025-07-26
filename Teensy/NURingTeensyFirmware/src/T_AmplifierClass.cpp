@@ -180,6 +180,17 @@ void T_AmplifierClass::DrivePWM() {
 	shared->Amplifier.commandedPwmB = constrain( shared->Amplifier.commandedPwmB, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
 	shared->Amplifier.commandedPwmC = constrain( shared->Amplifier.commandedPwmC, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
 
+	// shared->Amplifier.commandedPwmA = constrain( shared->Amplifier.commandedPwmA, AMPLIFIER_PWM_ZERO, AMPLIFIER_PWM_MAX );
+	// shared->Amplifier.commandedPwmB = constrain( shared->Amplifier.commandedPwmB, AMPLIFIER_PWM_ZERO, AMPLIFIER_PWM_MAX );
+	// shared->Amplifier.commandedPwmC = constrain( shared->Amplifier.commandedPwmC, AMPLIFIER_PWM_ZERO, AMPLIFIER_PWM_MAX );
+
+	// Toggle vibrating reverse
+	if ( shared->Amplifier.toggleReverse == 2 ) {
+		shared->Amplifier.commandedPwmA = constrain( shared->Amplifier.commandedPwmA - 250, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
+		shared->Amplifier.commandedPwmB = constrain( shared->Amplifier.commandedPwmB - 250, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
+		shared->Amplifier.commandedPwmC = constrain( shared->Amplifier.commandedPwmC - 250, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
+	}
+
 	// Send command to amplifiers
 	analogWrite( AMPLIFIER_PIN_PWM_A, shared->Amplifier.commandedPwmA );
 	analogWrite( AMPLIFIER_PIN_PWM_B, shared->Amplifier.commandedPwmB );
@@ -256,12 +267,9 @@ void T_AmplifierClass::Update() {
 		// Drive through PWM
 		case stateEnum::DRIVING_PWM: {
 
-			// Send drive command if amplifier is enabled
-			if ( shared->Amplifier.isEnabled && shared->System.isSafetySwitchEngaged ) {
-
 				// Drive PWM
-				DrivePWM();
-			}
+			DrivePWM();
+			// }
 
 			break;
 		}

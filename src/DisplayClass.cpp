@@ -231,6 +231,14 @@ void DisplayClass::AddCameraElements() {
 		// cv::circle( shared->Display.matFrameOverlay, cv::Point2i( newX, newY ), 10 * MM2PX, CONFIG_colGreLt, 2 );
 		// cv::circle( shared->Display.matFrameOverlay, shared->, 10 * MM2PX, CONFIG_colGreLt, 2 );
 	}
+
+
+	// Add reverse indicator
+	if ( shared->Controller.toggleReverse ) {
+		cv::putText( shared->Display.matFrameOverlay, "REVERSE", cv::Point( 10, 40 ), cv::FONT_HERSHEY_SIMPLEX, 1.0f, CONFIG_colRedMd, 2 );
+	} else {
+		cv::putText( shared->Display.matFrameOverlay, "FORWARD", cv::Point( 10, 40 ), cv::FONT_HERSHEY_SIMPLEX, 1.0f, CONFIG_colGreMd, 2 );
+	}
 }
 
 

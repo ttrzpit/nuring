@@ -455,6 +455,9 @@ void InputClass::K_GainSelect_Derivative() {
 	shared->Input.selectedAdjustmentSystem	  = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::GAIN_DERIVATIVE ) ? selectSystemEnum::NONE : selectSystemEnum::GAIN_DERIVATIVE;
 	shared->Input.selectedAdjustmentSubsystem = ( shared->Input.selectedAdjustmentSystem == selectSystemEnum::GAIN_DERIVATIVE ) ? selectSubsystemEnum::ALL : selectSubsystemEnum::NONE;
 	shared->Display.statusString			  = "Input: Selected derivative gain...";
+
+
+	shared->Amplifier.isReverseConstant = !shared->Amplifier.isReverseConstant;
 }
 
 void InputClass::K_GainsZero() {

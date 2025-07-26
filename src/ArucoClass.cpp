@@ -89,6 +89,7 @@ void ArucoClass::FindTags() {
 
 					if ( ( arucoDetectedIDs[i] > 0 ) && ( arucoDetectedIDs[i] == shared->Target.activeID ) ) {	  // Only process active tag
 
+
 						// Extract current corner
 						std::vector<std::vector<cv::Point2f>> currentCorner = { arucoCorners[i] };
 
@@ -116,6 +117,7 @@ void ArucoClass::FindTags() {
 
 						// Update 3D real-world coordinates
 						shared->Target.positionUnfilteredMM = cv::Point3f( arucoTranslationVector[0][0], -arucoTranslationVector[0][1], arucoTranslationVector[0][2] );
+						shared->Target.rotationDEG			= arucoRotationVector[0][1] * RAD2DEG;
 					}
 
 
@@ -135,6 +137,16 @@ void ArucoClass::FindTags() {
 		std::cout << "ArucoClass: Image not ready for processing!\n";
 
 	}	 // End is frame ready
+
+	// Logic for reverse
+	if ( !shared->Target.isTargetFound && shared->Target.wasTargetDetected && ( shared->Target.positionFilteredNewMM.z > 50.0f ) && ( shared->Target.positionFilteredNewMM.z < 300.0f )) {
+		shared->Controller.toggleReverse = true;
+	} else if ( shared->Target.isTargetFound && !shared->Target.wasTargetDetected ) {
+		shared->Controller.toggleReverse = false;
+	} 
+
+	shared->Target.wasTargetDetected = shared->Target.isTargetFound;
+
 
 
 }	 // End function

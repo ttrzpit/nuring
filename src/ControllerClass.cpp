@@ -41,6 +41,8 @@ void ControllerClass::Update() {
 		// shared->Target.velocityFilteredNewMM.x < 0 ? ( shared->Controller.derivativeTerm.x = -shared->Controller.gainKd.abd * shared->Target.velocityFilteredNewMM.x ) : ( shared->Controller.derivativeTerm.x = shared->Controller.gainKd.add * shared->Target.velocityFilteredNewMM.x );
 		// shared->Target.velocityFilteredNewMM.y < 0 ? ( shared->Controller.derivativeTerm.y = shared->Controller.gainKd.flx * shared->Target.velocityFilteredNewMM.y ) : ( shared->Controller.derivativeTerm.y = shared->Controller.gainKd.ext * shared->Target.velocityFilteredNewMM.y );
 
+		
+
 
 		// Direction to target
 		cv::Point2f posError	= cv::Point2f( shared->Target.positionFilteredNewMM.x, shared->Target.positionFilteredNewMM.y );

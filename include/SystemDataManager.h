@@ -57,6 +57,8 @@ struct AmplifierStruct {
 	bool isTensionOnly			 = false;
 	bool isSafetySwitchEngaged	 = false;
 
+	bool isReverseConstant = true;
+
 	// Packet payload
 	uint8_t	 packetType			   = 0;
 	uint8_t	 packetCounter		   = 0;
@@ -150,6 +152,7 @@ struct ControllerStruct {
 	cv::Point3f percentageProportional = cv::Point3f( 0.0f, 0.0f, 0.0f );
 	cv::Point3f percentageIntegral	   = cv::Point3f( 0.0f, 0.0f, 0.0f );
 	cv::Point3f percentageDerivative   = cv::Point3f( 0.0f, 0.0f, 0.0f );
+	bool		toggleReverse		   = false;
 };
 
 struct DisplayStruct {
@@ -252,6 +255,8 @@ struct TargetTelemetryStruct {
 	int						 activeID			   = 1;	   // ID of target currently being tracked
 	bool					 isTargetReset		   = false;
 	bool					 isTargetFound		   = false;
+	bool					 isTargetLost		   = false;
+	bool					 wasTargetDetected	   = false;
 	cv::Point2i				 screenPositionPX	   = cv::Point2i( 0, 0 );																		// [px] Position of target in screen space
 	cv::Point3f				 positionUnfilteredMM  = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] Raw (unfiltered) position of tag relative to camera
 	cv::Point3f				 positionFilteredNewMM = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] New 3D filtered position
@@ -259,8 +264,9 @@ struct TargetTelemetryStruct {
 	cv::Point3f				 velocityFilteredNewMM = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] New 3D filtered position
 	cv::Point3f				 velocityFilteredOldMM = cv::Point3f( 0.0f, 0.0f, 0.0f );															// [mm] New 3D filtered position
 	std::vector<cv::Point2i> cornersPX			   = { cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ), cv::Point2i( 0, 0 ) };	// Target corners in pixel space
-	cv::Point3f				 positionIntegratedMM  = cv::Point3f( 0.0f, 0.0f, 0.0f );
-	cv::Point3f				 offsetMm			   = cv::Point3f( 0, -CONFIG_TARGET_OFFSET_Y_MM, 0 );
+	cv::Point3f				 positionIntegratedMM  = cv::Point3f( 0.0f, 0.0f, 0.0f );															// Integrated position
+	cv::Point3f				 offsetMm			   = cv::Point3f( 0, -CONFIG_TARGET_OFFSET_Y_MM, 0 );											// Offset
+	float					 rotationDEG		   = 0.0f;																						// Target angle
 };
 
 struct RingTelemetryStruct {

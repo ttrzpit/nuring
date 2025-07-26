@@ -36,7 +36,7 @@ void IT_Callback_WriteToAmplifiers();
 void IT_Callback_SendSerialToPC();
 void IT_Callback_ReadFromAmplifiers();
 void UpdateSystemState();
-void ReadSafetySwitch() ;
+void ReadSafetySwitch();
 
 /**
  * @brief Main program setup
@@ -176,18 +176,6 @@ void UpdateSystemState() {
 		// Driving PWM
 		case stateEnum::DRIVING_PWM: {
 
-			// Only enable if safety switch enabled
-			if ( shared->System.isSafetySwitchEngaged ) {
-
-				// Update amplifier state
-				shared->Amplifier.isEnabled = true;
-
-			} else {
-
-				// Update amplifier state
-				shared->Amplifier.isEnabled = false;
-			}
-
 			// Update LEDs
 			shared->LED.isCommunicatingWithPC = true;
 			shared->LED.isDrivingMotors		  = true;
@@ -244,5 +232,5 @@ void UpdateSystemState() {
 void ReadSafetySwitch() {
 
 	// Read switch
-	shared->System.isSafetySwitchEngaged = digitalRead( PIN_SAFETY_SWITCH );
+	// shared->System.toggleReverse = digitalRead( PIN_SAFETY_SWITCH );
 }

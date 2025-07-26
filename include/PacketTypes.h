@@ -22,7 +22,7 @@ struct PacketStruct {
 	int32_t	 encoderA		= 0;
 	int32_t	 encoderB		= 0;
 	int32_t	 encoderC		= 0;
-	uint8_t	 safetySwitch	= 0;
+	uint8_t	 reverseToggle	= 0;
 };
 
 #pragma pack( pop )

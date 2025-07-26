@@ -201,6 +201,8 @@ void T_SerialClass::ParsePacketFromPC( PacketStruct* pkt ) {
 			// Update state
 			shared->System.state = stateEnum::DRIVING_PWM;
 
+
+
 			break;
 		}
 
@@ -245,7 +247,15 @@ void T_SerialClass::ParsePacketFromPC( PacketStruct* pkt ) {
 	shared->Amplifier.commandedPwmA	 = pkt->pwmA;
 	shared->Amplifier.commandedPwmB	 = pkt->pwmB;
 	shared->Amplifier.commandedPwmC	 = pkt->pwmC;
+	shared->Amplifier.toggleReverse	 = pkt->toggleReverseFlag;
 	// shared->Vibration.isRunning		 = pkt->vibration;
+
+	// Toggle constant reverse
+	if ( shared->Amplifier.toggleReverse == 1 ) {
+		shared->Amplifier.commandedPwmA = constrain( shared->Amplifier.commandedPwmA - 450, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
+		shared->Amplifier.commandedPwmB = constrain( shared->Amplifier.commandedPwmB - 450, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
+		shared->Amplifier.commandedPwmC = constrain( shared->Amplifier.commandedPwmC - 450, AMPLIFIER_PWM_MAX, AMPLIFIER_PWM_ZERO );
+	}
 }
 
 
@@ -292,19 +302,19 @@ void T_SerialClass::SendPacketToPC() {
 
 
 	// Populate packet
-	outgoingPacket.packetType	  = outgoingType;
-	outgoingPacket.packetCounter  = shared->Amplifier.packetCounter;
-	outgoingPacket.amplifierState = shared->Amplifier.isEnabled;
-	outgoingPacket.pwmA			  = shared->Amplifier.commandedPwmA;
-	outgoingPacket.pwmB			  = shared->Amplifier.commandedPwmB;
-	outgoingPacket.pwmC			  = shared->Amplifier.commandedPwmC;
-	outgoingPacket.encoderA		  = shared->Amplifier.encoderMeasuredCountA;
-	outgoingPacket.encoderB		  = shared->Amplifier.encoderMeasuredCountB;
-	outgoingPacket.encoderC		  = shared->Amplifier.encoderMeasuredCountC;
-	outgoingPacket.currentA		  = shared->Amplifier.currentMeasuredRawA;
-	outgoingPacket.currentB		  = shared->Amplifier.currentMeasuredRawB;
-	outgoingPacket.currentC		  = shared->Amplifier.currentMeasuredRawC;
-	outgoingPacket.safetySwitch	  = shared->System.isSafetySwitchEngaged;
+	outgoingPacket.packetType		 = outgoingType;
+	outgoingPacket.packetCounter	 = shared->Amplifier.packetCounter;
+	outgoingPacket.amplifierState	 = shared->Amplifier.isEnabled;
+	outgoingPacket.pwmA				 = shared->Amplifier.commandedPwmA;
+	outgoingPacket.pwmB				 = shared->Amplifier.commandedPwmB;
+	outgoingPacket.pwmC				 = shared->Amplifier.commandedPwmC;
+	outgoingPacket.encoderA			 = shared->Amplifier.encoderMeasuredCountA;
+	outgoingPacket.encoderB			 = shared->Amplifier.encoderMeasuredCountB;
+	outgoingPacket.encoderC			 = shared->Amplifier.encoderMeasuredCountC;
+	outgoingPacket.currentA			 = shared->Amplifier.currentMeasuredRawA;
+	outgoingPacket.currentB			 = shared->Amplifier.currentMeasuredRawB;
+	outgoingPacket.currentC			 = shared->Amplifier.currentMeasuredRawC;
+	outgoingPacket.toggleReverseFlag = shared->Amplifier.toggleReverse;
 
 	// Measure packet length
 	const uint8_t packetLength = sizeof( outgoingPacket );
