@@ -75,7 +75,7 @@ int main() {
 
 	// Settings
 	shared->Logging.isEnabled	 = true;
-	shared->Task.userID			 = 123;
+	shared->Task.userID			 = 999		;
 	shared->Target.isTargetFound = 1;
 
 	shared->System.useRing = false;
