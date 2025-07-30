@@ -75,7 +75,7 @@ int main() {
 
 	// Settings
 	shared->Logging.isEnabled	 = true;
-	shared->Task.userID			 = 999		;
+	shared->Task.userID			 = 123;
 	shared->Target.isTargetFound = 1;
 
 	shared->System.useRing = false;
@@ -123,11 +123,11 @@ int main() {
 		// Capture frame
 		Capture.GetFrame();
 
-		// Detect ArUco tags
-		Aruco.FindTags();
-
 		// Run the appropriate task
 		SelectTask();
+
+		// Detect ArUco tags
+		Aruco.FindTags();
 
 		// Update system
 		UpdateSystem();

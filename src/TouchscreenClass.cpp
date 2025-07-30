@@ -60,28 +60,28 @@ void TouchscreenClass::ParseClick() {
 	if ( buttonPressedNew == true ) {
 		// Switch-case for active task
 		switch ( shared->Task.repetitionNumber ) {
-		case 0:
-			// Nothing
-			break;
-		case 1:
-			// Discrimination
-			break;
-		case 2:	   // Fitts
-			if ( shared->Touchscreen.isTouched == 1 ) {
-				shared->Task.command = 'c';
-			} else {
-				shared->Task.command = 0;
-			}
-			break;
-		case 3:
-			//
-			break;
-		case 4:
-			//
-			break;
-		default:
-			//
-			break;
+			case 0:
+				// Nothing
+				break;
+			case 1:
+				// Discrimination
+				break;
+			case 2:	   // Fitts
+				if ( shared->Touchscreen.isTouched == 1 ) {
+					shared->Task.command = 'c';
+				} else {
+					shared->Task.command = 0;
+				}
+				break;
+			case 3:
+				//
+				break;
+			case 4:
+				//
+				break;
+			default:
+				//
+				break;
 		}
 		buttonPressedNew = false;
 	}

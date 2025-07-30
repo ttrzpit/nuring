@@ -17,9 +17,6 @@ LoggingClass::LoggingClass( SystemDataManager& ctx )
 
 void LoggingClass::Initialize() {
 
-	// Clear old data
-	logFile.clear();
-
 	// Select folder based on task
 	if ( shared->Task.state == taskEnum::FITTS ) {
 
@@ -44,6 +41,9 @@ void LoggingClass::Initialize() {
 	fullPathAndFilenameTxt		 = userFolder / shared->Logging.filenameTxt;
 	fullPathAndFilenamePng		 = userFolder / shared->Logging.filenamePng;
 	shared->Display.statusString = "Creating Log: " + shared->Logging.filenameTxt;
+
+	// Clear old data
+	logFile.clear();
 }
 
 

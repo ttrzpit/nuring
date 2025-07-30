@@ -410,25 +410,32 @@ void TasksClass::FittsLoggingStart() {
 
 	// Initialize and add initial entry
 	Logger.Initialize();
-	Logger.AddEntry();
+	// Logger.AddEntry();
 }
 
 
 void TasksClass::FittsLoggingUpdate() {
 
-	// Update logging values
-	shared->Logging.variable1 = std::to_string( shared->Touchscreen.isTouched );
-	shared->Logging.variable2 = shared->Serial.packetOut;
-	shared->Logging.variable3 = shared->Serial.packetIn;
-	shared->Logging.variable4 = shared->FormatDecimal( shared->Controller.gainKp.abd, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKp.add, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKp.flx, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKp.ext, 0, 2 );
-	shared->Logging.variable5 = shared->FormatDecimal( shared->Controller.proportionalTerm.x, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.proportionalTerm.y, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.proportionalTerm.z, 0, 2 );
-	shared->Logging.variable6 = shared->FormatDecimal( shared->Controller.gainKi.abd, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKi.add, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKi.flx, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKi.ext, 0, 2 );
-	shared->Logging.variable7 = shared->FormatDecimal( shared->Controller.integralTerm.x, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.integralTerm.y, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.integralTerm.z, 0, 2 );
-	shared->Logging.variable8 = shared->FormatDecimal( shared->Controller.gainKd.abd, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKd.add, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKd.flx, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKi.ext, 0, 2 );
-	shared->Logging.variable9 = shared->FormatDecimal( shared->Controller.derivativeTerm.x, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.derivativeTerm.y, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.derivativeTerm.z, 0, 2 );
+	// Only update if task is running
+	if ( shared->Task.isRunning && !shared->Target.isTargetReset ) {
 
-	// Save entry
-	Logger.AddEntry();
+		// Update logging values
+		shared->Logging.variable1 = std::to_string( shared->Touchscreen.isTouched );
+		shared->Logging.variable2 = shared->Serial.packetOut;
+		shared->Logging.variable3 = shared->Serial.packetIn;
+		shared->Logging.variable4
+			= shared->FormatDecimal( shared->Controller.gainKp.abd, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKp.add, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKp.flx, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKp.ext, 0, 2 );
+		shared->Logging.variable5 = shared->FormatDecimal( shared->Controller.proportionalTerm.x, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.proportionalTerm.y, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.proportionalTerm.z, 0, 2 );
+		shared->Logging.variable6
+			= shared->FormatDecimal( shared->Controller.gainKi.abd, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKi.add, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKi.flx, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKi.ext, 0, 2 );
+		shared->Logging.variable7 = shared->FormatDecimal( shared->Controller.integralTerm.x, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.integralTerm.y, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.integralTerm.z, 0, 2 );
+		shared->Logging.variable8
+			= shared->FormatDecimal( shared->Controller.gainKd.abd, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKd.add, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKd.flx, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.gainKi.ext, 0, 2 );
+		shared->Logging.variable9 = shared->FormatDecimal( shared->Controller.derivativeTerm.x, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.derivativeTerm.y, 0, 2 ) + "," + shared->FormatDecimal( shared->Controller.derivativeTerm.z, 0, 2 );
+
+		// Save entry
+		Logger.AddEntry();
+	}
 }
 
 
