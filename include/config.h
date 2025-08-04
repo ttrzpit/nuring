@@ -14,8 +14,9 @@
 #if HIGH_RESOLUTION == 1
 
 // Marker constants
-inline constexpr short CONFIG_LARGE_MARKER_WIDTH  = 20;	   // [mm] Marker dimension
-inline constexpr short CONFIG_MEDIUM_MARKER_WIDTH = 12;
+inline constexpr short CONFIG_LARGE_MARKER_WIDTH = 20;	  // [mm] Marker dimension
+// inline constexpr short CONFIG_LARGE_MARKER_WIDTH  = 30;	   // [mm] Marker dimension
+inline constexpr short CONFIG_MEDIUM_MARKER_WIDTH = 20;
 inline constexpr short CONFIG_SMALL_MARKER_WIDTH  = 8;
 inline constexpr short CONFIG_RING_MARKER_WIDTH	  = 15;
 inline constexpr short CONFIG_TARGET_OFFSET_Y_MM  = 35;

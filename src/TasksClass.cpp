@@ -8,6 +8,14 @@ TasksClass::TasksClass( SystemDataManager& ctx, TimingClass& timerHandle, Loggin
 	, shared( ctx.getData() )
 	, Timer( timerHandle )
 	, Logger( loggerHandle ) {
+
+	// Check if using large or small tag
+	if ( CONFIG_LARGE_MARKER_WIDTH == 20 ) {
+		matAruco01 = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-01-20mm.png" );
+	} else {
+		matAruco01 = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-01-40mm.png" );
+	}
+
 	// Stuff
 }
 
@@ -267,8 +275,8 @@ void TasksClass::FittsFinish() {
 	cv::line( matTaskBackground, targetPosition, touchPosition, CONFIG_colRedMd, 2 );
 
 	// Calculate errors
-	errorPx = cv::Point2i( ( touchPosition.x - targetPosition.x ), ( targetPosition.y - touchPosition.y ) );
-	errorMm = errorPx * PX2MM;
+	errorPx = cv::Point2i( ( touchPosition.x - targetPosition.x ), ( targetPosition.y - touchPosition.y ) + CONFIG_TARGET_OFFSET_Y_MM * MM2PX );
+	errorMm = ( errorPx * PX2MM );
 
 	// Add on-screen text
 	std::string line0 = "Task completed!";
@@ -387,7 +395,7 @@ void TasksClass::FittsGeneratePosition() {
 
 	// Actual target to prevent occlusion
 	targetPosition = cv::Point2i( shared->Task.targetPosition.x + ( matAruco01.cols / 2 ), shared->Task.targetPosition.y + ( matAruco01.rows / 2 ) );
-	cv::circle( matTaskBackground, cv::Point2i( targetPosition.x, targetPosition.y + CONFIG_TARGET_OFFSET_Y_MM * MM2PX ), 5 * MM2PX, CONFIG_colGreMd, -1 );
+	// cv::circle( matTaskBackground, cv::Point2i( targetPosition.x, targetPosition.y + CONFIG_TARGET_OFFSET_Y_MM * MM2PX ), 5 * MM2PX, CONFIG_colGreMd, -1 );
 }
 
 

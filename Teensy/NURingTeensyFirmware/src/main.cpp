@@ -65,9 +65,9 @@ void setup() {
 
 
 	// Start interval timers
-	IT_DriveAmplifiers.begin( IT_Callback_WriteToAmplifiers, shared->Timing.periodAmplifier );
-	IT_SendSerialToPC.begin( IT_Callback_SendSerialToPC, shared->Timing.periodSoftwareSerial );
-	IT_ReadAmplifiers.begin( IT_Callback_ReadFromAmplifiers, shared->Timing.periodHWSerial );
+	IT_DriveAmplifiers.begin( IT_Callback_WriteToAmplifiers, shared->Timing.periodAmplifier );		// Drives the motors
+	IT_SendSerialToPC.begin( IT_Callback_SendSerialToPC, shared->Timing.periodSoftwareSerial );		// Send data to serial
+	IT_ReadAmplifiers.begin( IT_Callback_ReadFromAmplifiers, shared->Timing.periodHWSerial );		// Read data from amplifiers
 
 	// Set default state
 	shared->System.state = stateEnum::WAITING;
@@ -84,7 +84,6 @@ void loop() {
 
 	// Check safety switch
 	ReadSafetySwitch();
-
 
 	// Update LEDs
 	LEDs.Update();

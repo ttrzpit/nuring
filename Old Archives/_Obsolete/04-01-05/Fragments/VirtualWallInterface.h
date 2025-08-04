@@ -1,3 +1,0 @@
-#pragma once
-
-class VirtualWallInterface { };

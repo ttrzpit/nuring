@@ -48,7 +48,8 @@ private:
 
 	// ArUco tag
 	cv::Mat matAruco08 = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-08-20mm-scaled.png" );
-	cv::Mat matAruco01 = cv::imread( "/home/tom/Code/nuring/images/tags/aruco-01-20mm.png" );
+	cv::Mat matAruco01;
+
 
 	// Target background
 	cv::Mat matTaskBackground = cv::Mat( CONFIG_TOUCHSCREEN_HEIGHT_PX, CONFIG_TOUCHSCREEN_WIDTH_PX, CV_8UC3 );
