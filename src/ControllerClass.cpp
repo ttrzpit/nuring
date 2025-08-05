@@ -118,39 +118,6 @@ void ControllerClass::UpdateAmplifier() {
 	shared->Amplifier.encoderMeasuredDegB = ( shared->Amplifier.encoderMeasuredCountB / 4096.0f ) * 360.0f;
 	shared->Amplifier.encoderMeasuredDegC = ( shared->Amplifier.encoderMeasuredCountC / 4096.0f ) * 360.0f;
 
-	// // Measure limits if set
-	// if ( shared->Amplifier.isLimitSet ) {
-	// 	if ( shared->Amplifier.encoderMeasuredDegA > shared->Amplifier.encoderLimitDegA ) {
-	// 		shared->Amplifier.isOverLimitA = true;
-	// 	} else {
-	// 		shared->Amplifier.isOverLimitA = false;
-	// 	}
-	// 	if ( shared->Amplifier.encoderMeasuredDegB > shared->Amplifier.encoderLimitDegB ) {
-	// 		shared->Amplifier.isOverLimitB = true;
-	// 	} else {
-	// 		shared->Amplifier.isOverLimitB = false;
-	// 	}
-	// 	if ( shared->Amplifier.encoderMeasuredDegC > shared->Amplifier.encoderLimitDegC ) {
-	// 		shared->Amplifier.isOverLimitC = true;
-	// 	} else {
-	// 		shared->Amplifier.isOverLimitC = false;
-	// 	}
-	// }
-
-	// // Update measured limits
-	// if ( shared->Amplifier.isMeasuringEncoderLimit ) {
-
-	// 	// Update values with limits
-	// 	if ( shared->Amplifier.encoderMeasuredDegA > shared->Amplifier.encoderLimitDegA ) {
-	// 		shared->Amplifier.encoderLimitDegA = shared->Amplifier.encoderMeasuredDegA;
-	// 	}
-	// 	if ( shared->Amplifier.encoderMeasuredDegB > shared->Amplifier.encoderLimitDegB ) {
-	// 		shared->Amplifier.encoderLimitDegB = shared->Amplifier.encoderMeasuredDegB;
-	// 	}
-	// 	if ( shared->Amplifier.encoderMeasuredDegC > shared->Amplifier.encoderLimitDegC ) {
-	// 		shared->Amplifier.encoderLimitDegC = shared->Amplifier.encoderMeasuredDegC;
-	// 	}
-	// }
 }
 
 

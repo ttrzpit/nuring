@@ -57,7 +57,7 @@ private:
 	std::string winInterface  = "NURing Interface";
 	std::string winShortcuts  = "Keyboard Shortcuts";
 	std::string winVisualizer = "3D Visualizer";
-	std::string winChecklist  = "Checklist";
+	std::string winChecklist  = "Log";
 
 	// Private variables
 	float	 fontTitle	= 0.0f;
@@ -91,6 +91,22 @@ private:
 	short	 key_textX	= 0;
 	short	 key_textY	= 0;
 
+	// Log variables
+	float	 log_fontHeader = 0.0f;
+	float	 log_fontBody	= 0.0f;
+	cv::Size log_textSize;
+	short	 log_WIDTH	= CONFIG_DIS_LOG_CELL_WIDTH;
+	short	 log_HEIGHT = CONFIG_DIS_LOG_CELL_HEIGHT;
+	short	 log_c0		= 0;
+	short	 log_r0		= 0;
+	short	 log_nR		= 0;
+	short	 log_nC		= 0;
+	short	 log_cW		= 0;
+	short	 log_rH		= 0;
+	short	 log_textX	= 0;
+	short	 log_textY	= 0;
+
+
 	// Visualizer settings
 	std::vector<cv::Point2i> ProjectedCorners;
 	cv::Mat					 matShortcuts = cv::Mat( CONFIG_DIS_HEIGHT, CONFIG_DIS_KEY_WIDTH, CV_8UC3 );
@@ -106,6 +122,7 @@ private:
 	// Interface
 	void ShowInterface();
 	void BuildReadoutInterface();
+	void BuildLogInterface();
 	void BuildKeyboardShortcuts();
 	void BuildChecklist();
 
@@ -114,10 +131,11 @@ private:
 	void DrawCellBorder( std::string cell0, short width, short height, uint8_t thickness, cv::Scalar color );
 	void DrawKeyCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
 	void DrawChecklistCell( std::string str, std::string cell0, short width, short height, float sz, cv::Scalar textColor, cv::Scalar fillColor, bool centered );
-	
+
 	// Add element functions
 	void AddCameraElements();
 	void AddPidElements();
+	void AddGainElements();
 	void AddTextTelemetry();
 	void AddTextController();
 	void AddTextSystem();

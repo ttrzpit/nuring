@@ -46,7 +46,7 @@ KalmanClass::KalmanClass( SystemDataManager& ctx )
  */
 void KalmanClass::Initialize( const cv::Point3f& initialPos, float tInitial ) {
 
-	std::cout << "KalmanClass: Initializing Kalman filter.\n";
+	// std::cout << "KalmanClass: Initializing Kalman filter.\n";
 
 	// Populate state
 	state.at<float>( 0 ) = initialPos.x;	// Position
@@ -88,7 +88,7 @@ void KalmanClass::Update( const cv::Point3f& measuredPos, float tCurrent ) {
 		tPrevious					 = 0.0f;
 		shared->Target.isTargetReset = false;
 		Initialize( shared->Target.positionUnfilteredMM, shared->Timing.elapsedRunningTime );
-		std::cout << "KalmanClass: Reset\n";
+		// std::cout << "KalmanClass: Reset\n";
 		return;
 	}
 

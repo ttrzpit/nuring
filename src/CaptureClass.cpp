@@ -1,5 +1,6 @@
 // Call to class header
 #include "CaptureClass.h"
+#include <opencv2/highgui.hpp>
 
 // System data manager
 #include "SystemDataManager.h"
@@ -54,6 +55,7 @@ void CaptureClass::Initialize() {
 		Capture.set( cv::CAP_PROP_AUTOFOCUS, CONFIG_CAM_AUTO_FOCUS );
 		Capture.set( cv::CAP_PROP_ZOOM, CONFIG_CAM_ZOOM );
 
+
 		// Ensure capture devices open and running
 		if ( !Capture.isOpened() ) {
 			std::cerr << "Error: Could not open the camera." << std::endl;
@@ -93,6 +95,8 @@ void CaptureClass::GetFrame() {
 		// Convert to grayscale using GPU
 		cv::cuda::cvtColor( shared->Capture.GpuMatFrameUndistorted, shared->Capture.GpuMatFrameGray, cv::COLOR_BGR2GRAY );
 
+
+
 		// Extract frames from GPU
 		shared->Capture.GpuMatFrameUndistorted.download( shared->Capture.matFrameUndistorted );
 		shared->Capture.GpuMatFrameGray.download( shared->Capture.frameGray );
@@ -102,6 +106,14 @@ void CaptureClass::GetFrame() {
 			cv::flip( shared->Capture.frameGray, shared->Capture.frameGray, -1 );
 			cv::flip( shared->Capture.matFrameUndistorted, shared->Capture.matFrameUndistorted, -1 );
 		}
+
+
+		// brightness: shift (beta), contrast: scale (alpha)
+		double alpha = 1.4;	   // contrast (1.0 = no change)
+		double beta	 = 100;	   // brightness (0 = no change)
+
+		// // Apply contrast and brightness adjustment
+		shared->Capture.frameGray.convertTo( shared->Capture.frameGray, -1, alpha, beta );
 
 		// Update flag
 		shared->Capture.isFrameReady = true;

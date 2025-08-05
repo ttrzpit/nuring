@@ -74,7 +74,7 @@ int main() {
 	shared->Calibration.isCalibrated  = true;
 
 	// Settings
-	shared->Logging.isEnabled	 = true;
+	shared->Logging.isEnabled	 = false;
 	shared->Task.userID			 = 123;
 	shared->Target.isTargetFound = 1;
 
@@ -209,7 +209,7 @@ void SelectTask() {
 			 * 		z = random xy position
 			 * 		v = constant velocity
 			 */
-			shared->Task.command = 'z';
+			shared->Task.command = 'y';
 
 			// Update name and start
 			shared->Task.name = "FITTS";

@@ -26,7 +26,7 @@ void InputClass::ParseInput( int key ) {
 	if ( key != 255 ) {
 
 		// Uncomment to be able to read detected key presses
-		std::cout << "Input:   Detected key press, index = " << key << "\n";
+		// std::cout << "Input:   Detected key press, index = " << key << "\n";
 
 		// Check if binding present
 		if ( keyBindings.count( key ) ) {

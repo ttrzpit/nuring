@@ -180,6 +180,8 @@ void TasksClass::CalibrationFinish() {
 
 void TasksClass::Fitts() {
 
+	shared->Amplifier.isAmplifierActive = true;
+
 	// Initialize if task is not running
 	if ( !shared->Task.isRunning ) {
 
@@ -263,16 +265,64 @@ void TasksClass::FittsFinish() {
 	Timer.TaskTimerStop();
 
 	// Get touchpoint position
-	touchPosition  = cv::Point2i( shared->Touchscreen.positionTouched.x, shared->Touchscreen.positionTouched.y );
-	targetPosition = cv::Point2i( shared->Task.targetPosition.x + ( matAruco01.cols / 2 ), shared->Task.targetPosition.y + ( matAruco01.rows / 2 ) );
+	touchPosition			   = cv::Point2i( shared->Touchscreen.positionTouched.x, shared->Touchscreen.positionTouched.y );
+	targetPosition			   = cv::Point2i( shared->Task.targetPosition.x + ( matAruco01.cols / 2 ), shared->Task.targetPosition.y + ( matAruco01.rows / 2 ) );
+	cv::Point2i targetCenter   = cv::Point2i( shared->Task.targetPosition.x + ( matAruco01.cols / 2 ), shared->Task.targetPosition.y );
+	cv::Point2i principalPoint = cv::Point2i( targetPosition.x - shared->Target.positionFilteredNewMM.x * MM2PX, targetPosition.y + shared->Target.positionFilteredNewMM.y * MM2PX - ( matAruco01.rows / 2 ) );
+
+
+	// Auto gain
+	// AutoGains();
+
+	if ( shared->Target.positionFilteredNewMM.x < -100 ) {
+		shared->Controller.gainKp.abd += 0.4;
+	} else if ( shared->Target.positionFilteredNewMM.x < -20 ) {
+		shared->Controller.gainKp.abd += 0.2;
+	}
+	if ( shared->Target.positionFilteredNewMM.x > 100 ) {
+		shared->Controller.gainKp.add += 0.4;
+	} else if ( shared->Target.positionFilteredNewMM.x > 20 ) {
+		shared->Controller.gainKp.add += 0.2;
+	}
+
+
+	if ( shared->Target.positionFilteredNewMM.y < -100 ) {
+		shared->Controller.gainKp.flx += 0.4;
+	} else if ( shared->Target.positionFilteredNewMM.y < -20 ) {
+		shared->Controller.gainKp.flx += 0.2;
+	}
+	if ( shared->Target.positionFilteredNewMM.y > 100 ) {
+		shared->Controller.gainKp.ext += 0.4;
+	} else if ( shared->Target.positionFilteredNewMM.y > 20 ) {
+		shared->Controller.gainKp.ext += 0.2;
+	}
+
+
+	// Proportional AB+AD / FLEX+EXT
+	// shared->Target.positionFilteredNewMM.x < 0 ? ( shared->Controller.proportionalTerm.x = shared->Controller.gainKp.abd * shared->Target.positionFilteredNewMM.x ) : ( shared->Controller.proportionalTerm.x = shared->Controller.gainKp.add * shared->Target.positionFilteredNewMM.x );
+	// shared->Target.positionFilteredNewMM.y < 0 ? ( shared->Controller.proportionalTerm.y = shared->Controller.gainKp.flx * shared->Target.positionFilteredNewMM.y ) : ( shared->Controller.proportionalTerm.y = shared->Controller.gainKp.ext * shared->Target.positionFilteredNewMM.y );
+
+
+
+	// Draw rect replacing target
+	cv::rectangle( matTaskBackground, cv::Rect( targetPosition.x - matAruco01.cols / 2, targetPosition.y - matAruco01.rows, matAruco01.rows, matAruco01.cols ), CONFIG_colGreLt, -1 );
+	cv::rectangle( matTaskBackground, cv::Rect( targetPosition.x - matAruco01.cols / 2, targetPosition.y - matAruco01.rows, matAruco01.rows, matAruco01.cols ), CONFIG_colGreMd, 2 );
 
 	// Draw marker at touch point
-	cv::circle( matTaskBackground, touchPosition, 10, CONFIG_colBluMd, -1 );
+	cv::circle( matTaskBackground, touchPosition, 5, CONFIG_colBluMd, -1 );
+
+	// Draw marker at camera principal point
+	cv::circle( matTaskBackground, principalPoint, 5, CONFIG_colRedMd, -1 );
+
+	// Draw lines from target to camera principal point at touch
+	cv::line( matTaskBackground, targetCenter, principalPoint, CONFIG_colRedLt, 2 );
+	cv::line( matTaskBackground, cv::Point( targetCenter.x, principalPoint.y ), principalPoint, CONFIG_colRedLt, 2 );
+	cv::line( matTaskBackground, cv::Point( targetCenter.x, principalPoint.y ), cv::Point( targetCenter.x, targetCenter.y ), CONFIG_colRedLt, 2 );
 
 	// Draw lines from target to touch
-	cv::line( matTaskBackground, targetPosition, cv::Point( targetPosition.x, touchPosition.y ), CONFIG_colRedLt, 2 );
-	cv::line( matTaskBackground, cv::Point( targetPosition.x, touchPosition.y ), cv::Point( touchPosition.x, touchPosition.y ), CONFIG_colRedLt, 2 );
-	cv::line( matTaskBackground, targetPosition, touchPosition, CONFIG_colRedMd, 2 );
+	// cv::line( matTaskBackground, targetPosition, cv::Point( targetPosition.x, touchPosition.y ), CONFIG_colRedLt, 2 );
+	// cv::line( matTaskBackground, cv::Point( targetPosition.x, touchPosition.y ), cv::Point( touchPosition.x, touchPosition.y ), CONFIG_colRedLt, 2 );
+	// cv::line( matTaskBackground, targetPosition, touchPosition, CONFIG_colRedMd, 2 );
 
 	// Calculate errors
 	errorPx = cv::Point2i( ( touchPosition.x - targetPosition.x ), ( targetPosition.y - touchPosition.y ) + CONFIG_TARGET_OFFSET_Y_MM * MM2PX );
@@ -284,11 +334,14 @@ void TasksClass::FittsFinish() {
 	std::string line2 = "Task Time: " + std::to_string( shared->Task.elapsedTaskTime ).substr( 0, 5 ) + "s";
 	std::string line3 = "Error[px] X|Y|R: " + std::to_string( errorPx.x ) + "px | " + std::to_string( errorPx.y ) + "px | " + shared->FormatDecimal( shared->GetNorm2D( errorPx ), 0, 1 ) + "px";
 	std::string line4 = "Error[mm] X|Y|R: " + std::to_string( errorMm.x ) + "mm | " + std::to_string( errorMm.y ) + "mm | " + shared->FormatDecimal( shared->GetNorm2D( errorMm ), 0, 1 ) + "mm";
+	std::string line5 = "Principal Point Error[mm] X|Y: " + shared->FormatDecimal( shared->Target.positionFilteredNewMM.x, 0, 0 ) + "mm | " + shared->FormatDecimal( shared->Target.positionFilteredNewMM.y, 0, 0 ) + "mm ";
+
 	cv::putText( matTaskBackground, line0, cv::Point( 10, 70 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
 	cv::putText( matTaskBackground, line1, cv::Point( 10, 100 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
 	cv::putText( matTaskBackground, line2, cv::Point( 10, 130 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
 	cv::putText( matTaskBackground, line3, cv::Point( 10, 160 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
 	cv::putText( matTaskBackground, line4, cv::Point( 10, 190 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
+	cv::putText( matTaskBackground, line5, cv::Point( 10, 220 ), cv::FONT_HERSHEY_SIMPLEX, 0.8, CONFIG_colBlack, 2 );
 
 	// Show updated task field
 	cv::imshow( winTaskBackground, matTaskBackground );
@@ -301,6 +354,16 @@ void TasksClass::FittsFinish() {
 	shared->Task.isRunning = false;
 	shared->Task.name	   = "";
 	shared->Task.state	   = taskEnum::IDLE;
+
+	std::cout << shared->Task.repetitionNumber << ",";
+	std::cout << shared->FormatDecimal( shared->Target.positionFilteredNewMM.x, 1, 0 ) << ",";
+	std::cout << shared->FormatDecimal( shared->Target.positionFilteredNewMM.y, 1, 0 ) << ",";
+	std::cout << shared->FormatDecimal( shared->Task.completionTime, 1, 2 ) << ",";
+	std::cout << shared->FormatDecimal( shared->Controller.gainKp.abd, 1, 1 ) << ",";
+	std::cout << shared->FormatDecimal( shared->Controller.gainKp.add, 1, 1 ) << ",";
+	std::cout << shared->FormatDecimal( shared->Controller.gainKp.ext, 1, 1 ) << ",";
+	std::cout << shared->FormatDecimal( shared->Controller.gainKp.flx, 1, 1 );
+	std::cout << "\n";
 }
 
 
@@ -323,7 +386,7 @@ void TasksClass::FittsGeneratePosition() {
 
 			// Calculate marker position
 			shared->Task.targetPosition.x = minX + ( rand() % ( maxX - minX + 1 ) ) + ( matAruco01.rows / 2 );
-			shared->Task.targetPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) + ( matAruco01.rows / 2 );
+			shared->Task.targetPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) + ( matAruco01.rows / 2 ) + 200;
 
 			// Return
 			shared->Display.statusString = "TasksClass: Generating random X position...";
@@ -390,11 +453,16 @@ void TasksClass::FittsGeneratePosition() {
 		}
 	}
 
+
+
+	if ( shared->Task.command == 'x' )
+		cv::line( matTaskBackground, cv::Point2i( 0, shared->Task.targetPosition.y ), cv::Point2i( 1920, shared->Task.targetPosition.y ), CONFIG_colGreMd, 2 );
 	// Copy target to generated position
-	matAruco01.copyTo( matTaskBackground( cv::Rect( shared->Task.targetPosition.x, shared->Task.targetPosition.y, matAruco01.cols, matAruco01.rows ) ) );
+	matAruco01.copyTo( matTaskBackground( cv::Rect( shared->Task.targetPosition.x, shared->Task.targetPosition.y - ( matAruco01.rows / 2 ), matAruco01.cols, matAruco01.rows ) ) );
+
 
 	// Actual target to prevent occlusion
-	targetPosition = cv::Point2i( shared->Task.targetPosition.x + ( matAruco01.cols / 2 ), shared->Task.targetPosition.y + ( matAruco01.rows / 2 ) );
+	targetPosition = cv::Point2i( shared->Task.targetPosition.x + ( matAruco01.cols / 2 ), shared->Task.targetPosition.y - ( matAruco01.rows / 2 ) );
 	// cv::circle( matTaskBackground, cv::Point2i( targetPosition.x, targetPosition.y + CONFIG_TARGET_OFFSET_Y_MM * MM2PX ), 5 * MM2PX, CONFIG_colGreMd, -1 );
 }
 
@@ -586,3 +654,170 @@ void TasksClass::InitializeInterface( taskEnum task ) {
 		}
 	}
 }
+
+
+
+void TasksClass::AutoGains() {
+
+	// === Auto Gain (Refined Threshold-Based) ===
+	// Called after each touch to adjust gains based on observed error
+
+	// Parameters — tune as needed
+	const float gainStepSmall  = 0.2f;
+	const float gainStepLarge  = 0.4f;
+	const float smallErrThresh = 10.0f;
+	const float largeErrThresh = 100.0f;
+	const float minGain		   = 0.2f;
+	const float maxGain		   = 3.0f;
+
+	// Get current touch error in mm
+	float errX = shared->Target.positionFilteredNewMM.x;	// + = overshoot toward adduction
+	float errY = shared->Target.positionFilteredNewMM.y;	// + = overshoot toward extension
+
+	// // --- Abduction Gain Update ---
+	// if ( errX < -largeErrThresh ) {
+	// 	shared->Controller.gainKp.abd += gainStepLarge;
+	// } else if ( errX < -smallErrThresh ) {
+	// 	shared->Controller.gainKp.abd += gainStepSmall;
+	// } else if ( errX > largeErrThresh ) {
+	// 	shared->Controller.gainKp.abd -= gainStepSmall / 2.0f;
+	// } else if ( errX > smallErrThresh ) {
+	// 	shared->Controller.gainKp.abd -= gainStepSmall / 2.0f;
+	// }
+
+	// // --- Adduction Gain Update ---
+	// if ( errX > largeErrThresh ) {
+	// 	shared->Controller.gainKp.add += gainStepLarge;
+	// } else if ( errX > smallErrThresh ) {
+	// 	shared->Controller.gainKp.add += gainStepSmall;
+	// } else if ( errX < -largeErrThresh ) {
+	// 	shared->Controller.gainKp.add -= gainStepSmall / 2.0f;
+	// } else if ( errX < -smallErrThresh ) {
+	// 	shared->Controller.gainKp.add -= gainStepSmall / 2.0f;
+	// }
+
+	// --- Flexion Gain Update ---
+	if ( errY < -largeErrThresh ) {
+		shared->Controller.gainKp.flx += gainStepLarge;
+	} else if ( errY < -smallErrThresh ) {
+		shared->Controller.gainKp.flx += gainStepSmall;
+	} else if ( errY > largeErrThresh ) {
+		shared->Controller.gainKp.flx -= gainStepSmall / 2.0f;
+	} else if ( errY > smallErrThresh ) {
+		shared->Controller.gainKp.flx -= gainStepSmall / 2.0f;
+	}
+
+	// --- Extension Gain Update ---
+	if ( errY > largeErrThresh ) {
+		shared->Controller.gainKp.ext += gainStepLarge;
+	} else if ( errY > smallErrThresh ) {
+		shared->Controller.gainKp.ext += gainStepSmall;
+	} else if ( errY < -largeErrThresh ) {
+		shared->Controller.gainKp.ext -= gainStepSmall / 2.0f;
+	} else if ( errY < -smallErrThresh ) {
+		shared->Controller.gainKp.ext -= gainStepSmall / 2.0f;
+	}
+
+	// Clamp all gains to stay within valid bounds
+	// shared->Controller.gainKp.abd = std::clamp( shared->Controller.gainKp.abd, minGain, maxGain );
+	// shared->Controller.gainKp.add = std::clamp( shared->Controller.gainKp.add, minGain, maxGain );
+	shared->Controller.gainKp.flx = std::clamp( shared->Controller.gainKp.flx, minGain, maxGain );
+	shared->Controller.gainKp.ext = std::clamp( shared->Controller.gainKp.ext, minGain, maxGain );
+}
+
+
+// auto tuning
+
+
+// /**
+//  * @brief Generate position of target marker based on shared->Tasks.command
+//  *
+//  */
+// void TasksClass::FittsGeneratePosition() {
+
+// 	// Select generation type
+// 	switch ( shared->Task.command ) {
+
+// 		// Generate random marker position on X axis
+// 		case 'x': {
+
+// 			// Calculate marker boundaries
+// 			minX = CONFIG_TOUCHSCREEN_EXCLUSION_ZONE;
+// 			maxX = CONFIG_TOUCHSCREEN_WIDTH_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 72;
+
+// 			// Calculate marker position
+// 			shared->Task.targetPosition.x = minX + ( rand() % ( maxX - minX + 1 ) ) + ( matAruco01.rows / 2 );
+// 			shared->Task.targetPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) + ( matAruco01.rows / 2 );
+
+// 			// Return
+// 			shared->Display.statusString = "TasksClass: Generating random X position...";
+// 			break;
+// 		}
+
+// 		// Generate random marker position on Y axis
+// 		case 'y': {
+
+// 			// Calculate marker boundaries
+// 			minY = 0 + 72;
+// 			maxY = CONFIG_TOUCHSCREEN_HEIGHT_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 93;
+
+// 			// Calculate marker position
+// 			shared->Task.targetPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) + ( matAruco01.rows / 2 );
+// 			shared->Task.targetPosition.y = minY + ( rand() % ( maxY - minY + 1 ) ) + ( matAruco01.rows / 2 );
+
+// 			// Return
+// 			shared->Display.statusString = "TasksClass: Generating random Y position...";
+// 			break;
+// 		}
+
+// 		// Generate random marker position on XY plane
+// 		case 'z': {
+
+// 			// Calculate marker boundaries
+// 			minX = 0 + CONFIG_TOUCHSCREEN_EXCLUSION_ZONE;
+// 			maxX = CONFIG_TOUCHSCREEN_WIDTH_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 72;
+// 			minY = 0 + 72;
+// 			maxY = CONFIG_TOUCHSCREEN_HEIGHT_PX - CONFIG_TOUCHSCREEN_EXCLUSION_ZONE - 93;
+
+// 			// Calculate marker position
+// 			shared->Task.targetPosition.x = minX + ( rand() % ( maxX - minX + 1 ) ) - matAruco01.cols / 2;
+// 			shared->Task.targetPosition.y = minY + ( rand() % ( maxY - minY + 1 ) ) - ( matAruco01.rows / 2 );
+
+// 			// Return
+// 			shared->Display.statusString = "TasksClass: Generating random XY position...";
+// 			break;
+// 		}
+
+// 		// Generate marker moving at constant velocity
+// 		case 'v': {
+
+// 			shared->Display.statusString = "TasksClass: Generating constant velocity marker...";
+// 			break;
+// 		}
+
+// 		// Generate marker at center
+// 		case 'c': {
+
+// 			// Dead center
+// 			shared->Task.targetPosition.x = ( CONFIG_TOUCHSCREEN_WIDTH_PX / 2 ) - ( matAruco01.rows / 2 );
+// 			shared->Task.targetPosition.y = ( CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 ) - ( matAruco01.rows );
+// 			shared->Display.statusString  = "TasksClass: Generating marker at center...";
+// 			// Return
+// 			break;
+// 		}
+
+// 		// Default case for error
+// 		default: {
+
+// 			shared->Display.statusString = "TasksClass: Incorrect Fitts axis request!";
+// 			break;
+// 		}
+// 	}
+
+// 	// Copy target to generated position
+// 	matAruco01.copyTo( matTaskBackground( cv::Rect( shared->Task.targetPosition.x, shared->Task.targetPosition.y, matAruco01.cols, matAruco01.rows ) ) );
+
+// 	// Actual target to prevent occlusion
+// 	targetPosition = cv::Point2i( shared->Task.targetPosition.x + ( matAruco01.cols / 2 ), shared->Task.targetPosition.y + ( matAruco01.rows / 2 ) );
+// 	// cv::circle( matTaskBackground, cv::Point2i( targetPosition.x, targetPosition.y + CONFIG_TARGET_OFFSET_Y_MM * MM2PX ), 5 * MM2PX, CONFIG_colGreMd, -1 );
+// }

@@ -38,6 +38,8 @@ private:
 	// Capture variables
 	cv::VideoCapture Capture;
 
+
 	// Private functions
-	void Initialize();
+	void		Initialize();
+	
 };

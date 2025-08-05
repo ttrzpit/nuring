@@ -38,6 +38,12 @@ inline constexpr unsigned short CONFIG_DIS_KEY_HEIGHT	   = 1360;
 inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 50;	// 20
 inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 30;	// 20
 
+// Display log shortcut panel
+inline constexpr unsigned short CONFIG_DIS_LOG_WIDTH	   = 301;
+inline constexpr unsigned short CONFIG_DIS_LOG_HEIGHT	   = 1360;
+inline constexpr unsigned short CONFIG_DIS_LOG_CELL_WIDTH  = 50;	// 20
+inline constexpr unsigned short CONFIG_DIS_LOG_CELL_HEIGHT = 30;	// 20
+
 // 3D visualization
 inline constexpr unsigned short CONFIG_DIS_VIZ_WIDTH  = 1540;	 // 20
 inline constexpr unsigned short CONFIG_DIS_VIZ_HEIGHT = 1360;	 // 20

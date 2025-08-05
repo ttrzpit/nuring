@@ -34,7 +34,7 @@ public:
 	void Calibration();
 	void Fitts();
 	void Limits();
-
+	void AutoGains();
 
 private:
 	// Data manager handle
@@ -91,4 +91,12 @@ private:
 
 	// General
 	void InitializeInterface( taskEnum task );
+
+
+
+	//
+	void AutoGainsStart();
+	void AutoGainsUpdate();
+	void AutoGainsFinish();
+	void AutoGainsGenerateTarget();
 };

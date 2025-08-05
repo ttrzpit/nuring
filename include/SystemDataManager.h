@@ -96,6 +96,13 @@ struct ArUcoStruct {
 	// bool isArUcoTagFound = false;
 };
 
+struct RunningLogStruct {
+
+	uint8_t runNumber = 0; 
+	uint8_t runErrX = 0 ; 
+	
+};
+
 struct CaptureStruct {
 	bool	rotateCamera = false;
 	bool	isFrameReady = false;

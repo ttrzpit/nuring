@@ -270,7 +270,7 @@ void SerialClass::SendPacketToTeensy() {
 			outgoingPacket.reverseToggle = 0;
 		}
 
-		// outgoingPacket.reverseToggle = 0;
+		outgoingPacket.reverseToggle = 0;
 	}
 
 	// Compute checksum

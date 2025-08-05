@@ -30,6 +30,8 @@ DisplayClass::DisplayClass( SystemDataManager& ctx )
 		fontBody	   = 0.45f;
 		key_fontHeader = 0.45f;
 		key_fontBody   = 0.4f;
+		log_fontHeader = 0.45f;
+		log_fontBody   = 0.4f;
 	}
 	std::cout << "DisplayClass: Display initialized.\n";
 }
@@ -75,10 +77,16 @@ void DisplayClass::Update() {
 	AddCameraElements();
 
 	// Add PID elements
-	AddPidElements();
+	// AddPidElements();
+
+	// Add gain elements
+	AddGainElements();
 
 	// Add text
 	BuildReadoutInterface();
+
+	// Add log
+	// BuildLogInterface();
 
 	// Show interface
 	ShowInterface();
@@ -128,7 +136,7 @@ void DisplayClass::BuildReadoutInterface() {
 	DrawCellBorder( "Z1", 15, 10, 2, CONFIG_colWhite );	   // Amplifier
 	DrawCellBorder( "AO1", 10, 8, 2, CONFIG_colWhite );	   // Task
 	DrawCellBorder( "A9", 25, 2, 2, CONFIG_colWhite );	   // System status text
-	DrawCellBorder( "I8", 2, 1, 2, CONFIG_colWhite );	   // System flags: Limits
+	DrawCellBorder( "I8", 3, 1, 2, CONFIG_colWhite );	   // System flags: Limits
 	DrawCellBorder( "P8", 6, 1, 2, CONFIG_colWhite );	   // System flags: Serial
 	DrawCellBorder( "AO9", 10, 2, 2, CONFIG_colWhite );	   // Serial packets
 
@@ -194,6 +202,76 @@ void DisplayClass::ShowInterface() {
  */
 
 
+void DisplayClass::BuildLogInterface() {
+
+
+	// Create window
+	cv::namedWindow( winChecklist, cv::WINDOW_AUTOSIZE );
+	cv::moveWindow( winChecklist, 3440 - CONFIG_DIS_WIDTH - CONFIG_DIS_KEY_WIDTH - CONFIG_DIS_LOG_WIDTH - 6, 0 );
+
+	// Log info
+	// Run Number, Error X , Error Y, Time
+	DrawChecklistCell( "#", "A1", 1, 1, log_fontBody, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawChecklistCell( "ErrX", "B1", 2, 1, log_fontBody, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawChecklistCell( "ErrY", "D1", 2, 1, log_fontBody, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawChecklistCell( "|Err|", "F1", 2, 1, log_fontBody, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawChecklistCell( "Time", "H1", 2, 1, log_fontBody, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawChecklistCell( "Abb", "J1", 1, 1, log_fontBody, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawChecklistCell( "Add", "K1", 1, 1, log_fontBody, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawChecklistCell( "Ext", "L1", 1, 1, log_fontBody, CONFIG_colWhite, CONFIG_colGraDk, true );
+	DrawChecklistCell( "Flx", "M1", 1, 1, log_fontBody, CONFIG_colWhite, CONFIG_colGraDk, true );
+
+	// DrawChecklistCell( "Establish serial connection", "A1", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "Set tensioning values", "A2", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Tension motor A", "A3", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Tension motor B", "A4", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Tension motor C", "A5", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Stop tensioning", "A6", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "Set torque limits", "A7", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Set torque limit A", "A8", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Set torque limit B", "A9", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Set torque limit C", "A10", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Zero torque limits", "A11", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "Start Fitts task", "A12", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "Tune PID controller", "A13", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Adjust proportional gain", "A14", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Adjust integral gain", "A15", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Adjust derivative gain", "A16", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Select abduction direction", "A17", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Select adduction direction", "A18", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Select extension direction", "A19", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Select flexion direction", "A20", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+	// DrawChecklistCell( "   Zero all gains", "A21", 5, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, false );
+
+	// DrawChecklistCell( "s", "F1", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "t", "F2", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "=", "F3", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "/", "F4", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "*", "F5", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "t", "F6", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "0", "F7", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "7", "F8", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "9", "F9", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "5", "F10", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "f", "F11", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "CR", "F12", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "", "F13", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "p", "F14", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "i", "F15", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "d", "F16", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "4", "F17", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "6", "F18", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "8", "F19", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( "2", "F20", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	// DrawChecklistCell( ".", "F21", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+
+
+	// Display window
+	cv::imshow( winChecklist, matChecklist );
+}
+
+
+
 /**
  * @brief Add camera elements to the main display
  * 
@@ -246,76 +324,119 @@ void DisplayClass::AddCameraElements() {
 }
 
 
-void DisplayClass::AddPidElements() {
+
+void DisplayClass::AddGainElements() {
+
+	// Gains viz
+	// cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x, center.y + shared->Controller.gainKp.ext * 20 ), CONFIG_colBluLt, 4 );
+
 
 	// PID Variables
-	uint8_t		rad = 80;
-	cv::Point2i centerProp( 1500, 100 );
-	cv::Point2i centerInt( 1500, 300 );
-	cv::Point2i centerDeriv( 1500, 500 );
-	cv::Point2i propA = cv::Point2i( centerProp.x + shared->Controller.percentageProportional.x * COS35 * rad, centerProp.y - shared->Controller.percentageProportional.x * SIN35 * rad );
-	cv::Point2i propB = cv::Point2i( centerProp.x + shared->Controller.percentageProportional.y * COS145 * rad, centerProp.y - shared->Controller.percentageProportional.y * SIN145 * rad );
-	cv::Point2i propC = cv::Point2i( centerProp.x + shared->Controller.percentageProportional.z * COS270 * rad, centerProp.y - shared->Controller.percentageProportional.z * SIN270 * rad );
-	cv::Point2i intA  = cv::Point2i( centerInt.x + shared->Controller.percentageIntegral.x * COS35 * rad, centerInt.y - shared->Controller.percentageIntegral.x * SIN35 * rad );
-	cv::Point2i intB  = cv::Point2i( centerInt.x + shared->Controller.percentageIntegral.y * COS145 * rad, centerInt.y - shared->Controller.percentageIntegral.y * SIN145 * rad );
-	cv::Point2i intC  = cv::Point2i( centerInt.x + shared->Controller.percentageIntegral.z * COS270 * rad, centerInt.y - shared->Controller.percentageIntegral.z * SIN270 * rad );
-	cv::Point2i derA  = cv::Point2i( centerDeriv.x + shared->Controller.percentageDerivative.x * COS35 * rad, centerDeriv.y - shared->Controller.percentageDerivative.x * SIN35 * rad );
-	cv::Point2i derB  = cv::Point2i( centerDeriv.x + shared->Controller.percentageDerivative.y * COS145 * rad, centerDeriv.y - shared->Controller.percentageDerivative.y * SIN145 * rad );
-	cv::Point2i derC  = cv::Point2i( centerDeriv.x + shared->Controller.percentageDerivative.z * COS270 * rad, centerDeriv.y - shared->Controller.percentageDerivative.z * SIN270 * rad );
+	uint8_t		rad = 100;
+	cv::Point2i center( 1480, 120 );
+	cv::Point2i gainAbd = cv::Point2i( center.x - shared->Controller.gainKp.abd * rad / 4, center.y );
+	cv::Point2i gainAdd = cv::Point2i( center.x + shared->Controller.gainKp.add * rad / 4, center.y );
+	cv::Point2i gainExt = cv::Point2i( center.x, center.y - shared->Controller.gainKp.ext * rad / 4 );
+	cv::Point2i gainFlx = cv::Point2i( center.x, center.y + shared->Controller.gainKp.flx * rad / 4 );
 
 	// Base Prop
-	cv::circle( shared->Display.matFrameOverlay, centerProp, rad, CONFIG_colGraBk, -1 );
-	cv::line( shared->Display.matFrameOverlay, centerProp, cv::Point2i( centerProp.x + rad * COS35, centerProp.y - rad * SIN35 ), CONFIG_colGraMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerProp, cv::Point2i( centerProp.x + rad * COS145, centerProp.y - rad * SIN145 ), CONFIG_colGraMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerProp, cv::Point2i( centerProp.x + rad * COS270, centerProp.y - rad * SIN270 ), CONFIG_colGraMd, 2 );
+	cv::circle( shared->Display.matFrameOverlay, center, rad, CONFIG_colGraBk, -1 );
+	cv::circle( shared->Display.matFrameOverlay, center, rad / 4, CONFIG_colGraMd, 1 );
+	cv::line( shared->Display.matFrameOverlay, cv::Point2i( center.x - rad, center.y ), cv::Point2i( center.x + rad, center.y ), CONFIG_colGraMd, 1 );
+	cv::line( shared->Display.matFrameOverlay, cv::Point2i( center.x, center.y - rad ), cv::Point2i( center.x, center.y + rad ), CONFIG_colGraMd, 1 );
+
+
 
 	// Components Prop
-	cv::line( shared->Display.matFrameOverlay, centerProp, propA, CONFIG_colCyaMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerProp, propB, CONFIG_colCyaMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerProp, propC, CONFIG_colCyaMd, 2 );
-	cv::circle( shared->Display.matFrameOverlay, propA, 5, CONFIG_colCyaMd, -1 );
-	cv::circle( shared->Display.matFrameOverlay, propB, 5, CONFIG_colCyaMd, -1 );
-	cv::circle( shared->Display.matFrameOverlay, propC, 5, CONFIG_colCyaMd, -1 );
+	cv::line( shared->Display.matFrameOverlay, center, gainAbd, CONFIG_colCyaMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, center, gainAdd, CONFIG_colCyaMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, center, gainFlx, CONFIG_colCyaMd, 2 );
+	cv::line( shared->Display.matFrameOverlay, center, gainExt, CONFIG_colCyaMd, 2 );
+	// cv::line( shared->Display.matFrameOverlay, centerProp, propB, CONFIG_colCyaMd, 2 );
+	// cv::line( shared->Display.matFrameOverlay, centerProp, propC, CONFIG_colCyaMd, 2 );
+	// cv::circle( shared->Display.matFrameOverlay, propA, 5, CONFIG_colCyaMd, -1 );
+	// cv::circle( shared->Display.matFrameOverlay, propB, 5, CONFIG_colCyaMd, -1 );
+	// cv::circle( shared->Display.matFrameOverlay, propC, 5, CONFIG_colCyaMd, -1 );
 
 	// Outline Prop
-	cv::circle( shared->Display.matFrameOverlay, centerProp, rad, CONFIG_colGraMd, 2 );
 
-
-	// Base Int
-	cv::circle( shared->Display.matFrameOverlay, centerInt, rad, CONFIG_colGraBk, -1 );
-	cv::line( shared->Display.matFrameOverlay, centerInt, cv::Point2i( centerInt.x + rad * COS35, centerInt.y - rad * SIN35 ), CONFIG_colGraMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerInt, cv::Point2i( centerInt.x + rad * COS145, centerInt.y - rad * SIN145 ), CONFIG_colGraMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerInt, cv::Point2i( centerInt.x + rad * COS270, centerInt.y - rad * SIN270 ), CONFIG_colGraMd, 2 );
-
-	// Components Int
-	cv::line( shared->Display.matFrameOverlay, centerInt, intA, CONFIG_colYelMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerInt, intB, CONFIG_colYelMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerInt, intC, CONFIG_colYelMd, 2 );
-	cv::circle( shared->Display.matFrameOverlay, intA, 5, CONFIG_colYelMd, -1 );
-	cv::circle( shared->Display.matFrameOverlay, intB, 5, CONFIG_colYelMd, -1 );
-	cv::circle( shared->Display.matFrameOverlay, intC, 5, CONFIG_colYelMd, -1 );
-
-	// Outline Int
-	cv::circle( shared->Display.matFrameOverlay, centerInt, rad, CONFIG_colGraMd, 2 );
-
-
-	// Base Deriv
-	cv::circle( shared->Display.matFrameOverlay, centerDeriv, rad, CONFIG_colGraBk, -1 );
-	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS35, centerDeriv.y - rad * SIN35 ), CONFIG_colGraMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS145, centerDeriv.y - rad * SIN145 ), CONFIG_colGraMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS270, centerDeriv.y - rad * SIN270 ), CONFIG_colGraMd, 2 );
-
-	// Components Deriv
-	cv::line( shared->Display.matFrameOverlay, centerDeriv, derA, CONFIG_colRedMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerDeriv, derB, CONFIG_colRedMd, 2 );
-	cv::line( shared->Display.matFrameOverlay, centerDeriv, derC, CONFIG_colRedMd, 2 );
-	cv::circle( shared->Display.matFrameOverlay, derA, 5, CONFIG_colRedMd, -1 );
-	cv::circle( shared->Display.matFrameOverlay, derB, 5, CONFIG_colRedMd, -1 );
-	cv::circle( shared->Display.matFrameOverlay, derC, 5, CONFIG_colRedMd, -1 );
-
-	// Outline Deriv
-	cv::circle( shared->Display.matFrameOverlay, centerDeriv, rad, CONFIG_colGraMd, 2 );
+	cv::circle( shared->Display.matFrameOverlay, center, rad, CONFIG_colGraMd, 2 );
 }
+
+// void DisplayClass::AddPidElements() {
+
+// 		// Gains viz
+// 		cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x, center.y + shared->Controller.gainKp.ext * 20 ), CONFIG_colBluLt, 4 );
+
+
+// 	// PID Variables
+// 	uint8_t		rad = 80;
+// 	cv::Point2i centerProp( 1500, 100 );
+// 	cv::Point2i centerInt( 1500, 300 );
+// 	cv::Point2i centerDeriv( 1500, 500 );
+// 	cv::Point2i propA = cv::Point2i( centerProp.x + shared->Controller.percentageProportional.x * COS35 * rad, centerProp.y - shared->Controller.percentageProportional.x * SIN35 * rad );
+// 	cv::Point2i propB = cv::Point2i( centerProp.x + shared->Controller.percentageProportional.y * COS145 * rad, centerProp.y - shared->Controller.percentageProportional.y * SIN145 * rad );
+// 	cv::Point2i propC = cv::Point2i( centerProp.x + shared->Controller.percentageProportional.z * COS270 * rad, centerProp.y - shared->Controller.percentageProportional.z * SIN270 * rad );
+// 	cv::Point2i intA  = cv::Point2i( centerInt.x + shared->Controller.percentageIntegral.x * COS35 * rad, centerInt.y - shared->Controller.percentageIntegral.x * SIN35 * rad );
+// 	cv::Point2i intB  = cv::Point2i( centerInt.x + shared->Controller.percentageIntegral.y * COS145 * rad, centerInt.y - shared->Controller.percentageIntegral.y * SIN145 * rad );
+// 	cv::Point2i intC  = cv::Point2i( centerInt.x + shared->Controller.percentageIntegral.z * COS270 * rad, centerInt.y - shared->Controller.percentageIntegral.z * SIN270 * rad );
+// 	cv::Point2i derA  = cv::Point2i( centerDeriv.x + shared->Controller.percentageDerivative.x * COS35 * rad, centerDeriv.y - shared->Controller.percentageDerivative.x * SIN35 * rad );
+// 	cv::Point2i derB  = cv::Point2i( centerDeriv.x + shared->Controller.percentageDerivative.y * COS145 * rad, centerDeriv.y - shared->Controller.percentageDerivative.y * SIN145 * rad );
+// 	cv::Point2i derC  = cv::Point2i( centerDeriv.x + shared->Controller.percentageDerivative.z * COS270 * rad, centerDeriv.y - shared->Controller.percentageDerivative.z * SIN270 * rad );
+
+// 	// Base Prop
+// 	cv::circle( shared->Display.matFrameOverlay, centerProp, rad, CONFIG_colGraBk, -1 );
+// 	cv::line( shared->Display.matFrameOverlay, centerProp, cv::Point2i( centerProp.x + rad * COS35, centerProp.y - rad * SIN35 ), CONFIG_colGraMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerProp, cv::Point2i( centerProp.x + rad * COS145, centerProp.y - rad * SIN145 ), CONFIG_colGraMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerProp, cv::Point2i( centerProp.x + rad * COS270, centerProp.y - rad * SIN270 ), CONFIG_colGraMd, 2 );
+
+// 	// Components Prop
+// 	cv::line( shared->Display.matFrameOverlay, centerProp, propA, CONFIG_colCyaMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerProp, propB, CONFIG_colCyaMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerProp, propC, CONFIG_colCyaMd, 2 );
+// 	cv::circle( shared->Display.matFrameOverlay, propA, 5, CONFIG_colCyaMd, -1 );
+// 	cv::circle( shared->Display.matFrameOverlay, propB, 5, CONFIG_colCyaMd, -1 );
+// 	cv::circle( shared->Display.matFrameOverlay, propC, 5, CONFIG_colCyaMd, -1 );
+
+// 	// Outline Prop
+// 	cv::circle( shared->Display.matFrameOverlay, centerProp, rad, CONFIG_colGraMd, 2 );
+
+
+// 	// Base Int
+// 	cv::circle( shared->Display.matFrameOverlay, centerInt, rad, CONFIG_colGraBk, -1 );
+// 	cv::line( shared->Display.matFrameOverlay, centerInt, cv::Point2i( centerInt.x + rad * COS35, centerInt.y - rad * SIN35 ), CONFIG_colGraMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerInt, cv::Point2i( centerInt.x + rad * COS145, centerInt.y - rad * SIN145 ), CONFIG_colGraMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerInt, cv::Point2i( centerInt.x + rad * COS270, centerInt.y - rad * SIN270 ), CONFIG_colGraMd, 2 );
+
+// 	// Components Int
+// 	cv::line( shared->Display.matFrameOverlay, centerInt, intA, CONFIG_colYelMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerInt, intB, CONFIG_colYelMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerInt, intC, CONFIG_colYelMd, 2 );
+// 	cv::circle( shared->Display.matFrameOverlay, intA, 5, CONFIG_colYelMd, -1 );
+// 	cv::circle( shared->Display.matFrameOverlay, intB, 5, CONFIG_colYelMd, -1 );
+// 	cv::circle( shared->Display.matFrameOverlay, intC, 5, CONFIG_colYelMd, -1 );
+
+// 	// Outline Int
+// 	cv::circle( shared->Display.matFrameOverlay, centerInt, rad, CONFIG_colGraMd, 2 );
+
+
+// 	// Base Deriv
+// 	cv::circle( shared->Display.matFrameOverlay, centerDeriv, rad, CONFIG_colGraBk, -1 );
+// 	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS35, centerDeriv.y - rad * SIN35 ), CONFIG_colGraMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS145, centerDeriv.y - rad * SIN145 ), CONFIG_colGraMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerDeriv, cv::Point2i( centerDeriv.x + rad * COS270, centerDeriv.y - rad * SIN270 ), CONFIG_colGraMd, 2 );
+
+// 	// Components Deriv
+// 	cv::line( shared->Display.matFrameOverlay, centerDeriv, derA, CONFIG_colRedMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerDeriv, derB, CONFIG_colRedMd, 2 );
+// 	cv::line( shared->Display.matFrameOverlay, centerDeriv, derC, CONFIG_colRedMd, 2 );
+// 	cv::circle( shared->Display.matFrameOverlay, derA, 5, CONFIG_colRedMd, -1 );
+// 	cv::circle( shared->Display.matFrameOverlay, derB, 5, CONFIG_colRedMd, -1 );
+// 	cv::circle( shared->Display.matFrameOverlay, derC, 5, CONFIG_colRedMd, -1 );
+
+// 	// Outline Deriv
+// 	cv::circle( shared->Display.matFrameOverlay, centerDeriv, rad, CONFIG_colGraMd, 2 );
+// }
 
 
 
@@ -433,11 +554,8 @@ void DisplayClass::AddTextController() {
 void DisplayClass::AddTextSystem() {
 
 	// System Flags
-	DrawCell( shared->Amplifier.isLimitSet ? "Limited" : "No Limit", "I8", 2, 1, fontHeader, CONFIG_colWhite, shared->Amplifier.isLimitSet ? CONFIG_colGreBk : CONFIG_colRedBk, true );
-	DrawCell( "Calib:", "K8", 2, 1, fontHeader, CONFIG_colWhite, shared->Calibration.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
-	DrawCell( std::to_string( shared->Calibration.calibratedOffetMM.x ), "M8", 1, 1, fontHeader * 0.65f, CONFIG_colWhite, shared->Calibration.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
-	DrawCell( std::to_string( shared->Calibration.calibratedOffetMM.y ), "N8", 1, 1, fontHeader * 0.65f, CONFIG_colWhite, shared->Calibration.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
-	DrawCell( std::to_string( shared->Calibration.calibratedOffetMM.z ), "O8", 1, 1, fontHeader * 0.65f, CONFIG_colWhite, shared->Calibration.isCalibrated ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( shared->Amplifier.isLimitSet ? "Limited" : "No Limit", "I8", 3, 1, fontHeader, CONFIG_colWhite, shared->Amplifier.isLimitSet ? CONFIG_colGreBk : CONFIG_colRedBk, true );
+	DrawCell( shared->Logging.isEnabled ? "Logging On" : "Logging Off", "L8", 4, 1, fontHeader, CONFIG_colWhite, shared->Logging.isEnabled ? CONFIG_colGreBk : CONFIG_colRedBk, true );
 	DrawCell( "Teensy In", "P8", 3, 1, fontHeader, CONFIG_colWhite, shared->Serial.isSerialReceiveOpen ? CONFIG_colGreBk : CONFIG_colRedBk, true );
 	DrawCell( "Teensy Out", "S8", 3, 1, fontHeader, CONFIG_colWhite, shared->Serial.isSerialSendOpen ? CONFIG_colGreBk : CONFIG_colRedBk, true );
 
@@ -566,6 +684,7 @@ void DisplayClass::AddTextMotorOutput() {
 	limC = shared->Amplifier.commandedLimits.z * motorR;
 
 
+
 	// Motor limits
 	if ( shared->Controller.isLimitSet ) {
 		cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS35 * limA, center.y - SIN35 * limA ), CONFIG_colGraDk, 10 );
@@ -577,6 +696,7 @@ void DisplayClass::AddTextMotorOutput() {
 	cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS35 * motorR, center.y - SIN35 * motorR ), CONFIG_colGraLt, 1 );
 	cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x + COS145 * motorR, center.y - SIN145 * motorR ), CONFIG_colGraLt, 1 );
 	cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * motorR ), CONFIG_colGraLt, 1 );
+
 
 
 	// /// Lines connecting motor pairs
@@ -600,6 +720,8 @@ void DisplayClass::AddTextMotorOutput() {
 		cv::line( shared->Display.matFrameOverlay, center, cv::Point2i( center.x, center.y - SIN270 * ( shared->Amplifier.measuredPwmPercentC * motorR ) ), CONFIG_colBluMd, 4 );
 	}
 
+
+
 	// Axis labels
 	cv::putText( shared->Display.matFrameOverlay, "A", cv::Point2i( center.x + 58, center.y - 25 ), cv::FONT_HERSHEY_SIMPLEX, 0.5f, CONFIG_colRedLt, 1 );
 	cv::putText( shared->Display.matFrameOverlay, "B", cv::Point2i( center.x - 67, center.y - 25 ), cv::FONT_HERSHEY_SIMPLEX, 0.5f, CONFIG_colGreLt, 1 );
@@ -611,20 +733,24 @@ void DisplayClass::AddTextMotorOutput() {
 
 
 	// Encoder output block
-	DrawCell( "", "AI9", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawCell( "", "AM9", 2, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawCell( "", "AI9", 6, 2, fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
-	cv::Point2i encoderB( 1120, 1332 );
-	cv::Point2i encoderC( 1184, 1332 );
-	cv::Point2i encoderA( 1248, 1332 );
-	uint8_t		radEnc = 14;
-	// Angle lines
-	cv::line( shared->Display.matFrameOverlay, encoderA, cv::Point2i( encoderA.x + cos( shared->Amplifier.encoderMeasuredDegA * DEG2RAD * -1 ) * radEnc, encoderA.y + sin( shared->Amplifier.encoderMeasuredDegA * DEG2RAD * -1 ) * radEnc ), CONFIG_colRedLt, 2 );
-	cv::line( shared->Display.matFrameOverlay, encoderB, cv::Point2i( encoderB.x + cos( shared->Amplifier.encoderMeasuredDegB * DEG2RAD ) * radEnc, encoderB.y + sin( shared->Amplifier.encoderMeasuredDegB * DEG2RAD ) * radEnc ), CONFIG_colGreLt, 2 );
-	cv::line( shared->Display.matFrameOverlay, encoderC, cv::Point2i( encoderC.x + cos( shared->Amplifier.encoderMeasuredDegC * DEG2RAD ) * radEnc, encoderC.y + sin( shared->Amplifier.encoderMeasuredDegC * DEG2RAD ) * radEnc ), CONFIG_colBluLt, 2 );
-	cv::circle( shared->Display.matFrameOverlay, encoderA, 18, CONFIG_colGraDk, 2 );
-	cv::circle( shared->Display.matFrameOverlay, encoderB, 18, CONFIG_colGraDk, 2 );
-	cv::circle( shared->Display.matFrameOverlay, encoderC, 18, CONFIG_colGraDk, 2 );
+	// // Draw motor power box
+	// cv::rectangle( shared->Display.matFrameOverlay, cv::Rect( 1100, 1320, 170, 26 ), CONFIG_colBluLt, 2 );
+
+
+
+	// cv::Point2i encoderB( 1120, 1332 );
+	// cv::Point2i encoderC( 1184, 1332 );
+	// cv::Point2i encoderA( 1248, 1332 );
+	// uint8_t		radEnc = 14;
+	// // Angle lines
+	// cv::line( shared->Display.matFrameOverlay, encoderA, cv::Point2i( encoderA.x + cos( shared->Amplifier.encoderMeasuredDegA * DEG2RAD * -1 ) * radEnc, encoderA.y + sin( shared->Amplifier.encoderMeasuredDegA * DEG2RAD * -1 ) * radEnc ), CONFIG_colRedLt, 2 );
+	// cv::line( shared->Display.matFrameOverlay, encoderB, cv::Point2i( encoderB.x + cos( shared->Amplifier.encoderMeasuredDegB * DEG2RAD ) * radEnc, encoderB.y + sin( shared->Amplifier.encoderMeasuredDegB * DEG2RAD ) * radEnc ), CONFIG_colGreLt, 2 );
+	// cv::line( shared->Display.matFrameOverlay, encoderC, cv::Point2i( encoderC.x + cos( shared->Amplifier.encoderMeasuredDegC * DEG2RAD ) * radEnc, encoderC.y + sin( shared->Amplifier.encoderMeasuredDegC * DEG2RAD ) * radEnc ), CONFIG_colBluLt, 2 );
+	// cv::circle( shared->Display.matFrameOverlay, encoderA, 18, CONFIG_colGraDk, 2 );
+	// cv::circle( shared->Display.matFrameOverlay, encoderB, 18, CONFIG_colGraDk, 2 );
+	// cv::circle( shared->Display.matFrameOverlay, encoderC, 18, CONFIG_colGraDk, 2 );
 }
 
 
@@ -1023,43 +1149,43 @@ void DisplayClass::DrawChecklistCell( std::string str, std::string cell0, short 
 
 	// Check if using double letters (e.g., AA, AB)
 	if ( std::isalpha( cell0[0] ) && !std::isalpha( cell0[1] ) ) {	  // Only one letter
-		key_c0 = ( cell0[0] - 'A' ) * key_WIDTH;
-		key_r0 = ( 1 ) + ( ( std::stoi( cell0.substr( 1 ) ) - 1 ) * key_HEIGHT - 1 );
-		key_rH = height * key_HEIGHT;
-		key_cW = width * key_WIDTH;
+		log_c0 = ( cell0[0] - 'A' ) * log_WIDTH;
+		log_r0 = ( 1 ) + ( ( std::stoi( cell0.substr( 1 ) ) - 1 ) * log_HEIGHT - 1 );
+		log_rH = height * log_HEIGHT;
+		log_cW = width * log_WIDTH;
 	} else if ( std::isalpha( cell0[0] ) && std::isalpha( cell0[1] ) ) {	// Two letters)
-		key_c0 = ( 26 + ( cell0[1] - 'A' ) ) * key_WIDTH;
-		key_r0 = ( 1 ) + ( ( std::stoi( cell0.substr( 2 ) ) - 1 ) * key_HEIGHT - 1 );
-		key_rH = height * key_HEIGHT;
-		key_cW = width * key_WIDTH;
+		log_c0 = ( 26 + ( cell0[1] - 'A' ) ) * log_WIDTH;
+		log_r0 = ( 1 ) + ( ( std::stoi( cell0.substr( 2 ) ) - 1 ) * log_HEIGHT - 1 );
+		log_rH = height * log_HEIGHT;
+		log_cW = width * log_WIDTH;
 	}
 
 
 	// Draw cell frame
-	cv::rectangle( matChecklist, cv::Rect( key_c0, key_r0, key_cW, key_rH ), fillColor, -1 );
-	cv::rectangle( matChecklist, cv::Rect( key_c0, key_r0, key_cW + 1, key_rH + 1 ), CONFIG_colWhite, 1 );
+	cv::rectangle( matChecklist, cv::Rect( log_c0, log_r0, log_cW, log_rH ), fillColor, -1 );
+	cv::rectangle( matChecklist, cv::Rect( log_c0, log_r0, log_cW + 1, log_rH + 1 ), CONFIG_colWhite, 1 );
 
 	// Calculate text dimensions
-	if ( sz >= key_fontHeader ) {
-		key_textSize = cv::getTextSize( str, cv::FONT_HERSHEY_DUPLEX, sz, 1, 0 );
+	if ( sz >= log_fontHeader ) {
+		log_textSize = cv::getTextSize( str, cv::FONT_HERSHEY_DUPLEX, sz, 1, 0 );
 	} else {
-		key_textSize = cv::getTextSize( str, cv::FONT_HERSHEY_SIMPLEX, sz, 1, 0 );
+		log_textSize = cv::getTextSize( str, cv::FONT_HERSHEY_SIMPLEX, sz, 1, 0 );
 	}
 
 	// Calculate position for center
 	if ( centered ) {
-		key_textX = key_c0 + ( key_cW - key_textSize.width ) / 2;
-		key_textY = key_r0 + ( key_rH + key_textSize.height ) / 2 - 1;	  //+ ( cH - textSize.height ) / 2;
+		log_textX = log_c0 + ( log_cW - log_textSize.width ) / 2;
+		log_textY = log_r0 + ( log_rH + log_textSize.height ) / 2 - 1;	  //+ ( cH - textSize.height ) / 2;
 	} else {
-		key_textX = key_c0 + 10;
-		key_textY = key_r0 + ( key_rH + key_textSize.height ) / 2 - 1;	  //+ ( cH - textSize.height ) / 2;
+		log_textX = log_c0 + 10;
+		log_textY = log_r0 + ( log_rH + log_textSize.height ) / 2 - 1;	  //+ ( cH - textSize.height ) / 2;
 	}
 
 	// Place text
-	if ( sz >= key_fontHeader ) {
-		cv::putText( matChecklist, str, cv::Point( key_textX, key_textY ), cv::FONT_HERSHEY_DUPLEX, sz, textColor, 1 );
+	if ( sz >= log_fontHeader ) {
+		cv::putText( matChecklist, str, cv::Point( log_textX, log_textY ), cv::FONT_HERSHEY_DUPLEX, sz, textColor, 1 );
 	} else {
-		cv::putText( matChecklist, str, cv::Point( key_textX, key_textY ), cv::FONT_HERSHEY_SIMPLEX, sz, textColor, 1 );
+		cv::putText( matChecklist, str, cv::Point( log_textX, log_textY ), cv::FONT_HERSHEY_SIMPLEX, sz, textColor, 1 );
 	}
 }
 
