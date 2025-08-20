@@ -99,4 +99,6 @@ private:
 	void AutoGainsUpdate();
 	void AutoGainsFinish();
 	void AutoGainsGenerateTarget();
+
+	void LiveCalibrationHorizontal() ;
 };

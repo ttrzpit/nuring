@@ -821,3 +821,10 @@ void TasksClass::AutoGains() {
 // 	targetPosition = cv::Point2i( shared->Task.targetPosition.x + ( matAruco01.cols / 2 ), shared->Task.targetPosition.y + ( matAruco01.rows / 2 ) );
 // 	// cv::circle( matTaskBackground, cv::Point2i( targetPosition.x, targetPosition.y + CONFIG_TARGET_OFFSET_Y_MM * MM2PX ), 5 * MM2PX, CONFIG_colGreMd, -1 );
 // }
+
+
+
+void TasksClass::LiveCalibrationHorizontal() { 
+
+	
+}
