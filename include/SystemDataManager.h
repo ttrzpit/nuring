@@ -98,9 +98,8 @@ struct ArUcoStruct {
 
 struct RunningLogStruct {
 
-	uint8_t runNumber = 0; 
-	uint8_t runErrX = 0 ; 
-	
+	uint8_t runNumber = 0;
+	uint8_t runErrX	  = 0;
 };
 
 struct CaptureStruct {

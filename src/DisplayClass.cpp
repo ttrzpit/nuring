@@ -878,7 +878,7 @@ void DisplayClass::BuildKeyboardShortcuts() {
 	DrawKeyCell( "n0", "F33", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawKeyCell( "nCR", "F34", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 	DrawKeyCell( "r", "F35", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
-	DrawKeyCell( "q", "F35", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
+	DrawKeyCell( "q", "F36", 1, 1, key_fontBody, CONFIG_colWhite, CONFIG_colBlack, true );
 
 
 	// Display window

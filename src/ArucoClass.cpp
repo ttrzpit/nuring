@@ -115,7 +115,7 @@ void ArucoClass::FindTags() {
 							shared->Target.cornersPX[2] = cv::Point2i( currentCorner[0][2].x, currentCorner[0][2].y );
 							shared->Target.cornersPX[3] = cv::Point2i( currentCorner[0][3].x, currentCorner[0][3].y );
 
-							// Update 3D real-world coordinates
+							// Update telemetry / 3D real-world coordinates
 							shared->Target.positionUnfilteredMM = cv::Point3f( arucoTranslationVector[0][0], -arucoTranslationVector[0][1], arucoTranslationVector[0][2] );
 							shared->Target.rotationDEG			= arucoRotationVector[0][1] * RAD2DEG;
 						}

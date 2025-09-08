@@ -1,17 +1,13 @@
 // Library for managing interrupt signals
 #include <csignal>
 
-// Data manager for exclusive read/write
-#include "include/SystemDataManager.h"
-
 // Configuration files
 #include "include/config.h"
 
-// System data manager object handle
-SystemDataManager dataHandle;
-
-// Handle to shared data
-auto shared = dataHandle.getData();
+// Data manager for exclusive read/write
+#include "include/SystemDataManager.h"
+SystemDataManager dataHandle;						// System data manager object handle
+auto			  shared = dataHandle.getData();	// Handle to shared data
 
 // Custom class objects
 #include "include/ArucoClass.h"
@@ -26,7 +22,7 @@ auto shared = dataHandle.getData();
 #include "include/TimingClass.h"
 #include "include/TouchscreenClass.h"
 
-// New class objects
+
 // New class objects
 CaptureClass	 Capture( dataHandle );					  // Camera capture
 ArucoClass		 Aruco( dataHandle );					  // Aruco detector
@@ -209,7 +205,7 @@ void SelectTask() {
 			 * 		z = random xy position
 			 * 		v = constant velocity
 			 */
-			shared->Task.command = 'y';
+			shared->Task.command = 'z';
 
 			// Update name and start
 			shared->Task.name = "FITTS";

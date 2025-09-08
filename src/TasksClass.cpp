@@ -826,5 +826,8 @@ void TasksClass::AutoGains() {
 
 void TasksClass::LiveCalibrationHorizontal() { 
 
-	
+
 }
+
+
+

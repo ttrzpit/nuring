@@ -80,16 +80,52 @@ inline const cv::Mat CONFIG_DISTORTION_COEFFS = ( cv::Mat_<double>( 1, 5 ) << 0.
 
 #elif HIGH_RESOLUTION == 0
 
+inline constexpr short CONFIG_LARGE_MARKER_WIDTH = 20;	  // [mm] Marker dimension
+// inline constexpr short CONFIG_LARGE_MARKER_WIDTH  = 30;	   // [mm] Marker dimension
+inline constexpr short CONFIG_MEDIUM_MARKER_WIDTH = 20;
+inline constexpr short CONFIG_SMALL_MARKER_WIDTH  = 8;
+inline constexpr short CONFIG_RING_MARKER_WIDTH	  = 15;
+inline constexpr short CONFIG_TARGET_OFFSET_Y_MM  = 35;
+
 // Config name
 inline const std::string CONFIG_TYPE = "LowResolution";
 
 // Display properties
-inline constexpr unsigned short CONFIG_DIS_WIDTH		   = 1280;
-inline constexpr unsigned short CONFIG_DIS_HEIGHT		   = 1200;
-inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH	   = 32;
-inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT	   = 30;
-inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 80;	// 20
-inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 40;	// 20
+inline constexpr unsigned short CONFIG_PANEL_HEIGHT	   = 1100;
+inline constexpr unsigned short CONFIG_DIS_WIDTH	   = 1600;
+inline constexpr unsigned short CONFIG_DIS_HEIGHT	   = 1360;
+inline constexpr unsigned short CONFIG_DIS_CELL_WIDTH  = 32;	// 32
+inline constexpr unsigned short CONFIG_DIS_CELL_HEIGHT = 26;	// 26
+
+// Display keyboard shortcut panel
+inline constexpr unsigned short CONFIG_DIS_KEY_WIDTH	   = 301;
+inline constexpr unsigned short CONFIG_DIS_KEY_HEIGHT	   = 1360;
+inline constexpr unsigned short CONFIG_DIS_KEY_CELL_WIDTH  = 50;	// 20
+inline constexpr unsigned short CONFIG_DIS_KEY_CELL_HEIGHT = 30;	// 20
+
+// Display log shortcut panel
+inline constexpr unsigned short CONFIG_DIS_LOG_WIDTH	   = 301;
+inline constexpr unsigned short CONFIG_DIS_LOG_HEIGHT	   = 1360;
+inline constexpr unsigned short CONFIG_DIS_LOG_CELL_WIDTH  = 50;	// 20
+inline constexpr unsigned short CONFIG_DIS_LOG_CELL_HEIGHT = 30;	// 20
+
+// 3D visualization
+inline constexpr unsigned short CONFIG_DIS_VIZ_WIDTH  = 1540;	 // 20
+inline constexpr unsigned short CONFIG_DIS_VIZ_HEIGHT = 1360;	 // 20
+
+inline constexpr unsigned short CONFIG_DIS_ANGLE_WIDTH	= 1540;	   // 20
+inline constexpr unsigned short CONFIG_DIS_ANGLE_HEIGHT = 1360;	   // 20
+inline constexpr unsigned short CONFIG_FIELD_WIDTH_PX	= 802;	   // 20
+inline constexpr unsigned short CONFIG_FIELD_LENGTH_PX	= 510;	   // 1110
+
+inline constexpr unsigned short CONFIG_TOUCHSCREEN_WIDTH_PX	 = 1920;
+inline constexpr unsigned short CONFIG_TOUCHSCREEN_HEIGHT_PX = 1080;
+inline const cv::Point2i		CONFIG_TOUCHSCREEN_CENTER	 = cv::Point2i( CONFIG_TOUCHSCREEN_WIDTH_PX / 2, CONFIG_TOUCHSCREEN_HEIGHT_PX / 2 );
+
+inline constexpr unsigned short CONFIG_TOUCHSCREEN_EXCLUSION_ZONE = 93;
+inline constexpr unsigned short CONFIG_TOUCHSCREEN_MARKER_SIZE	  = CONFIG_LARGE_MARKER_WIDTH;
+
+
 
 // Camera intrinsic parameters
 inline constexpr unsigned short CONFIG_CAM_WIDTH	   = 1280;
@@ -97,6 +133,8 @@ inline constexpr unsigned short CONFIG_CAM_HEIGHT	   = 960;
 inline constexpr unsigned short CONFIG_CAM_FRAMERATE   = 90;
 inline constexpr unsigned short CONFIG_CAM_PRINCIPAL_X = 637;
 inline constexpr unsigned short CONFIG_CAM_PRINCIPAL_Y = 429;
+inline const cv::Point2i		CONFIG_CAM_CENTER	   = cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y );
+
 
 // Declare matrices (defined in `config.cpp`)
 inline const cv::Mat CONFIG_CAMERA_MATRIX	  = ( cv::Mat_<double>( 3, 3 ) << 473.78479, 0.00000, 637.39461, 0.00000, 472.53074, 428.80961, 0.00000, 0.00000, 1.00000 );
@@ -132,25 +170,25 @@ inline std::string CONFIG_SERIAL_PORT_1 = "/dev/ttyACM1";
 #define COS270 0.00000
 
 
-// Camera properties
-inline constexpr short			CONFIG_CAM_BRIGHTNESS		 = 0;		 // 0
-inline constexpr unsigned short CONFIG_CAM_CONTRAST			 = 0;		 // 0
-inline constexpr unsigned short CONFIG_CAM_SATURATION		 = 32;		 // 56
-inline constexpr short			CONFIG_CAM_HUE				 = 0;		 // 0
-inline constexpr bool			CONFIG_CAM_AUTO_WHITEBALANCE = false;	 // false
-inline constexpr unsigned short CONFIG_CAM_GAMMA			 = 120;		 // 60 110 200
-inline constexpr unsigned short CONFIG_CAM_GAIN				 = 18;		 // 6 10
-inline constexpr unsigned short CONFIG_CAM_POWERLINE_FREQ	 = 2;		 // 2
-inline constexpr unsigned short CONFIG_CAM_WHITEBALANCE_TEMP = 4600;	 // 4600
-inline constexpr unsigned short CONFIG_CAM_SHARPNESS		 = 0;		 // 0
-inline constexpr unsigned short CONFIG_CAM_BACKLIGHT		 = 0;		 //54
-inline constexpr unsigned short CONFIG_CAM_AUTO_EXPOSURE	 = 0;		 // 0
-inline constexpr unsigned short CONFIG_CAM_EXPOSURE_LEVEL	 = 32;		 //32
-inline constexpr int			CONFIG_CAM_PAN				 = 0;		 // 0
-inline constexpr int			CONFIG_CAM_TILT				 = 0;		 // 0
-inline constexpr unsigned short CONFIG_CAM_FOCUS_LEVEL		 = 0;		 // 0
-inline constexpr bool			CONFIG_CAM_AUTO_FOCUS		 = 0;		 // 0
-inline constexpr unsigned short CONFIG_CAM_ZOOM				 = 0;		 // 0
+// Camera propertiesy
+inline constexpr short			CONFIG_CAM_BRIGHTNESS		 = 0;		 // Default 0
+inline constexpr unsigned short CONFIG_CAM_CONTRAST			 = 0;		 // Default 0
+inline constexpr unsigned short CONFIG_CAM_SATURATION		 = 32;		 // Default 56
+inline constexpr short			CONFIG_CAM_HUE				 = 0;		 // Default 0
+inline constexpr bool			CONFIG_CAM_AUTO_WHITEBALANCE = false;	 // Default 1
+inline constexpr unsigned short CONFIG_CAM_GAMMA			 = 120;		 // Default 110
+inline constexpr unsigned short CONFIG_CAM_GAIN				 = 18;		 // Default 0
+inline constexpr unsigned short CONFIG_CAM_POWERLINE_FREQ	 = 2;		 // Default 0
+inline constexpr unsigned short CONFIG_CAM_WHITEBALANCE_TEMP = 4600;	 // Default 4600
+inline constexpr unsigned short CONFIG_CAM_SHARPNESS		 = 0;		 // Default 0
+inline constexpr unsigned short CONFIG_CAM_BACKLIGHT		 = 0;		 // Default 54
+inline constexpr unsigned short CONFIG_CAM_AUTO_EXPOSURE	 = 1;		 // Default 3   1 = manual, 2 = shutter priority, 3 = aperature priority
+inline constexpr unsigned short CONFIG_CAM_EXPOSURE_LEVEL	 = 32;		 // Default 32
+inline constexpr int			CONFIG_CAM_PAN				 = 0;		 // Default 0
+inline constexpr int			CONFIG_CAM_TILT				 = 0;		 // Default 0
+inline constexpr unsigned short CONFIG_CAM_FOCUS_LEVEL		 = 0;		 // Default 0
+inline constexpr bool			CONFIG_CAM_AUTO_FOCUS		 = 0;		 // Default 1
+inline constexpr unsigned short CONFIG_CAM_ZOOM				 = 0;		 // Default 0
 
 // Declare colors (defined in `config.cpp`)
 extern const cv::Scalar CONFIG_colRedMd, CONFIG_colRedLt, CONFIG_colRedDk, CONFIG_colRedBk, CONFIG_colRedWt;
