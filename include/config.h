@@ -14,9 +14,9 @@
 #if HIGH_RESOLUTION == 1
 
 // Marker constants
-inline constexpr short CONFIG_LARGE_MARKER_WIDTH = 20;	  // [mm] Marker dimension
+inline constexpr short CONFIG_LARGE_MARKER_WIDTH = 18;	  // [mm] Marker dimension
 // inline constexpr short CONFIG_LARGE_MARKER_WIDTH  = 30;	   // [mm] Marker dimension
-inline constexpr short CONFIG_MEDIUM_MARKER_WIDTH = 20;
+inline constexpr short CONFIG_MEDIUM_MARKER_WIDTH = 80;
 inline constexpr short CONFIG_SMALL_MARKER_WIDTH  = 8;
 inline constexpr short CONFIG_RING_MARKER_WIDTH	  = 15;
 inline constexpr short CONFIG_TARGET_OFFSET_Y_MM  = 35;
@@ -65,7 +65,7 @@ inline constexpr unsigned short CONFIG_TOUCHSCREEN_MARKER_SIZE	  = CONFIG_LARGE_
 // Camera intrinsic parameters
 inline constexpr unsigned short CONFIG_CAM_WIDTH	   = 1600;
 inline constexpr unsigned short CONFIG_CAM_HEIGHT	   = 1200;
-inline constexpr unsigned short CONFIG_CAM_FRAMERATE   = 90;
+inline constexpr unsigned short CONFIG_CAM_FRAMERATE   = 60;
 inline constexpr unsigned short CONFIG_CAM_PRINCIPAL_X = 801;
 inline constexpr unsigned short CONFIG_CAM_PRINCIPAL_Y = 536;
 inline const cv::Point2i		CONFIG_CAM_CENTER	   = cv::Point2i( CONFIG_CAM_PRINCIPAL_X, CONFIG_CAM_PRINCIPAL_Y );

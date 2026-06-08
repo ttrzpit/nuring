@@ -14,7 +14,6 @@
 #define AMPLIFIER_PIN_PWM_A 7
 #define AMPLIFIER_PIN_PWM_B 8
 #define AMPLIFIER_PIN_PWM_C 25
-#define AMPLIFIER_PIN_PWM_C 25
 
 // LED pins
 #define LED_PIN_READY 30

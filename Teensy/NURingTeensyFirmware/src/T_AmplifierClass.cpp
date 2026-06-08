@@ -267,7 +267,7 @@ void T_AmplifierClass::Update() {
 		// Drive through PWM
 		case stateEnum::DRIVING_PWM: {
 
-				// Drive PWM
+			// Drive PWM
 			DrivePWM();
 			// }
 

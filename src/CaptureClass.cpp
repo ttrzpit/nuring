@@ -5,7 +5,14 @@
 // System data manager
 #include "SystemDataManager.h"
 
-// Constructor
+
+/**
+ * @class CaptureClass
+ * @brief Handles camera capture functionality.
+ * 
+ * This class is responsible for capturing frames from the camera.
+ * It interacts with the SystemDataManager to store and retrieve data.
+ */
 CaptureClass::CaptureClass( SystemDataManager& ctx )
 	: dataHandle( ctx )
 	, shared( ctx.getData() ) {
@@ -22,7 +29,12 @@ void CaptureClass::Initialize() {
 	cv::setUseOptimized( true );
 
 	// Initialize undistort map tool
-	cv::initUndistortRectifyMap( CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, cv::Mat(), CONFIG_CAMERA_MATRIX, shared->Capture.frameRaw.size(), CV_32F, shared->Capture.matRemap1, shared->Capture.matRemap2 );
+	// cv::initUndistortRectifyMap( CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, cv::Mat(), CONFIG_CAMERA_MATRIX, shared->Capture.frameRaw.size(), CV_32F, shared->Capture.matRemap1, shared->Capture.matRemap2 );
+
+	cv::Size sz( CONFIG_CAM_WIDTH, CONFIG_CAM_HEIGHT );
+	cv::initUndistortRectifyMap( CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, cv::Mat(), CONFIG_CAMERA_MATRIX, sz, CV_32FC1, shared->Capture.matRemap1, shared->Capture.matRemap2 );
+
+
 
 	// Try catch to open camera device
 	try {
@@ -90,7 +102,7 @@ void CaptureClass::GetFrame() {
 		shared->Capture.GpuMatRemap2.upload( shared->Capture.matRemap2 );
 
 		// Remap using GPU
-		cv::cuda::remap( shared->Capture.GpuMatFrameRaw, shared->Capture.GpuMatFrameUndistorted, shared->Capture.GpuMatRemap1, shared->Capture.GpuMatRemap2, cv::INTER_NEAREST );
+		cv::cuda::remap( shared->Capture.GpuMatFrameRaw, shared->Capture.GpuMatFrameUndistorted, shared->Capture.GpuMatRemap1, shared->Capture.GpuMatRemap2, cv::INTER_LINEAR );
 
 		// Convert to grayscale using GPU
 		cv::cuda::cvtColor( shared->Capture.GpuMatFrameUndistorted, shared->Capture.GpuMatFrameGray, cv::COLOR_BGR2GRAY );
@@ -109,11 +121,18 @@ void CaptureClass::GetFrame() {
 
 
 		// brightness: shift (beta), contrast: scale (alpha)
-		double alpha = 1.4;	   // contrast (1.0 = no change)
+		double alpha = 1.3;	   // contrast (1.0 = no change)
 		double beta	 = 100;	   // brightness (0 = no change)
 
 		// // Apply contrast and brightness adjustment
-		shared->Capture.frameGray.convertTo( shared->Capture.frameGray, -1, alpha, beta );
+		// shared->Capture.frameGray.convertTo( shared->Capture.frameGray, -1, alpha, beta );
+
+		cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE( 2.0, cv::Size( 8, 8 ) );
+		clahe->apply( shared->Capture.frameGray, shared->Capture.frameGray );
+
+
+		// cv::bitwise_not(shared->Capture.frameGray, shared->Capture.frameGray);
+		// cv::imshow( "Gray Frame", shared->Capture.frameGray );
 
 		// Update flag
 		shared->Capture.isFrameReady = true;

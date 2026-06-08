@@ -26,18 +26,20 @@ void ArucoClass::Initialize() {
 	arucoDictionary = cv::aruco::getPredefinedDictionary( cv::aruco::DICT_4X4_50 );
 
 	// Assign ArUco detector parameters
-	arucoDetectorParams.adaptiveThreshConstant		  = 12;									// 7
+	arucoDetectorParams.adaptiveThreshConstant		  = 7;									// 7
 	arucoDetectorParams.adaptiveThreshWinSizeMin	  = 3;									// 3  KEEP THIS
-	arucoDetectorParams.adaptiveThreshWinSizeMax	  = 23;									// 13	KEEP THIS
-	arucoDetectorParams.adaptiveThreshWinSizeStep	  = 10;									// 10
-	arucoDetectorParams.minMarkerPerimeterRate		  = 0.03;								// 0.03
+	arucoDetectorParams.adaptiveThreshWinSizeMax	  = 53;									// 13	KEEP THIS
+	arucoDetectorParams.adaptiveThreshWinSizeStep	  = 4;									// 10
+	arucoDetectorParams.minMarkerPerimeterRate		  = 0.01;								// 0.03
 	arucoDetectorParams.maxMarkerPerimeterRate		  = 4.0;								// 4.0 Not critical
-	arucoDetectorParams.polygonalApproxAccuracyRate	  = 0.15;								// 0.15
-	arucoDetectorParams.minCornerDistanceRate		  = 0.05;								// 0.05
-	arucoDetectorParams.minDistanceToBorder			  = 3;									// 3
+	arucoDetectorParams.polygonalApproxAccuracyRate	  = 0.03;								// 0.15
+	arucoDetectorParams.minCornerDistanceRate		  = 0.02;								// 0.05
+	arucoDetectorParams.minDistanceToBorder			  = 1;									// 3
 	arucoDetectorParams.cornerRefinementMethod		  = cv::aruco::CORNER_REFINE_SUBPIX;	// cv::aruco::CORNER_REFINE_SUBPIX;
-	arucoDetectorParams.cornerRefinementMaxIterations = 30;									// 30
-	arucoDetectorParams.cornerRefinementMinAccuracy	  = 0.1;								// 0.1
+	arucoDetectorParams.cornerRefinementMaxIterations = 50;									// 30
+	arucoDetectorParams.cornerRefinementMinAccuracy	  = 0.01;
+	// arucoDetectorParams.useAruco3Detection			  = true;
+	arucoDetectorParams.detectInvertedMarker = true;	// 0.1
 
 	// Re-initialize detector
 	arucoDetector = cv::aruco::ArucoDetector( arucoDictionary, arucoDetectorParams );
@@ -94,7 +96,10 @@ void ArucoClass::FindTags() {
 							std::vector<std::vector<cv::Point2f>> currentCorner = { arucoCorners[i] };
 
 							// Estimate tag pose formarkers in the valid range
-							cv::aruco::estimatePoseSingleMarkers( currentCorner, CONFIG_LARGE_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
+							// cv::aruco::estimatePoseSingleMarkers( currentCorner, CONFIG_LARGE_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, CONFIG_DISTORTION_COEFFS, arucoRotationVector, arucoTranslationVector );
+
+							cv::Mat distZero = cv::Mat::zeros( CONFIG_DISTORTION_COEFFS.size(), CONFIG_DISTORTION_COEFFS.type() );
+							cv::aruco::estimatePoseSingleMarkers( currentCorner, CONFIG_LARGE_MARKER_WIDTH, CONFIG_CAMERA_MATRIX, distZero, arucoRotationVector, arucoTranslationVector );
 
 							if ( arucoTranslationVector.empty() ) {
 								continue;

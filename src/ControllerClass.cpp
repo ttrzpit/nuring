@@ -90,17 +90,8 @@ void ControllerClass::Update() {
 }
 
 
-void ControllerClass::UpdateVibrotactile() {
-
-	float rXY = shared->GetNorm2D( cv::Point2f( shared->Target.positionFilteredNewMM.x, shared->Target.positionFilteredNewMM.y ) );
-	if ( shared->Target.isTargetFound && shared->Amplifier.isAmplifierActive && rXY <= 20.0f ) {
-		shared->Vibration.isRunning = true;
-	} else {
-		shared->Vibration.isRunning = false;
-	}
-}
-
-
+void ControllerClass::UpdateVibrotactile() {}
+	
 void ControllerClass::UpdateAmplifier() {
 
 	// Update current value

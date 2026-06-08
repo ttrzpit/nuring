@@ -23,6 +23,26 @@ auto			  shared = dataHandle.getData();	// Handle to shared data
 #include "include/TouchscreenClass.h"
 
 
+
+/**
+ * @class ArucoClass
+ * @brief Detects ArUco markers in the captured frames.
+ * 
+ * This class processes frames captured by CaptureClass to detect
+ * ArUco markers and updates the system state accordingly.
+ */
+
+/**
+ * @class TasksClass
+ * @brief Manages the execution of system tasks.
+ * 
+ * This class coordinates the execution of various tasks, such as
+ * calibration, limit measurement, and Fitts' law experiments.
+ * 
+ * @note Depends on TimingClass and LoggingClass.
+ */
+
+
 // New class objects
 CaptureClass	 Capture( dataHandle );					  // Camera capture
 ArucoClass		 Aruco( dataHandle );					  // Aruco detector
@@ -61,7 +81,7 @@ bool FLAG_PrintState		   = false;
 int main() {
 
 	// Reverse type
-	shared->Amplifier.isReverseConstant = true;	   // ( constant = 1 )
+	shared->Amplifier.isReverseConstant = false;	// ( constant = 1 )
 
 
 	// Testing
